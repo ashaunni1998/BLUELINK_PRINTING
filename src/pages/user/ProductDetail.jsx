@@ -517,54 +517,119 @@ console.log(id);
   </p> */}
 
   {/* Sizes */}
-  {product.size?.length > 0 && (
-    <div style={{ marginBottom: "16px" }}>
-      <h3 style={{ fontSize: "18px", fontWeight: "600", marginBottom: "6px" }}>Available Sizes</h3>
-      <ul style={{ margin: 0, paddingLeft: "20px", fontSize: "15px", color: "#444" }}>
-        {product.size.map((s, i) => (
-          <li key={i}>
-            {s.name}: {s.size.width} x {s.size.height}
-          </li>
-        ))}
-      </ul>
-    </div>
-  )}
+{/* Sizes */}
+{product.size?.length > 0 && (
+  <div style={{ marginBottom: "16px" }}>
+    <h3 style={{ fontSize: "18px", fontWeight: "600", marginBottom: "6px" }}>
+      Available Sizes
+    </h3>
+    <select
+      onChange={(e) =>
+        setSelectedSize(product.size.find((s) => s.name === e.target.value))
+      }
+      style={{
+        width: "100%",
+        padding: "8px",
+        borderRadius: "6px",
+        border: "1px solid #ccc",
+        fontSize: "15px",
+      }}
+    >
+      <option value="">Select size</option>
+      {product.size.map((s, i) => (
+        <option key={i} value={s.name}>
+          {s.name}: {s.size.width} x {s.size.height}
+        </option>
+      ))}
+    </select>
+  </div>
+)}
 
-  {/* Paper */}
-  {product.paper?.length > 0 && (
-    <div style={{ marginBottom: "16px" }}>
-      <h3 style={{ fontSize: "18px", fontWeight: "600", marginBottom: "6px" }}>Paper Options</h3>
-      <ul style={{ margin: 0, paddingLeft: "20px", fontSize: "15px", color: "#444" }}>
-        {product.paper.map((p, i) => (
-          <li key={i}>{p.name} - {p.points.join(", ")}</li>
-        ))}
-      </ul>
-    </div>
-  )}
+{/* Paper */}
+{product.paper?.length > 0 && (
+  <div style={{ marginBottom: "16px" }}>
+    <h3 style={{ fontSize: "18px", fontWeight: "600", marginBottom: "6px" }}>
+      Paper Options
+    </h3>
+    <select
+      onChange={(e) =>
+        setSelectedPaper(product.paper.find((p) => p.name === e.target.value))
+      }
+      style={{
+        width: "100%",
+        padding: "8px",
+        borderRadius: "6px",
+        border: "1px solid #ccc",
+        fontSize: "15px",
+      }}
+    >
+      <option value="">Select paper</option>
+      {product.paper.map((p, i) => (
+        <option key={i} value={p.name}>
+          {p.name} - {p.points.join(", ")}
+        </option>
+      ))}
+    </select>
+  </div>
+)}
 
-  {/* Finish */}
-  {product.finish?.length > 0 && (
-    <div style={{ marginBottom: "16px" }}>
-      <h3 style={{ fontSize: "18px", fontWeight: "600", marginBottom: "6px" }}>Finish</h3>
-      <ul style={{ margin: 0, paddingLeft: "20px", fontSize: "15px", color: "#444" }}>
-        {product.finish.map((f, i) => (
-          <li key={i}><strong>{f.name}</strong>: {f.description}</li>
-        ))}
-      </ul>
-    </div>
-  )}
+{/* Finish */}
+{product.finish?.length > 0 && (
+  <div style={{ marginBottom: "16px" }}>
+    <h3 style={{ fontSize: "18px", fontWeight: "600", marginBottom: "6px" }}>
+      Finish
+    </h3>
+    <select
+      onChange={(e) =>
+        setSelectedFinish(product.finish.find((f) => f.name === e.target.value))
+      }
+      style={{
+        width: "100%",
+        padding: "8px",
+        borderRadius: "6px",
+        border: "1px solid #ccc",
+        fontSize: "15px",
+      }}
+    >
+      <option value="">Select finish</option>
+      {product.finish.map((f, i) => (
+        <option key={i} value={f.name}>
+          {f.name} - {f.description}
+        </option>
+      ))}
+    </select>
+  </div>
+)}
 
-  {/* Corners */}
-  {product.corner?.length > 0 && (
-    <div style={{ marginBottom: "16px" }}>
-      <h3 style={{ fontSize: "18px", fontWeight: "600", marginBottom: "6px" }}>Corners</h3>
-      <ul style={{ margin: 0, paddingLeft: "20px", fontSize: "15px", color: "#444" }}>
-        {product.corner.map((c, i) => (
-          <li key={i}><strong>{c.name}</strong>: {c.description}</li>
-        ))}
-      </ul>
-    </div>
-  )}
+{/* Corners */}
+{product.corner?.length > 0 && (
+  <div style={{ marginBottom: "16px" }}>
+    <h3 style={{ fontSize: "18px", fontWeight: "600", marginBottom: "6px" }}>
+      Corners
+    </h3>
+    <select
+      onChange={(e) =>
+        setSelectedCorner(product.corner.find((c) => c.name === e.target.value))
+      }
+      style={{
+        width: "100%",
+        padding: "8px",
+        borderRadius: "6px",
+        border: "1px solid #ccc",
+        fontSize: "15px",
+      }}
+    >
+      <option value="">Select corner</option>
+      {product.corner.map((c, i) => (
+        <option key={i} value={c.name}>
+          {c.name} - {c.description}
+        </option>
+      ))}
+    </select>
+  </div>
+)}
+
+
 
   {/* Add to Cart */}
   <button
