@@ -21,7 +21,7 @@ import Home from "./pages/user/Home";
 import Cart from "./pages/user/Cart";
 import Wishlist from "./pages/user/Wishlist";
 import SignUp from "./pages/user/SignUp";
-import SignIn from "./pages/user/Signin";
+import Signin from "./pages/user/Signin";
 import ForgotPassword from "./pages/user/ForgotPassword";
 import ResetPassword from "./pages/user/ResetPassword";
 import VerifyOtp from "./pages/user/VerifyOtp";
@@ -76,6 +76,8 @@ import Sample from "./pages/user/Sample";
 import CropImage from "./pages/user/CropImage.jsx";
 import CustomerRequirement from "./pages/user/CustomerRequirement.jsx";
 import UploadDesign from "./pages/user/UploadDesign.jsx";
+import Failure from './pages/user/Failure.jsx';
+
 
 import { AuthProvider } from './context/AuthContext.jsx';
 import { TranslateProvider } from './context/TranslateProvider.jsx';
@@ -104,7 +106,7 @@ function App() {
           <Route path="/verify-otp" element={<VerifyOtp />} />
           <Route path="/emailverification" element={<EmailVerificationPage />} />
 
-            <Route path="/sign-in" element={<SignIn />} />
+            <Route path="/sign-in" element={<Signin />} />
             <Route path="/businessCard" element={<BusinessCards />} />
           <Route path="/businesscardDetails" element={<BusinessCardDetails />} />
           <Route path="/superbusinessCard" element={<SuperBusinessCards />} />
@@ -131,6 +133,9 @@ function App() {
           <Route path="/buttonbadgesdetails" element={<ButtonBadgesDetail />} />
           <Route path="/cropimage" element={<CropImage />} />
           <Route path="/customer-requirement" element={<CustomerRequirement />} />
+          <Route path='/failure' element={<Failure/>}/>
+
+
 
             {/* ✅ Wrap checkout with Stripe Elements */}
             <Route

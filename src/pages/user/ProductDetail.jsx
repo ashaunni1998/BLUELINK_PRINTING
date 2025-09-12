@@ -25,6 +25,7 @@ export default function ProductDetail() {
   const [rating, setRating] = useState(0);
   const [reviewText, setReviewText] = useState('');
   const [showReviews, setShowReviews] = useState(false);
+const [selectedPaper, setSelectedPaper] = useState(null);
 
 
 
@@ -47,7 +48,9 @@ const [croppedImages, setCroppedImages] = useState({ front: null, back: null });
 const [showContactModal, setShowContactModal] = useState(false);
 const [showScratchModal, setShowScratchModal] = useState(false);
 const [showGuideline, setShowGuideline] = useState(false);
-
+const [uploadedImage, setUploadedImage] = useState(null);
+  const [customText, setCustomText] = useState("");
+ const [submittedText, setSubmittedText] = useState(null);
 
   // ✅ add this hook at the top of your file
 function useMediaQuery(query) {
@@ -299,6 +302,35 @@ const handleUploadSubmit = () => {
   }
   alert("Design submitted successfully!");
 };
+
+
+
+const handlePersonalisedUpload = (e) => {
+  const file = e.target.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setUploadedImage(reader.result); // base64 data
+    };
+    reader.readAsDataURL(file);
+  }
+};
+
+  // ✅ handle submit
+  const handletextSubmit = () => {
+    if (!customText.trim()) {
+      alert("Please enter some text before submitting!");
+      return;
+    }
+
+    // Here you could POST to backend instead of just setting state
+    // fetch(`${API_BASE_URL}/customText`, { method: "POST", body: JSON.stringify({ productId: id, text: customText }) })
+
+    setSubmittedText(customText);
+    setCustomText(""); // clear input
+  };
+
+
   // ---- STYLES ----
   const styles = {
     container: { backgroundColor: "#f8f9fa", minHeight: "100vh" },
@@ -404,6 +436,25 @@ const fileLabelStyle = {
   if (error) return <p style={{ textAlign: "center", color: "red", padding: "40px" }}>{error}</p>;
   if (!product) return <p style={{ textAlign: "center", padding: "40px" }}>Product not found.</p>;
 console.log(id);
+
+
+ // ✅ prevent crash if product not yet loaded
+  if (!product) {
+    return <div>Loading product...</div>;
+  }
+
+  // ✅ safely extract category name
+  const categoryName = Array.isArray(product?.category)
+    ? product.category[0]
+    : typeof product?.category === "object"
+    ? product.category?.name
+    : product?.category;
+
+  const isPersonalisedGift =
+    typeof categoryName === "string" &&
+    categoryName.toLowerCase() === "personalized gifts";
+
+
   return (
     <div style={styles.container}>
       <div className="responsive-container">
@@ -653,7 +704,145 @@ console.log(id);
   </button>
 </div>
 
-</div>
+{/* Personalised Gift Upload */}
+{isPersonalisedGift && (
+  <div
+    style={{
+      marginTop: "40px",
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+    }}
+  >
+    <div
+      style={{
+        background: "#fff",
+        padding: "25px",
+        borderRadius: "16px",
+        boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+        width: "100%",
+        maxWidth: "420px",
+        textAlign: "center",
+      }}
+    >
+      <h3
+        style={{
+          fontSize: "20px",
+          fontWeight: "700",
+          marginBottom: "15px",
+          color: "#007bff",
+        }}
+      >
+        Upload Your Photo on Frame
+      </h3>
+
+      {/* Upload Button */}
+      <label
+        htmlFor="upload-photo"
+        style={{
+          display: "inline-block",
+          padding: "10px 20px",
+          background: "#007bff",
+          color: "#fff",
+          borderRadius: "8px",
+          cursor: "pointer",
+          fontWeight: "600",
+          transition: "0.3s",
+        }}
+      >
+        Choose Photo
+      </label>
+      <input
+        id="upload-photo"
+        type="file"
+        accept="image/*"
+        onChange={handlePersonalisedUpload}
+        style={{ display: "none" }}
+      />
+
+      {/* Custom Text Input (stored in DB, not previewed) */}
+      <input
+        type="text"
+        placeholder="Enter your custom message"
+        value={customText}
+        onChange={(e) => setCustomText(e.target.value)}
+        style={{
+          marginTop: "15px",
+          padding: "10px",
+          width: "100%",
+          maxWidth: "300px",
+          borderRadius: "8px",
+          border: "1px solid #ddd",
+          fontSize: "14px",
+          outline: "none",
+        }}
+      />
+
+      {/* Preview Frame */}
+      <div
+        style={{
+          marginTop: "25px",
+          position: "relative",
+          width: "300px",
+          height: "300px",
+          marginInline: "auto",
+          borderRadius: "16px",
+          overflow: "hidden",
+          background: "#f9f9f9",
+          boxShadow: "0 8px 20px rgba(0,0,0,0.15)",
+        }}
+      >
+        {/* Uploaded Image */}
+        {uploadedImage ? (
+          <img
+            src={uploadedImage}
+            alt="Uploaded Preview"
+            style={{
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+              position: "absolute",
+              top: 0,
+              left: 0,
+              zIndex: 1,
+            }}
+          />
+        ) : (
+          <p
+            style={{
+              color: "#aaa",
+              marginTop: "100px",
+              textAlign: "center",
+              fontStyle: "italic",
+              fontSize: "14px",
+            }}
+          >
+            No photo uploaded yet
+          </p>
+        )}
+
+        {/* Frame Overlay */}
+        <img
+          src="/assets/frames/frames.png"
+          alt="Frame"
+          style={{
+            width: "100%",
+            height: "100%",
+            position: "absolute",
+            top: 0,
+            left: 0,
+            zIndex: 2,
+            pointerEvents: "none",
+          }}
+        />
+      </div>
+    </div>
+  </div>
+)}
+
+
+
+        </div>
 <div style={{ marginTop: "10px" }}>
 {/* Customer Needs */}
 
@@ -711,7 +900,7 @@ console.log(id);
 
     {/* Contact Us */}
     <div
-      onClick={() => setShowContactModal("true")}
+      onClick={() => setShowContactModal(true)}
       style={{
         border: selectedOption === "contact" ? "2px solid #2563EB" : "1px solid #ddd",
         borderRadius: "14px",
@@ -743,7 +932,7 @@ console.log(id);
 
     {/* Design From Scratch */}
     <div
-      onClick={() => setShowScratchModal("true")}
+      onClick={() => setShowScratchModal(true)}
       style={{
         border: selectedOption === "scratch" ? "2px solid #2563EB" : "1px solid #ddd",
         borderRadius: "14px",

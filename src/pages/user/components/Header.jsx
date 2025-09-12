@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import GoogleTranslateDropdown from "../GoogleTranslateDropdown.jsx";
 import { AuthContext } from "../../../context/AuthContext.jsx";
-
+import API_BASE_URL from "../../../config.js";
 export default function Header() {
   const [menuItems, setMenuItems] = useState([{ name: "Help & Faq" }, { name: "The Blog" }]);
   const [hoveredMenu, setHoveredMenu] = useState(null);
@@ -54,25 +54,39 @@ useEffect(() => {
 
   // Search functionality
   useEffect(() => {
-    if (!searchQuery.trim()) {
-      setSearchResults([]);
-      return;
-    }
-    const fetchResults = async () => {
-      setLoading(true);
-      try {
-        const res = await fetch(`https://kerala-digital-park-server.vercel.app/api/product/searchProduct?search=${encodeURIComponent(searchQuery)}`);
-        const data = await res.json();
-        setSearchResults(data.products || []);
-      } catch (err) {
+  if (!searchQuery.trim()) {
+    setSearchResults([]);
+    return;
+  }
+
+  const fetchResults = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch(
+        `${API_BASE_URL}/product/searchProduct?search=${encodeURIComponent(searchQuery)}`
+      );
+      const data = await res.json();
+      console.log("Search API response:", data); // 👀 check shape
+      // Adjust this based on API response
+      if (data.products) {
+        setSearchResults(data.products);
+      } else if (data.data) {
+        setSearchResults(data.data);
+      } else {
         setSearchResults([]);
-      } finally {
-        setLoading(false);
       }
-    };
-    const delayDebounce = setTimeout(fetchResults, 400);
-    return () => clearTimeout(delayDebounce);
-  }, [searchQuery]);
+    } catch (err) {
+      console.error("Search error:", err);
+      setSearchResults([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const delayDebounce = setTimeout(fetchResults, 400);
+  return () => clearTimeout(delayDebounce);
+}, [searchQuery]);
+
 
   // Mobile scroll lock
   useEffect(() => {
@@ -127,7 +141,7 @@ const SearchDropdown = ({ results, onSelect, isMobile = false }) => (
       ) : results.length ? (
         results.map((item) => (
           <div
-            key={item._id}
+            key={item._id || item.name }
             style={styles.searchItem}
             onClick={() => onSelect(item)}
           >

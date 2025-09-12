@@ -8,6 +8,8 @@ import CheckoutForm from "./CheckoutForm";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 axios.defaults.withCredentials = true;
+import { GET_ALL_COUPONS } from "../../admin/apiServices/couponApi";
+import Swal from "sweetalert2";
 
 const Checkout = () => {
   const navigate = useNavigate();
@@ -21,6 +23,8 @@ const [discountAmount, setDiscountAmount] = useState(0);
 const [couponError, setCouponError] = useState("");
 const [appliedCoupon, setAppliedCoupon] = useState(null);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [availableCoupons, setAvailableCoupons] = useState([]);
+
 
   
   const [newAddress, setNewAddress] = useState({
@@ -54,6 +58,7 @@ const [addressError, setAddressError] = useState("");   // for error messages
     setAddresses(res.data.addresses || []);
   } catch (err) {
     console.error("❌ Error fetching addresses:", err);
+    Swal.fire("Error", "Failed to fetch addresses", "error");
   
   }
   
@@ -134,6 +139,7 @@ console.log("worked");
     setAddressError("");
     setShowAddForm(false);
     fetchAddresses();
+     Swal.fire("Success", "Address added successfully!", "success");
     
   } catch (err) {
     console.log(err);
@@ -142,6 +148,7 @@ console.log("worked");
     setAddressError(
       err.response?.data?.message || "Something went wrong. Please try again."
     );
+    Swal.fire("Error", "Failed to add address", "error");
   }
 };
 
@@ -150,63 +157,86 @@ console.log("worked");
 
 
   // ✅ Delete address
+   // ✅ Delete address (with confirmation)
   const handleDeleteAddress = async (id) => {
-    try {
-      await axios.delete(`${API_BASE_URL}/address/delete/${id}`, {
-        withCredentials: true,
-      });
-      setAddresses(addresses.filter((addr) => addr._id !== id));
-      if (selectedAddress?._id === id) setSelectedAddress(null);
-    } catch (err) {
-      console.error("Error deleting address:", err);
-    }
+    Swal.fire({
+      title: "Are you sure?",
+      text: "This address will be deleted permanently.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Yes, delete it!",
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          await axios.delete(`${API_BASE_URL}/address/delete/${id}`, {
+            withCredentials: true,
+          });
+          setAddresses(addresses.filter((addr) => addr._id !== id));
+          if (selectedAddress?._id === id) setSelectedAddress(null);
+          Swal.fire("Deleted!", "Address has been deleted.", "success");
+        } catch (err) {
+          console.error("Error deleting address:", err);
+          Swal.fire("Error", "Failed to delete address", "error");
+        }
+      }
+    });
   };
+
 
   // ✅ Place order
   const handlePlaceOrder = async () => {
     if (!selectedAddress) {
-      alert("Please select a shipping address.");
+      Swal.fire("Warning", "Please select a shipping address.", "warning");
       return;
     }
-    try {
-      const orderRes = await axios.post(
-        `${API_BASE_URL}/order/create`,
-        {
-          products: cart.map((item) => ({
-            productId: item.id,
-            quantity: item.qty,
-          })),
-          address: selectedAddress,
-          totalPrice: total,
-        },
-        { withCredentials: true }
-      );
+    Swal.fire({
+      title: "Place Order?",
+      text: "Do you want to place this order?",
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonColor: "#2563eb",
+      cancelButtonColor: "#ccc",
+      confirmButtonText: "Yes, Place Order",
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          const orderRes = await axios.post(
+            `${API_BASE_URL}/order/create`,
+            {
+              products: cart.map((item) => ({
+                productId: item.id,
+                quantity: item.qty,
+              })),
+              address: selectedAddress,
+              totalPrice: total,
+            },
+            { withCredentials: true }
+          );
 
-      const order = orderRes.data.orderData;
-             navigate("/customer-requirement", {
-      state: {
-        orderDetails: {
-         
-          orderId: order._id,
-         orderData:order,
-        },
-      },
+          const order = orderRes.data.orderData;
+
+          Swal.fire("Success", "Order placed successfully!", "success").then(
+            () => {
+              navigate("/checkout-form", {
+                state: {
+                  orderDetails: {
+                    orderId: order._id,
+                    orderData: order,
+                    amount: (total - discountAmount) * 100, // cents
+                    currency: "USD",
+                  },
+                },
+              });
+            }
+          );
+        } catch (err) {
+          console.error("Checkout error:", err);
+          Swal.fire("Error", "Failed to place order", "error");
+        }
+      }
     });
-     
-
-    //       navigate("/checkout-form", {
-    //   state: {
-    //     orderDetails: {
-    //       amount: order.totalPrice * 100, // Stripe works in cents
-    //       currency: "usd",
-    //       orderId: order._id,
-    //       description: "Test Order",
-    //     },
-    //   },
-    // });
-    } catch (err) {
-      console.error("Checkout error:", err);
-    }
   };
 
   //     setOrderDetails({
@@ -221,34 +251,64 @@ console.log("worked");
   // };
 
 
+  useEffect(() => {
+  const fetchCoupons = async () => {
+    try {
+      const response= await GET_ALL_COUPONS();
+      console.log("fetched coupons:",response);
+      setAvailableCoupons(response.data || []); // assuming API returns { coupons: [...] }
+    } catch (err) {
+      console.error("Error fetching coupons:", err);
+       Swal.fire("Error", "Failed to load coupons", "error");
+    }
+  };
+
+  fetchCoupons();
+}, []);
+
+
   const handleApplyCoupon = async () => {
-  if (!couponCode.trim()) {
-    setCouponError("Please enter a coupon code.");
+  if (!couponCode) {
+    setCouponError("Please select a coupon.");
+     Swal.fire("Warning", "Please select a coupon.", "warning");
     return;
   }
-  try {
-    const res = await axios.put(
-      `${API_BASE_URL}/order/apply-coupon`,
-      {
-        orderId: orderDetails?.orderId, // use current order id
-        coupon: couponCode,
-      },
-      { withCredentials: true }
-    );
+  // try {
+  //   const res = await axios.put(
+  //     `${API_BASE_URL}/order/apply-coupon`,
+  //     {
+  //       orderId: orderDetails?.orderId, // use current order id
+  //       coupon: couponCode,
+  //     },
+  //     { withCredentials: true }
+  //   );
 
-    if (res.data && res.data.data) {
-      setDiscountAmount(res.data.data.discount || 0);
-      setAppliedCoupon(res.data.data.coupon || couponCode);
-      setCouponError("");
-    }
-  } catch (err) {
-    console.error("❌ Coupon error:", err.response?.data || err.message);
-    setDiscountAmount(0);
-    setAppliedCoupon(null);
-    setCouponError(
-      err.response?.data?.message || "Invalid or expired coupon."
-    );
+  //   if (res.data && res.data.data) {
+  //     setDiscountAmount(res.data.data.discount || 0);
+  //     setAppliedCoupon(res.data.data.coupon || couponCode);
+  //     setCouponError("");
+  //   }
+  // } catch (err) {
+  //   console.error("❌ Coupon error:", err.response?.data || err.message);
+  //   setDiscountAmount(0);
+  //   setAppliedCoupon(null);
+  //   setCouponError(
+  //     err.response?.data?.message || "Invalid or expired coupon."
+  //   );
+  // }
+ const coupon = availableCoupons.find(c => c.code === couponCode);
+  if (!coupon) {
+    setCouponError("Invalid coupon.");
+     Swal.fire("Error", "Invalid coupon code.", "error");
+    return;
   }
+
+  // Calculate discount
+  const discount = (total * coupon.discount) / 100;
+  setDiscountAmount(discount);
+  setAppliedCoupon(coupon.code);
+  setCouponError("");
+   Swal.fire("Success", `Coupon ${coupon.code} applied!`, "success");
 };
   return (
     // <div style={{ maxWidth: "1000px", margin: "0 auto", padding: "20px" }}>
@@ -506,43 +566,59 @@ console.log("worked");
   </div>
 
   {/* Coupon field */}
-  <div style={{ marginTop: "15px" }}>
-    <input
-      type="text"
-      placeholder="Enter coupon code"
-      value={couponCode}
-      onChange={(e) => setCouponCode(e.target.value)}
-      style={{
-        width: "70%",
-        padding: "10px",
-        border: "1px solid #ccc",
-        borderRadius: "6px",
-        marginRight: "10px",
-      }}
-    />
-    <button
-      type="button"
-      onClick={handleApplyCoupon}
-      style={{
-        padding: "10px 16px",
-        background: "#007bff",
-        color: "#fff",
-        border: "none",
-        borderRadius: "6px",
-        cursor: "pointer",
-      }}
-    >
-      Apply
-    </button>
-    {couponError && (
-      <p style={{ color: "red", marginTop: "6px" }}>{couponError}</p>
+ <div style={{ marginTop: "15px" }}>
+  {/* Dropdown of coupons */}
+  <select
+    value={couponCode}
+    onChange={(e) => setCouponCode(e.target.value)}
+    style={{
+      width: "70%",
+      padding: "10px",
+      border: "1px solid #ccc",
+      borderRadius: "6px",
+      marginRight: "10px",
+    }}
+  >
+    <option value="">Select a coupon</option>
+    {availableCoupons.length > 0 ? (
+      availableCoupons.map((coupon) => (
+        <option key={coupon._id} value={coupon.code}>
+          {coupon.code} - {coupon.description || `${coupon.discount}% Off`}
+        </option>
+      ))
+    ) : (
+      <option disabled>No coupons available</option>
     )}
-    {appliedCoupon && (
-      <p style={{ color: "green", marginTop: "6px" }}>
-        Coupon <strong>{appliedCoupon}</strong> applied!
-      </p>
-    )}
-  </div>
+  </select>
+
+  {/* Apply button */}
+  <button
+    type="button"
+    onClick={handleApplyCoupon}
+    disabled={!couponCode}
+    style={{
+      padding: "10px 16px",
+      background: couponCode ? "#007bff" : "#ccc",
+      color: "#fff",
+      border: "none",
+      borderRadius: "6px",
+      cursor: couponCode ? "pointer" : "not-allowed",
+    }}
+  >
+    Apply
+  </button>
+
+  {/* Error & success messages */}
+  {couponError && (
+    <p style={{ color: "red", marginTop: "6px" }}>{couponError}</p>
+  )}
+  {appliedCoupon && (
+    <p style={{ color: "green", marginTop: "6px" }}>
+      Coupon <strong>{appliedCoupon}</strong> applied!
+    </p>
+  )}
+</div>
+
 
   {/* Price calculation */}
   <h4

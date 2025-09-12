@@ -2,10 +2,11 @@ import { useState, useEffect } from "react";
 import {  Check, AlertCircle, Shield, Clock } from "lucide-react";
 import { useStripe, useElements, CardElement } from "@stripe/react-stripe-js";
 // import axios from "axios"; // Use fetch instead
-import { useLocation } from "react-router-dom";
+import { useLocation,useNavigate } from "react-router-dom";
 
 const CheckoutForm = () => {
     const location = useLocation();
+    const navigate=useNavigate();
   const { orderDetails } = location.state || {};
   const [loading, setLoading] = useState(false);
   const [paymentSuccess, setPaymentSuccess] = useState("");
@@ -183,9 +184,14 @@ const CheckoutForm = () => {
         if (result.error) {
           console.error("Payment failed:", result.error.message);
           setPaymentError(result.error.message);
+           // Redirect to failure page
+  navigate("/failure", { state: { orderDetails, error: result.error.message } });
         } else if (result.paymentIntent.status === "succeeded") {
           console.log("Payment successful:", result.paymentIntent);
           setPaymentSuccess(`Payment successful! Payment ID: ${result.paymentIntent.id}`);
+          setTimeout(() => {
+    navigate("/success", { state: { orderDetails, paymentId: result.paymentIntent.id } });
+  }, 1500);
         }
       } else {
         const result = await stripe.confirmPayment({
@@ -215,6 +221,7 @@ const CheckoutForm = () => {
     } catch (err) {
       console.error("Payment error:", err);
       setPaymentError(err.message || "Something went wrong. Please try again.");
+       navigate("/failure", { state: { orderDetails, error: err.message } });
     }
 
     setLoading(false);

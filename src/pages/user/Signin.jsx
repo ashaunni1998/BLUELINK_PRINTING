@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import { jwtDecode } from "jwt-decode";
-import GoogleLogin from "./GoogleLogin";
+// import GoogleLogin from "./GoogleLogin";
 import './Home.css';
 import { useContext, useState, useEffect } from "react";
 import { AuthContext } from "../../context/AuthContext"; 
@@ -157,8 +157,8 @@ const SignIn = () => {
             <a href="/forgotpassword" style={styles.forgotPassword}>
               Forgotten your password?
             </a>
-
-            <GoogleLogin />
+{/* 
+            <GoogleLogin /> */}
 
             <button type="submit" disabled={isSubmitting} style={styles.button}>
               {isSubmitting ? "Signing in..." : "Sign in"}

@@ -7,6 +7,7 @@ import { Link } from "react-router-dom";
 import "./Home.css";
 import { useEffect } from "react";
 import API_BASE_URL from "../../config"; // adjust the path properly
+import { TranslateProvider } from "../../context/TranslateProvider";
 
 
 
