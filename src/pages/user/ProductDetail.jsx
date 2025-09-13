@@ -49,10 +49,31 @@ const [showContactModal, setShowContactModal] = useState(false);
 const [showScratchModal, setShowScratchModal] = useState(false);
 const [showGuideline, setShowGuideline] = useState(false);
 const [uploadedImage, setUploadedImage] = useState(null);
-  const [customText, setCustomText] = useState("");
- const [submittedText, setSubmittedText] = useState(null);
+const [customText, setCustomText] = useState("");
+const [submittedText, setSubmittedText] = useState(null);
+const [uploadedFile, setUploadedFile] = useState(null);
+const [preparedPreview, setPreparedPreview] = useState(null);
+const IMGBB_API_KEY = "0dc969770aaafeeba77f84c1534e4fad"; // your imgbb API key
+// const FRAME_URL = "https://i.ibb.co/3y63T95k/imageedit-1-7441844514.png";   // <- REPLACE with direct image URL from ibb (right-click image → Copy image address)
+const [uploadedUrl, setUploadedUrl] = useState(null);     // stores the final uploaded imgbb URL
 
-  // ✅ add this hook at the top of your file
+const frameOverlays = {
+  rhomboid: "https://i.ibb.co/k2xR06Fq/Bamboo-Photo-Frame-Printing-Rhomboid-Shape-Magnetic.png",
+  rectangular: "https://i.ibb.co/d4cKP6j7/Bamboo-Rectangular-Shape-Photo-Frame.png",
+  round: "https://i.ibb.co/tPmMxvJp/Round-Shape-Bamboo-Photo-Frame.png",
+  heart: "https://i.ibb.co/cccNPzSq/Bamboo-Photo-Frame-heart-shape.png",
+  aluminum: "https://i.ibb.co/hxH0DzWY/Aluminum-Photo-Frame-Printing-with-bamboo-base.png",
+  glass: "https://i.ibb.co/chq76DzQ/glass-photo-frame.png",
+  square: "https://i.ibb.co/7J5XVqCm/Square-Shape-stone-photo-frame.png",
+  heartstone:" https://i.ibb.co/mCPhM6r0/heart-Shape-stone-photo-frame.png",
+  door :" https://i.ibb.co/93rMVXMF/Door-Shape.png",
+  rectangularstone:"https://i.ibb.co/tTsVZMbz/Rectangular-Shape-stone-photo-frame.png",
+};
+const [selectedFrame, setSelectedFrame] = useState(""); // default
+const FRAME_URL = frameOverlays[selectedFrame];
+
+
+// ✅ add this hook at the top of your file
 function useMediaQuery(query) {
   const [matches, setMatches] = useState(window.matchMedia(query).matches);
   useEffect(() => {
@@ -304,17 +325,226 @@ const handleUploadSubmit = () => {
 };
 
 
+// prepare local preview by compositing uploadedImage + frame (no upload)
+const preparePreviewLocal = async (uploadedUrl) => {
+  try {
+    if (!uploadedUrl) return;
 
-const handlePersonalisedUpload = (e) => {
-  const file = e.target.files[0];
-  if (file) {
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setUploadedImage(reader.result); // base64 data
-    };
-    reader.readAsDataURL(file);
+    const outputW = 1200;
+    const outputH = 1200;
+    const canvas = document.createElement("canvas");
+    canvas.width = outputW;
+    canvas.height = outputH;
+    const ctx = canvas.getContext("2d");
+
+    // white background (or transparent)
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, outputW, outputH);
+
+    // load uploaded photo (do NOT set crossOrigin for blob: URLs)
+    const loadImg = (src, cross = false) =>
+      new Promise((resolve, reject) => {
+        const i = new Image();
+        if (cross) i.crossOrigin = "anonymous";
+        i.onload = () => resolve(i);
+        i.onerror = (e) => reject(new Error("Failed to load image: " + src));
+        i.src = src;
+      });
+
+    const photo = await loadImg(uploadedUrl, false);
+
+    // cover-fit the photo into canvas
+    const scale = Math.max(outputW / photo.width, outputH / photo.height);
+    const drawW = photo.width * scale;
+    const drawH = photo.height * scale;
+    const dx = (outputW - drawW) / 2;
+    const dy = (outputH - drawH) / 2;
+    ctx.drawImage(photo, dx, dy, drawW, drawH);
+
+    // load frame image (must be same size or will be scaled)
+    // using crossOrigin for remote frame (imgbb/ibb) — keep it so we can access pixel data
+    const frameImg = await loadImg(FRAME_URL, true);
+
+    // draw frame into offscreen canvas to edit pixels
+    const fCanvas = document.createElement("canvas");
+    fCanvas.width = outputW;
+    fCanvas.height = outputH;
+    const fCtx = fCanvas.getContext("2d");
+    fCtx.drawImage(frameImg, 0, 0, outputW, outputH);
+
+    // convert near-white to transparent
+    try {
+      const imgData = fCtx.getImageData(0, 0, outputW, outputH);
+      const data = imgData.data;
+      const threshold = 245; // tweak if your frame has slightly off-white pixels
+      for (let i = 0; i < data.length; i += 4) {
+        const r = data[i], g = data[i+1], b = data[i+2];
+        if (r >= threshold && g >= threshold && b >= threshold) {
+          data[i+3] = 0; // make pixel transparent
+        }
+      }
+      fCtx.putImageData(imgData, 0, 0);
+    } catch (err) {
+      // getImageData can throw if frame server doesn't allow CORS
+      console.warn("Could not access frame pixels (CORS). Frame may not become transparent.", err);
+      // fallback: we will just draw frame as-is
+    }
+
+    // draw processed frame on main canvas
+    ctx.drawImage(fCanvas, 0, 0, outputW, outputH);
+
+    // set prepared preview in state (shows on UI)
+    const finalDataUrl = canvas.toDataURL("image/png");
+    setPreparedPreview(finalDataUrl);
+  } catch (err) {
+    console.error("preparePreviewLocal error:", err);
+    // still show uploadedImage if compositing fails
+    setPreparedPreview(null);
   }
 };
+
+const handlePersonalisedUpload = (e) => {
+  const file = e.target.files?.[0];
+  if (!file) return;
+
+  // validations...
+  // keep uploadedFile
+  setUploadedFile(file);
+
+  // create object URL and show raw preview
+  const objectUrl = URL.createObjectURL(file);
+  setUploadedImage(objectUrl);
+
+  // build prepared preview immediately (composite) — this will set preparedPreview
+  // (do NOT await here to avoid blocking UI; but can await if desired)
+  preparePreviewLocal(objectUrl);
+
+  // ... optionally read base64 if you need it later
+};
+
+
+
+// add a cleanup effect to revoke object URLs when no longer needed
+
+useEffect(() => {
+
+  return () => {
+
+    if (uploadedImage && uploadedImage.startsWith("blob:")) {
+
+      URL.revokeObjectURL(uploadedImage);
+
+    }
+
+  };
+
+}, [uploadedImage]);
+
+
+const handlePrepareAndUpload = async () => {
+  try {
+    if (!uploadedImage) {
+      alert("Please upload an image first.");
+      return;
+    }
+
+    // Prepare canvas size and draw photo + frame + optional text
+    const canvas = document.createElement("canvas");
+    const outputW = 1200;
+    const outputH = 1200; // square output works better for your frame
+    canvas.width = outputW;
+    canvas.height = outputH;
+    const ctx = canvas.getContext("2d");
+
+    // white background
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, outputW, outputH);
+
+    // load uploaded image
+    const photo = await new Promise((resolve, reject) => {
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      img.onload = () => resolve(img);
+      img.onerror = () => reject(new Error("Failed to load uploaded image"));
+      img.src = uploadedImage;
+    });
+
+    // cover-fit calculation
+    const scale = Math.max(outputW / photo.width, outputH / photo.height);
+    const drawW = photo.width * scale;
+    const drawH = photo.height * scale;
+    const dx = (outputW - drawW) / 2;
+    const dy = (outputH - drawH) / 2;
+    ctx.drawImage(photo, dx, dy, drawW, drawH);
+
+    // optional text
+    if (customText && customText.trim()) {
+      ctx.fillStyle = "#111";
+      ctx.font = "bold 48px sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText(customText.trim(), outputW / 2, outputH - 60);
+    }
+
+    // load frame image
+    const frameImg = await new Promise((resolve, reject) => {
+      const f = new Image();
+      f.crossOrigin = "anonymous";
+      f.onload = () => resolve(f);
+      f.onerror = () => reject(new Error("Failed to load frame image"));
+      f.src = FRAME_URL;
+    });
+
+    // create offscreen canvas to process frame
+    const fCanvas = document.createElement("canvas");
+    fCanvas.width = outputW;
+    fCanvas.height = outputH;
+    const fCtx = fCanvas.getContext("2d");
+    fCtx.drawImage(frameImg, 0, 0, outputW, outputH);
+
+    // make near-white pixels transparent
+    const imgData = fCtx.getImageData(0, 0, outputW, outputH);
+    const data = imgData.data;
+    const threshold = 245; // tweak if needed
+    for (let i = 0; i < data.length; i += 4) {
+      const r = data[i], g = data[i + 1], b = data[i + 2];
+      if (r >= threshold && g >= threshold && b >= threshold) {
+        data[i + 3] = 0; // transparent
+      }
+    }
+    fCtx.putImageData(imgData, 0, 0);
+
+    // draw cleaned frame on main canvas
+    ctx.drawImage(fCanvas, 0, 0, outputW, outputH);
+
+    // create preview + upload
+    const finalDataUrl = canvas.toDataURL("image/png");
+    setPreparedPreview(finalDataUrl);
+
+    // upload to imgbb
+    const base64 = finalDataUrl.split(",")[1];
+    const form = new FormData();
+    form.append("key", IMGBB_API_KEY);
+    form.append("image", base64);
+    form.append("name", `product_${id || "preview"}`);
+
+    const uploadRes = await fetch("https://api.imgbb.com/1/upload", {
+      method: "POST",
+      body: form,
+    });
+    const uploadJson = await uploadRes.json();
+    if (!uploadJson?.data?.url) {
+      throw new Error("Upload failed");
+    }
+
+    setUploadedUrl(uploadJson.data.url);
+    alert("✅ Prepared image uploaded successfully!");
+  } catch (err) {
+    console.error(err);
+    alert("❌ Error preparing or uploading image: " + (err.message || err));
+  }
+};
+
+
 
   // ✅ handle submit
   const handletextSubmit = () => {
@@ -329,6 +559,10 @@ const handlePersonalisedUpload = (e) => {
     setSubmittedText(customText);
     setCustomText(""); // clear input
   };
+
+
+
+ 
 
 
   // ---- STYLES ----
@@ -444,15 +678,39 @@ console.log(id);
   }
 
   // ✅ safely extract category name
-  const categoryName = Array.isArray(product?.category)
-    ? product.category[0]
-    : typeof product?.category === "object"
-    ? product.category?.name
-    : product?.category;
+  const rawCategory = product?.category;
 
-  const isPersonalisedGift =
-    typeof categoryName === "string" &&
-    categoryName.toLowerCase() === "personalized gifts";
+const categoryName = Array.isArray(rawCategory)
+
+  ? rawCategory[0]
+
+  : typeof rawCategory === "object"
+
+  ? rawCategory?.name
+
+  : rawCategory;
+
+
+
+// normalize spaces & case (remove NBSP etc) and compare
+
+const normalize = (str = "") =>
+
+  String(str)
+
+    .replace(/\u00A0/g, " ") // replace non-breaking spaces
+
+    .replace(/\s+/g, " ")    // collapse multiple spaces
+
+    .trim()
+
+    .toLowerCase();
+
+
+
+const isPersonalisedGift = normalize(categoryName) === "personalized gifts";
+
+
 
 
   return (
@@ -683,6 +941,7 @@ console.log(id);
 
 
   {/* Add to Cart */}
+ {!(isPersonalisedGift && normalize(product.name).includes("photo frame")) && (
   <button
     onClick={handleAddToCart}
     style={{
@@ -702,152 +961,399 @@ console.log(id);
   >
     🛒 Add to Cart
   </button>
+  )}
 </div>
 
 {/* Personalised Gift Upload */}
 {isPersonalisedGift && (
+  <>
+ {normalize(product.name).includes("photo frame") && (
   <div
+
     style={{
+
       marginTop: "40px",
+
       display: "flex",
+
       flexDirection: "column",
+
       alignItems: "center",
+
     }}
+
   >
+
     <div
+
       style={{
+
         background: "#fff",
+
         padding: "25px",
+
         borderRadius: "16px",
+
         boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+
         width: "100%",
+
         maxWidth: "420px",
+
         textAlign: "center",
+
       }}
+
     >
+
       <h3
+
         style={{
+
           fontSize: "20px",
+
           fontWeight: "700",
-          marginBottom: "15px",
+
+          marginBottom: "1px",
+
           color: "#007bff",
+
         }}
+
       >
+
         Upload Your Photo on Frame
+
       </h3>
 
+
+
       {/* Upload Button */}
+
       <label
+
         htmlFor="upload-photo"
+
         style={{
+
           display: "inline-block",
+
           padding: "10px 20px",
+
           background: "#007bff",
+
           color: "#fff",
+
           borderRadius: "8px",
+
           cursor: "pointer",
+
           fontWeight: "600",
+
           transition: "0.3s",
+
         }}
+
       >
+
         Choose Photo
+
       </label>
+
       <input
+
         id="upload-photo"
+
         type="file"
+
         accept="image/*"
+
         onChange={handlePersonalisedUpload}
+
         style={{ display: "none" }}
+
       />
 
-      {/* Custom Text Input (stored in DB, not previewed) */}
+
+
+      {/* Custom Text Input */}
+
       <input
+
         type="text"
+
         placeholder="Enter your custom message"
+
         value={customText}
+
         onChange={(e) => setCustomText(e.target.value)}
+
         style={{
+
           marginTop: "15px",
+
           padding: "10px",
+
           width: "100%",
+
           maxWidth: "300px",
+
           borderRadius: "8px",
+
           border: "1px solid #ddd",
+
           fontSize: "14px",
+
           outline: "none",
+
+        }}
+
+      />
+
+
+{/* Frame Selection */}
+<div
+  style={{
+    display: "flex",
+    flexWrap: "wrap",
+    gap: "20px",
+    justifyContent: "center",
+    marginTop: "25px",
+  }}
+>
+  {Object.entries(frameOverlays).map(([key, url]) => (
+    <div
+      key={key}
+      onClick={() => setSelectedFrame(key)}
+      style={{
+        width: "120px",
+        height: "120px",
+        borderRadius: "12px",
+        border:
+          selectedFrame === key
+            ? "3px solid #007bff"
+            : "1px solid #e5e7eb",
+        boxShadow:
+          selectedFrame === key
+            ? "0 4px 12px rgba(0,123,255,0.3)"
+            : "0 2px 6px rgba(0,0,0,0.1)",
+        cursor: "pointer",
+        background: "#fff",
+        transition: "all 0.25s ease",
+        textAlign: "center",
+        padding: "10px",
+      }}
+    >
+      <img
+        src={url}
+        alt={key}
+        style={{
+          width: "100%",
+          height: "70px",
+          objectFit: "contain",
+          marginBottom: "6px",
         }}
       />
-
-      {/* Preview Frame */}
-      <div
+      <span
         style={{
-          marginTop: "25px",
-          position: "relative",
-          width: "300px",
-          height: "300px",
-          marginInline: "auto",
-          borderRadius: "16px",
-          overflow: "hidden",
-          background: "#f9f9f9",
-          boxShadow: "0 8px 20px rgba(0,0,0,0.15)",
+          fontSize: "13px",
+          fontWeight: "600",
+          color: selectedFrame === key ? "#007bff" : "#333",
+          textTransform: "capitalize",
         }}
       >
-        {/* Uploaded Image */}
-        {uploadedImage ? (
-          <img
-            src={uploadedImage}
-            alt="Uploaded Preview"
-            style={{
-              width: "100%",
-              height: "100%",
-              objectFit: "cover",
-              position: "absolute",
-              top: 0,
-              left: 0,
-              zIndex: 1,
-            }}
-          />
-        ) : (
-          <p
-            style={{
-              color: "#aaa",
-              marginTop: "100px",
-              textAlign: "center",
-              fontStyle: "italic",
-              fontSize: "14px",
-            }}
-          >
-            No photo uploaded yet
-          </p>
-        )}
-
-        {/* Frame Overlay */}
-        <img
-          src="/assets/frames/frames.png"
-          alt="Frame"
-          style={{
-            width: "100%",
-            height: "100%",
-            position: "absolute",
-            top: 0,
-            left: 0,
-            zIndex: 2,
-            pointerEvents: "none",
-          }}
-        />
-      </div>
+        {key}
+      </span>
     </div>
+  ))}
+</div>
+
+
+    {/* Preview Frame */}
+
+<div
+
+  style={{
+
+    marginTop: "25px",
+
+    position: "relative",
+
+    width: "300px",
+
+    height: "300px",
+
+    marginInline: "auto",
+
+    borderRadius: "16px",
+
+    overflow: "hidden",
+
+    background: "#f9f9f9",
+
+    boxShadow: "0 8px 20px rgba(0,0,0,0.15)",
+
+  }}
+
+>
+
+  {preparedPreview ? (
+
+    // ✅ Show final prepared image
+
+    <img
+
+      src={preparedPreview}
+
+      alt="Prepared Preview"
+
+      style={{
+
+        width: "100%",
+
+        height: "100%",
+
+        objectFit: "cover",
+
+        position: "absolute",
+
+        top: 0,
+
+        left: 0,
+
+        zIndex: 1,
+
+      }}
+
+    />
+
+  ) : uploadedImage ? (
+
+    // fallback: show raw uploaded image
+<img
+  src={uploadedImage}
+  alt="Uploaded Preview"
+  style={{
+    width: "100%",
+    height: "100%",
+    objectFit: "cover",
+    position: "absolute",
+    top: 0,
+    left: 0,
+    zIndex: 1,
+  }}
+/>
+
+  ) : (
+
+    // fallback: placeholder text
+
+    <p
+
+      style={{
+
+        color: "#aaa",
+
+        marginTop: "100px",
+
+        textAlign: "center",
+
+        fontStyle: "italic",
+
+        fontSize: "14px",
+
+      }}
+
+    >
+
+      No photo uploaded yet
+
+    </p>
+
+  )}
+
+
+
+  {/* Frame Overlay */}
+
+<img
+  src={FRAME_URL}
+  alt="Frame"
+  style={{
+    width: "100%",
+    height: "100%",
+    position: "absolute",
+    top: 0,
+    left: 0,
+    zIndex: 2,
+    pointerEvents: "none",
+  }}
+/>
+
+</div>
+
+
+
+      {/* Optional: Submit / Prepare buttons */}
+
+      <div style={{ display: "flex", gap: "12px", marginTop: "18px", justifyContent: "center" }}>
+
+       
+
+<button
+  onClick={handlePrepareAndUpload}
+  style={{
+    padding: "10px 16px",
+    background: "#10b981",
+    color: "#fff",
+    borderRadius: "8px",
+    border: "none",
+    cursor: "pointer",
+    fontWeight: 600,
+  }}
+>
+  Prepare & Upload
+</button>
+
+       <button
+  onClick={async () => {
+    await handlePrepareAndUpload(); // saves customization to imgbb + DB
+    navigate("/checkout");
+  }}
+  style={{
+    padding: "10px 16px",
+    background: "#3b82f6",
+    color: "#fff",
+    borderRadius: "8px",
+    border: "none",
+    cursor: "pointer",
+    fontWeight: 600,
+  }}
+>
+  🛍️ Buy Now
+</button>
+
+
+      </div>
+
+    </div>
+
   </div>
+
 )}
 
-
+ 
+  </>
+)}
 
         </div>
+
 <div style={{ marginTop: "10px" }}>
 {/* Customer Needs */}
 
 {/* Design Options */}
 {/* Design Options */}
+{!(isPersonalisedGift && normalize(product.name).includes("photo frame")) && (
 <div style={{ marginTop: "40px", textAlign: "center" }}>
   <h2 style={{
     fontSize: "24px",
@@ -962,7 +1468,6 @@ console.log(id);
       </ul>
     </div>
   </div>
-</div>
 
 {/* Show option details */}
 <div style={{ marginTop: "30px" }}>
@@ -970,15 +1475,15 @@ console.log(id);
 {/* Contact Modal */}
 {showContactModal && (
   <div
-    style={{
-      position: "fixed",
-      inset: 0,
-      background: "rgba(0,0,0,0.7)",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      zIndex: 9999,
-    }}
+  style={{
+    position: "fixed",
+    inset: 0,
+    background: "rgba(0,0,0,0.7)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 9999,
+  }}
   >
     <div
       style={{
@@ -994,7 +1499,7 @@ console.log(id);
         animation: "fadeInUp 0.4s ease",
         position: "relative"
       }}
-    >
+      >
       {/* Close button */}
       <button
         onClick={() => setShowContactModal(false)}
@@ -1026,7 +1531,7 @@ console.log(id);
           gap: "25px",
           flexWrap: "wrap",
         }}
-      >
+        >
         {/* WhatsApp */}
         <a href="https://wa.me/919876543210" target="_blank" rel="noreferrer"
           style={{
@@ -1050,7 +1555,7 @@ console.log(id);
             e.currentTarget.style.transform = "translateY(0) scale(1)";
             e.currentTarget.style.boxShadow = "none";
           }}
-        >
+          >
           <FaWhatsapp size={36} />
           WhatsApp
         </a>
@@ -1078,7 +1583,7 @@ console.log(id);
             e.currentTarget.style.transform = "translateY(0) scale(1)";
             e.currentTarget.style.boxShadow = "none";
           }}
-        >
+          >
           <FaFacebookMessenger size={36} />
           Messenger
         </a>
@@ -1106,7 +1611,7 @@ console.log(id);
             e.currentTarget.style.transform = "translateY(0) scale(1)";
             e.currentTarget.style.boxShadow = "none";
           }}
-        >
+          >
           <FaPhoneAlt size={32} />
           Call
         </a>
@@ -1127,16 +1632,16 @@ console.log(id);
 {/* Scratch Design Modal */}
 {showScratchModal && (
   <div
-    style={{
-      position: "fixed",
-      inset: 0,
+  style={{
+    position: "fixed",
+    inset: 0,
       background: "rgba(0,0,0,0.7)",
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
       zIndex: 9999,
     }}
-  >
+    >
     <div
       style={{
         background: "linear-gradient(135deg, #ffffff 10%, #f3f4f6 100%)",
@@ -1149,7 +1654,7 @@ console.log(id);
         position: "relative",
         animation: "fadeInUp 0.4s ease",
       }}
-    >
+      >
       {/* Close */}
       <button
         onClick={() => setShowScratchModal(false)}
@@ -1167,7 +1672,7 @@ console.log(id);
           fontSize: "16px",
           boxShadow: "0 3px 8px rgba(239,68,68,0.4)",
         }}
-      >
+        >
         ✖
       </button>
 
@@ -1180,7 +1685,7 @@ console.log(id);
           WebkitBackgroundClip: "text",
           color: "transparent",
         }}
-      >
+        >
         Design From Scratch ✏️
       </h2>
 
@@ -1203,7 +1708,7 @@ console.log(id);
             outline: "none",
             transition: "0.2s",
           }}
-        />
+          />
 
         <label style={{ fontWeight: "600", fontSize: "14px", marginBottom: "6px", display: "block" }}>
           Mobile Number
@@ -1239,7 +1744,7 @@ console.log(id);
             fontSize: "15px",
             outline: "none",
           }}
-        />
+          />
 
         <label style={{ fontWeight: "600", fontSize: "14px", marginBottom: "6px", display: "block" }}>
           Your Requirement
@@ -1259,7 +1764,7 @@ console.log(id);
             minHeight: "100px",
             resize: "none",
           }}
-        />
+          />
 
         {/* Submit button */}
         <button
@@ -1287,7 +1792,7 @@ console.log(id);
           onMouseOut={(e) =>
             (e.target.style.background = "linear-gradient(90deg,#2563EB,#1D4ED8)")
           }
-        >
+          >
           <FaPaperPlane /> Submit Request
         </button>
       </form>
@@ -1295,7 +1800,8 @@ console.log(id);
   </div>
 )}
 
-
+</div>
+)}
         {/* Reviews */}
         {/* <div style={styles.reviewsSection}>
           <h3>Leave a Review</h3>

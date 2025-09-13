@@ -107,7 +107,7 @@ export default function HomeSlider() {
           >
             <h2 style={{ fontSize: "32px", marginBottom: "15px" }}>{slide.title}</h2>
             <p style={{ fontSize: "16px", marginBottom: "25px" }}>{slide.description}</p>
-          <a href="/businessCard">  <button
+          <a href="/businesscards">  <button
               style={{
                 padding: "5px 10px",
                 backgroundColor: "#007bff",
@@ -116,6 +116,7 @@ export default function HomeSlider() {
                 borderRadius: "5px",
                 fontSize: "16px",
                 cursor: "pointer",
+                marginBottom:"15px",
               }}
             >
               View Our Products
@@ -179,22 +180,23 @@ export default function HomeSlider() {
   <div
     style={{
       display: "flex",
-      justifyContent: "start",
-      gap: "8px",
-      marginBottom: "15px",
+      justifyContent: "flex-start",
+      gap: "6px",
+      marginTop: "5px",
+      marginBottom:"10px"
     }}
   >
     {homeSlides.map((_, index) => (
       <div
         key={index}
         style={{
-          flex: 1,
-          height: "5px",
+          // flex: 1,
+          height: "2px",
           backgroundColor: "#ddd",
           borderRadius: "10px",
           overflow: "hidden",
-          position: "relative",
-          maxWidth: "60px",
+          // position: "relative",
+          Width: "50px",
         }}
       >
         <div

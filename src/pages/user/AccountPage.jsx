@@ -13,9 +13,9 @@ const AccountPage = () => {
   const queryParams = new URLSearchParams(location.search);
   const normalizeTab = (tab) => {
     const mapping = {
-      orders: 'orderhistory',
+      // orders: 'orderhistory',
       overview: 'overview',
-      address: 'address'
+      // address: 'address'
     };
     return mapping[tab?.toLowerCase()] || 'overview';
   };
@@ -40,8 +40,8 @@ const AccountPage = () => {
   const sections = {
     overview:
       'Welcome to your Blue Link Printing dashboard. From your account dashboard you can view your recent orders, manage your shipping and billing addresses, manage your order return, view your orders, and edit your password and account details.',
-    orderhistory: 'Here you can view and track your orders.',
-    address: 'Manage your shipping and billing addresses.'
+    // orderhistory: 'Here you can view and track your orders.',
+    // address: 'Manage your shipping and billing addresses.'
   };
 
   const orders = [
@@ -153,8 +153,8 @@ const AccountPage = () => {
               onClick={() => setActiveSection(key)}
             >
               {key === 'overview' && 'Overview'}
-              {key === 'orderhistory' && 'Order History'}
-              {key === 'address' && 'Address'}
+              {/* {key === 'orderhistory' && 'Order History'}
+              {key === 'address' && 'Address'} */}
             </button>
           ))}
           <button style={logoutButtonStyle} onClick={handleLogout}>
@@ -167,7 +167,7 @@ const AccountPage = () => {
           <h2 style={{ fontSize: '24px', marginBottom: '20px', textTransform: 'capitalize' }}>
             {activeSection.replace('-', ' ')}
           </h2>
-{activeSection === 'orderhistory' ? (
+{/* {activeSection === 'orderhistory' ? (
   <div style={{ overflowX: 'auto' }}>
     <table style={tableStyle}>
       <thead>
@@ -206,7 +206,7 @@ const AccountPage = () => {
             </div>
           ) : (
             <p style={{ color: '#555', fontSize: '16px' }}>{sections[activeSection]}</p>
-          )}
+          )} */}
         </main>
       </div>
       <Footer />

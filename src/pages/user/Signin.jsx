@@ -91,6 +91,15 @@ const SignIn = () => {
     };
   }, [setIsLoggedIn]);
 
+  useEffect(() => {
+  if (hasAccount) {
+    navigate("/sign-in", { replace: true });
+  } else {
+    navigate("/signup", { replace: true});
+  }
+}, [hasAccount, navigate]);
+
+
   return (
     <div className="responsive-container">
       <Header />
@@ -105,7 +114,7 @@ const SignIn = () => {
                   type="radio"
                   name="account"
                   checked={hasAccount}
-                  onChange={() => { setHasAccount(true); navigate("/signin"); }}
+                   onChange={() => setHasAccount(true)}
                 />
                 <span style={styles.radioLabel}>I have an account</span>
               </label>
@@ -115,7 +124,7 @@ const SignIn = () => {
                   type="radio"
                   name="account"
                   checked={!hasAccount}
-                  onChange={() => { setHasAccount(false); navigate("/signup"); }}
+                  onChange={() => setHasAccount(false)}
                 />
                 <span style={styles.radioLabel}>I don't have an account</span>
               </label>

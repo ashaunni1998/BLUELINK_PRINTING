@@ -4,6 +4,11 @@ import { useTranslation } from "react-i18next";
 import GoogleTranslateDropdown from "../GoogleTranslateDropdown.jsx";
 import { AuthContext } from "../../../context/AuthContext.jsx";
 import API_BASE_URL from "../../../config.js";
+import Swal from "sweetalert2";
+
+
+
+
 export default function Header() {
   const [menuItems, setMenuItems] = useState([{ name: "Help & Faq" }, { name: "The Blog" }]);
   const [hoveredMenu, setHoveredMenu] = useState(null);
@@ -118,19 +123,40 @@ useEffect(() => {
     accountTimeoutRef.current = setTimeout(() => setAccountDropdown(false), 200);
   };
 
-  const handleLogout = async () => {
-    try {
-      await fetch("https://kerala-digital-park-server.vercel.app/api/user/logout", {
-        method: "POST", credentials: "include",
+ const handleLogout = () => {
+  Swal.fire({
+    title: "Are you sure?",
+    text: "You will be logged out of your account.",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonText: "Yes, Logout",
+    cancelButtonText: "Cancel",
+  }).then(async (result) => {
+    if (result.isConfirmed) {
+      try {
+        await fetch("https://kerala-digital-park-server.vercel.app/api/user/logout", {
+          method: "POST", credentials: "include",
+        });
+      } catch (err) {
+        console.error("Logout error:", err);
+      }
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      setIsLoggedIn(false);
+
+      Swal.fire({
+        icon: "success",
+        title: "Logged Out",
+        text: "You have been logged out successfully.",
+        timer: 1500,
+        showConfirmButton: false,
+      }).then(() => {
+        navigate("/sign-in");
       });
-    } catch (err) {
-      console.error("Logout error:", err);
     }
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    setIsLoggedIn(false);
-    navigate("/sign-in");
-  };
+  });
+};
+
 
   // Inside Header component, before return()
 const SearchDropdown = ({ results, onSelect, isMobile = false }) => (
@@ -157,18 +183,19 @@ const SearchDropdown = ({ results, onSelect, isMobile = false }) => (
 
 
   const AccountDropdown = () => (
-    accountDropdown && (
-      <div style={styles.accountDropdown}>
-        {["overview", "orders", "address"].map(tab => (
-          <Link key={tab} to={`/account?tab=${tab}`} style={styles.accountLink}>
-            {tab === "overview" ? "Overview" : tab === "orders" ? "Order History" : "Address Details"}
-          </Link>
-        ))}
-        <div style={styles.divider} />
-        <button onClick={handleLogout} style={styles.logoutBtn}>Logout</button>
-      </div>
-    )
-  );
+  accountDropdown && (
+    <div style={styles.accountDropdown}>
+      <Link to="/account?tab=overview" style={styles.accountLink}>
+        Overview
+      </Link>
+      <div style={styles.divider} />
+      <button onClick={handleLogout} style={styles.logoutBtn}>
+        Logout
+      </button>
+    </div>
+  )
+);
+
 
   // const MobileMenuItem = ({ item }) => {
   //   const hasSubItems = item.subItems?.length > 0;
@@ -277,11 +304,22 @@ const MobileMenuItem = ({ item }) => {
 // Cart click handler
 const handleCartClick = (e) => {
   if (!isLoggedIn) {
-    e.preventDefault(); // stop navigation
-    alert("Please login to add items to cart");
-    navigate("/sign-in"); // optional: redirect to sign-in
+    e.preventDefault();
+    Swal.fire({
+      title: "Login Required",
+      text: "You need to sign in to access the cart. Do you want to login now?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Yes, Login",
+      cancelButtonText: "Cancel",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        navigate("/sign-in");
+      }
+    });
   }
 };
+
 
 
   return (

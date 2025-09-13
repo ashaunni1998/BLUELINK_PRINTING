@@ -123,11 +123,26 @@ const Footer = () => {
                 </button>
                 {expanded === index && (
                   <div style={{ padding: "0 16px 16px" }}>
-                    {section.links.map((item) => (
-                      <Link key={item.label} to={item.path} style={{ display: "block", color: "#00754a", textDecoration: "none", padding: "6px 0" }}>
-                        {item.label}
-                      </Link>
-                    ))}
+                   {section.links.map((item) => (
+  <Link
+    key={item.label}
+    to={item.path}
+    onClick={() => {
+      if (item.label !== "FAQs") {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+    }}
+    style={{
+      display: "block",
+      color: "#555",
+      textDecoration: "none",
+      margin: "6px 0",
+    }}
+  >
+    {item.label}
+  </Link>
+))}
+
                   </div>
                 )}
               </div>
@@ -145,13 +160,42 @@ const Footer = () => {
             </Link>
           ))}
         </div>
-        <div>
-          <span style={{ fontSize: "12px" }}>
-            © Blue Link, 123 Main St, YourCity.
-          </span>
-        </div>
-      </div>
-    </footer>
+<div
+  style={{
+    backgroundColor: "#f0f8ff",
+    padding: "15px",
+    border: "1px solid #ccc",
+    borderRadius: "8px",
+    width: "fit-content",
+    margin: "0 auto"
+  }}
+>
+  <span
+    style={{
+      fontSize: "12px",
+      fontFamily: "inherit",
+      fontWeight: "bold",
+      color: "#003366"
+    }}
+  >
+    Blue Link Printing
+  </span>
+  <p style={{ margin: "5px 0 0 0", fontSize: "11px", color: "#555" }}>
+    Designed And Developed By{" "}
+    <a
+      href="https://keraladigitalpark.com"
+      target="_blank"
+      rel="noopener noreferrer"
+      style={{ color: "#0077cc", textDecoration: "none" }}
+    >
+      Kerala Digital Park
+    </a>
+  </p>
+</div>
+
+
+</div>
+</footer>
   );
 };
 
