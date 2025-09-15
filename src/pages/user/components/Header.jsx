@@ -386,9 +386,9 @@ const handleCartClick = (e) => {
             {menuItems.map((item) => (
               <div key={item._id} style={styles.navItem} onMouseEnter={() => setHoveredMenu(item._id)} onMouseLeave={() => setHoveredMenu(null)}>
                 {item.products?.length > 0 ? (
-                  <span style={styles.navLink}>{item.name}</span>
+                  <Link to ={ `/allProducts/${item._id}`}style={styles.navLink}>{item.name}</Link>
                 ) : (
-                    <span style={styles.navLink}>{item.name}</span>
+                    <Link to={`/allProducts/${item._id}`} style={styles.navLink}>{item.name}</Link>
                   // <div onClick={() => {}} style={styles.navButton}>{item.name}</div>
                 )}
                 

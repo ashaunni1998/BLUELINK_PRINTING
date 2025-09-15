@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import API_BASE_URL from "../../config";
+import BusinessCardOptions from "./BusinessCardOptions";
 
 export default function AllProducts() {
   const { categoryId } = useParams();
@@ -12,52 +13,232 @@ export default function AllProducts() {
   const [categoryName, setCategoryName] = useState("");
 
   const navigate = useNavigate();
+  
+  
 
- 
-useEffect(() => {
-  const fetchProducts = async () => {
-    try {
-      const res = await fetch(
-        `${API_BASE_URL}/product/tobBarCategory`,
-        {
+  const homeSlides = [
+    {
+ image: "/assets/Business/banner1.jpg",
+      // title: "High-Quality Printing",
+      // description: "We provide premium printing services for all your business needs.",
+    },
+    {
+      image:
+      "/assets/Business/banner2.jpg",
+      // title: "Custom Designs",
+      // description: "Personalize your products with unique, professional designs.",
+    },
+    {
+      image:
+        "/assets/Business/banner3.jpg",
+      //   title: "Wide Range of Products",
+      // description: "From business cards to banners, explore our full catalog.",
+    },
+  ];
+  // ✅ Slider state
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const slide = homeSlides[currentSlide];
+  
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+
+  
+  // Auto slide every 7s
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % homeSlides.length);
+    }, 7000);
+    return () => clearInterval(timer);
+  }, [homeSlides.length]);
+
+  const goToPrev = () => {
+    setCurrentSlide((prev) => (prev - 1 + homeSlides.length) % homeSlides.length);
+  };
+
+  const goToNext = () => {
+    setCurrentSlide((prev) => (prev + 1) % homeSlides.length);
+  };
+
+  
+  // Fetch products
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/product/tobBarCategory`, {
           method: "GET",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
+        });
+
+        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+
+        const data = await res.json();
+        const categories = data.data;
+
+        const matchedCategory = categories.find((cat) => cat._id === categoryId);
+
+        if (matchedCategory && matchedCategory.products) {
+          setProducts(matchedCategory.products);
+          setCategoryName(matchedCategory.name);
+        } else {
+          setProducts([]);
+          setCategoryName("");
         }
-      );
-
-      if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-
-      const data = await res.json();
-      const categories = data.data;
-
-      const matchedCategory = categories.find((cat) => cat._id === categoryId);
-
-      if (matchedCategory && matchedCategory.products) {
-        setProducts(matchedCategory.products);
-        setCategoryName(matchedCategory.name); // ✅ save category name
-      } else {
-        setProducts([]);
-        setCategoryName("");
+      } catch (err) {
+        console.error("Failed to fetch products:", err);
+        setError("Something went wrong while fetching products.");
+      } finally {
+        setLoading(false);
       }
-    } catch (err) {
-      console.error("Failed to fetch products:", err);
-      setError("Something went wrong while fetching products.");
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
 
-  if (categoryId) fetchProducts();
-}, [categoryId]);
-  if (loading) return <p style={{ textAlign: "center", padding: "40px" }}>Loading products...</p>;
-  if (error) return <p style={{ textAlign: "center", color: "red", padding: "40px" }}>{error}</p>;
+    if (categoryId) fetchProducts();
+  }, [categoryId]);
 
+  if (loading)
+    return <p style={{ textAlign: "center", padding: "40px" }}>Loading products...</p>;
+  if (error)
+    return (
+      <p style={{ textAlign: "center", color: "red", padding: "40px" }}>{error}</p>
+    );
+
+ 
+
+// useEffect(() => {
+//   const fetchProducts = async () => {
+//     try {
+//       const res = await fetch(
+//         `${API_BASE_URL}/product/tobBarCategory`,
+//         {
+//           method: "GET",
+//           headers: { "Content-Type": "application/json" },
+//           credentials: "include",
+//         }
+//       );
+
+//       if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+
+//       const data = await res.json();
+//       const categories = data.data;
+
+//       const matchedCategory = categories.find((cat) => cat._id === categoryId);
+
+//       if (matchedCategory && matchedCategory.products) {
+//         setProducts(matchedCategory.products);
+//         setCategoryName(matchedCategory.name); // ✅ save category name
+//       } else {
+//         setProducts([]);
+//         setCategoryName("");
+//       }
+//     } catch (err) {
+//       console.error("Failed to fetch products:", err);
+//       setError("Something went wrong while fetching products.");
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   if (categoryId) fetchProducts();
+// }, [categoryId]);
+//   if (loading) return <p style={{ textAlign: "center", padding: "40px" }}>Loading products...</p>;
+//   if (error) return <p style={{ textAlign: "center", color: "red", padding: "40px" }}>{error}</p>;
+
+
+
+// ✅ Move helper OUTSIDE the component return
+const arrowButtonStyle = (position) => ({
+  position: "absolute",
+  top: "50%",
+  [position]: "20px",
+  transform: "translateY(-50%)",
+  fontSize: "30px",
+  color: "#fff",
+  background: "rgba(0,0,0,0.4)",
+  border: "none",
+  borderRadius: "50%",
+  width: "40px",
+  height: "40px",
+  cursor: "pointer",
+});
   return (
      <div >
       <div className="responsive-container">
       <Header />
+      
+ {/* ✅ Slider Section */}
+        <section
+          style={{
+            backgroundImage: `url(${slide.image})`,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            height: isMobile ? "200px" : "450px",
+            position: "relative",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: isMobile ? "center" : "space-between",
+            flexDirection: isMobile ? "column" : "row",
+            transition: "background-image 1s ease-in-out",
+          }}
+        >
+          {/* Arrows (hidden on mobile) */}
+          {!isMobile && (
+            <>
+              <button
+                onClick={goToPrev}
+                style={arrowButtonStyle("left")}
+                aria-label="Previous Slide"
+              >
+                &#10094;
+              </button>
+              <button
+                onClick={goToNext}
+                style={arrowButtonStyle("right")}
+                aria-label="Next Slide"
+              >
+                &#10095;
+              </button>
+            </>
+          )}
+
+          {/* Slide Content */}
+          <div
+            style={{
+              padding: "30px",
+              color: "black",
+              maxWidth: "400px",
+              borderRadius: "10px",
+              paddingLeft: "60px",
+              textAlign: "left",
+              backgroundColor: "rgba(255,255,255,0.6)",
+            }}
+          >
+            <h2 style={{ fontSize: "32px", marginBottom: "15px" }}>{slide.title}</h2>
+            <p style={{ fontSize: "16px", marginBottom: "25px" }}>{slide.description}</p>
+            {/* <a href="/businesscards">
+              <button
+                style={{
+                  padding: "8px 16px",
+                  backgroundColor: "#007bff",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: "5px",
+                  fontSize: "16px",
+                  cursor: "pointer",
+                }}
+              >
+                View Our Products
+              </button>
+            </a> */}
+          </div>
+        </section>
+
       <style>
+        
         {`
           .all-products-container {
             padding: 30px;
@@ -215,7 +396,9 @@ useEffect(() => {
             ))}
           </div>
         )}
+        <BusinessCardOptions/>
       </div>
+      
 
       <Footer />
     </div>
