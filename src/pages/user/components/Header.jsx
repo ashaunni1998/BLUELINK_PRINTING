@@ -394,7 +394,15 @@ const handleCartClick = (e) => {
                 
                 {item.products?.length > 0 && hoveredMenu === item._id && (
                   <div style={styles.dropdown}>
+                     <Link 
+      to={`/allProducts/${item._id}`} 
+      style={styles.dropdownItem}
+      key={`all-${item._id}`}
+    >
+      All {item.name}
+    </Link>
                     {item.products.map((product) => (
+                    
                       <Link key={product._id} to={`/product/${product._id}`} style={styles.dropdownItem}>
                         {product.name}
                       </Link>

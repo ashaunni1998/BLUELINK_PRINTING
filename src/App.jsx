@@ -79,6 +79,8 @@ import UploadDesign from "./pages/user/UploadDesign.jsx";
 import Failure from './pages/user/Failure.jsx';
 
 
+import AllProducts from './pages/user/AllProducts.jsx';
+
 import { AuthProvider } from './context/AuthContext.jsx';
 import { TranslateProvider } from './context/TranslateProvider.jsx';
 
@@ -134,6 +136,7 @@ function App() {
           <Route path="/cropimage" element={<CropImage />} />
           <Route path="/customer-requirement" element={<CustomerRequirement />} />
           <Route path='/failure' element={<Failure/>}/>
+          <Route path='/allProducts/:categoryId' element={<AllProducts/>}/>
 
 
 
@@ -179,6 +182,8 @@ function App() {
             <Route path='admin/' element={<AdminVerification><MainPage /></AdminVerification>} />
             <Route path="admin/login" element={<AdminReDirect> <LoginPage /></AdminReDirect>} />
             <Route path="admin/*" element={<NotFoundPage />} />
+
+          
           </Routes>
           <ToastContainer
             position="top-right"

@@ -29,7 +29,9 @@ const [selectedPaper, setSelectedPaper] = useState(null);
 
 
 
-  const [isCropOpen, setIsCropOpen] = useState(false);
+
+
+const [isCropOpen, setIsCropOpen] = useState(false);
 const [croppedImage, setCroppedImage] = useState(null);
 const [selectedFile, setSelectedFile] = useState(null);
 const [orderId, setOrderId] = useState(null);
@@ -723,7 +725,7 @@ const isPersonalisedGift = normalize(categoryName) === "personalized gifts";
           
         
           padding: isMobile ? '20px' : '40px',
-          maxWidth: '1200px',
+          // maxWidth: '1200px',
           margin: '0 auto',
           
         }}>
@@ -829,114 +831,303 @@ const isPersonalisedGift = normalize(categoryName) === "personalized gifts";
 {/* Sizes */}
 {product.size?.length > 0 && (
   <div style={{ marginBottom: "16px" }}>
-    <h3 style={{ fontSize: "18px", fontWeight: "600", marginBottom: "6px" }}>
+    <h3 style={{ fontSize: "18px", fontWeight: "600", marginBottom: "12px" }}>
       Available Sizes
     </h3>
-    <select
-      onChange={(e) =>
-        setSelectedSize(product.size.find((s) => s.name === e.target.value))
-      }
+
+    <div
       style={{
-        width: "100%",
-        padding: "8px",
-        borderRadius: "6px",
-        border: "1px solid #ccc",
-        fontSize: "15px",
+        display: "flex",
+        gap: "16px",
+        flexWrap: "wrap",
       }}
     >
-      <option value="">Select size</option>
-      {product.size.map((s, i) => (
-        <option key={i} value={s.name}>
-          {s.name}: {s.size.width} x {s.size.height}
-        </option>
-      ))}
-    </select>
+      {product.size.map((s, i) => {
+        // Map size name to image
+        const sizeImages = {
+          standard:
+            "https://www.moo.com/static-assets/product-images/b199bfe46c94ed9b044c2e52d18b9042f176b7f8/sizes/business_card-standard-526x325.jpg",
+          normal:
+            "https://www.moo.com/static-assets/product-images/b199bfe46c94ed9b044c2e52d18b9042f176b7f8/sizes/business_card-moo-526x325.jpg",
+          square:
+            "https://www.moo.com/static-assets/product-images/b199bfe46c94ed9b044c2e52d18b9042f176b7f8/sizes/business_card-square-526x325.jpg",
+        };
+
+        const imgUrl = sizeImages[s.name.toLowerCase()];
+
+        return (
+          <div
+            key={i}
+            onClick={() => setSelectedSize(s)}
+            style={{
+              border:
+                selectedSize?.name === s.name
+                  ? "2px solid #007bff"
+                  : "1px solid #ccc",
+              borderRadius: "8px",
+              padding: "10px",
+              cursor: "pointer",
+              textAlign: "center",
+              width: "160px",
+              transition: "all 0.2s ease-in-out",
+              boxShadow:
+                selectedSize?.name === s.name
+                  ? "0px 4px 12px rgba(0,0,0,0.15)"
+                  : "none",
+            }}
+          >
+            {imgUrl && (
+              <img
+                src={imgUrl}
+                alt={s.name}
+                style={{
+                  width: "100%",
+                  height: "100px",
+                  objectFit: "contain",
+                  marginBottom: "8px",
+                  borderRadius: "6px",
+                }}
+              />
+            )}
+            <div style={{ fontSize: "14px", fontWeight: "500" }}>
+              {s.name}
+            </div>
+            <div style={{ fontSize: "13px", color: "#555" }}>
+              {s.size.width} × {s.size.height}
+            </div>
+          </div>
+        );
+      })}
+    </div>
   </div>
 )}
+
+
 
 {/* Paper */}
 {product.paper?.length > 0 && (
   <div style={{ marginBottom: "16px" }}>
-    <h3 style={{ fontSize: "18px", fontWeight: "600", marginBottom: "6px" }}>
+    <h3 style={{ fontSize: "18px", fontWeight: "600", marginBottom: "12px" }}>
       Paper Options
     </h3>
-    <select
-      onChange={(e) =>
-        setSelectedPaper(product.paper.find((p) => p.name === e.target.value))
-      }
+
+    <div
       style={{
-        width: "100%",
-        padding: "8px",
-        borderRadius: "6px",
-        border: "1px solid #ccc",
-        fontSize: "15px",
+        display: "flex",
+        gap: "16px",
+        flexWrap: "wrap",
       }}
     >
-      <option value="">Select paper</option>
-      {product.paper.map((p, i) => (
-        <option key={i} value={p.name}>
-          {p.name} - {p.points.join(", ")}
-        </option>
-      ))}
-    </select>
+      {product.paper.map((p, i) => {
+        // Map paper name to image
+        const paperImages = {
+          original:
+            "https://www.moo.com/static-assets/product-images/b199bfe46c94ed9b044c2e52d18b9042f176b7f8/laminates/matte-526x251.jpg",
+          super:
+            "https://www.moo.com/static-assets/product-images/b199bfe46c94ed9b044c2e52d18b9042f176b7f8/laminates/gloss-526x251.jpg",
+          luxe:
+            "https://www.moo.com/static-assets/product-images/b199bfe46c94ed9b044c2e52d18b9042f176b7f8/laminates/matte-526x251.jpg",
+          specialfinish:
+            "https://www.moo.com/static-assets/product-images/b199bfe46c94ed9b044c2e52d18b9042f176b7f8/laminates/gloss-526x251.jpg",
+        };
+
+        const imgUrl = paperImages[p.name.toLowerCase()];
+
+        return (
+          <div
+            key={i}
+            onClick={() => setSelectedPaper(p)}
+            style={{
+              border:
+                selectedPaper?.name === p.name
+                  ? "2px solid #007bff"
+                  : "1px solid #ccc",
+              borderRadius: "8px",
+              padding: "10px",
+              cursor: "pointer",
+              textAlign: "center",
+              width: "180px",
+              transition: "all 0.2s ease-in-out",
+              boxShadow:
+                selectedPaper?.name === p.name
+                  ? "0px 4px 12px rgba(0,0,0,0.15)"
+                  : "none",
+            }}
+          >
+            {imgUrl && (
+              <img
+                src={imgUrl}
+                alt={p.name}
+                style={{
+                  width: "100%",
+                  height: "100px",
+                  objectFit: "cover",
+                  marginBottom: "8px",
+                  borderRadius: "6px",
+                }}
+              />
+            )}
+            <div style={{ fontSize: "14px", fontWeight: "500" }}>
+              {p.name}
+            </div>
+            <div style={{ fontSize: "13px", color: "#555" }}>
+              {p.points.join(", ")}
+            </div>
+          </div>
+        );
+      })}
+    </div>
   </div>
 )}
+
+
 
 {/* Finish */}
 {product.finish?.length > 0 && (
   <div style={{ marginBottom: "16px" }}>
-    <h3 style={{ fontSize: "18px", fontWeight: "600", marginBottom: "6px" }}>
+    <h3 style={{ fontSize: "18px", fontWeight: "600", marginBottom: "12px" }}>
       Finish
     </h3>
-    <select
-      onChange={(e) =>
-        setSelectedFinish(product.finish.find((f) => f.name === e.target.value))
-      }
+
+    <div
       style={{
-        width: "100%",
-        padding: "8px",
-        borderRadius: "6px",
-        border: "1px solid #ccc",
-        fontSize: "15px",
+        display: "flex",
+        gap: "16px",
+        flexWrap: "wrap",
       }}
     >
-      <option value="">Select finish</option>
-      {product.finish.map((f, i) => (
-        <option key={i} value={f.name}>
-          {f.name} - {f.description}
-        </option>
-      ))}
-    </select>
+      {product.finish.map((f, i) => {
+        // Map finish name to image
+        const finishImages = {
+          matte:
+            "https://www.moo.com/static-assets/product-images/b199bfe46c94ed9b044c2e52d18b9042f176b7f8/laminates/matte-526x251.jpg",
+          gloss:
+            "https://www.moo.com/static-assets/product-images/b199bfe46c94ed9b044c2e52d18b9042f176b7f8/laminates/gloss-526x251.jpg",
+        };
+
+        const imgUrl = finishImages[f.name.toLowerCase()];
+
+        return (
+          <div
+            key={i}
+            onClick={() => setSelectedFinish(f)}
+            style={{
+              border:
+                selectedFinish?.name === f.name
+                  ? "2px solid #007bff"
+                  : "1px solid #ccc",
+              borderRadius: "8px",
+              padding: "10px",
+              cursor: "pointer",
+              textAlign: "center",
+              width: "180px",
+              transition: "all 0.2s ease-in-out",
+              boxShadow:
+                selectedFinish?.name === f.name
+                  ? "0px 4px 12px rgba(0,0,0,0.15)"
+                  : "none",
+            }}
+          >
+            {imgUrl && (
+              <img
+                src={imgUrl}
+                alt={f.name}
+                style={{
+                  width: "100%",
+                  height: "100px",
+                  objectFit: "cover",
+                  marginBottom: "8px",
+                  borderRadius: "6px",
+                }}
+              />
+            )}
+            <div style={{ fontSize: "14px", fontWeight: "500" }}>
+              {f.name}
+            </div>
+            <div style={{ fontSize: "13px", color: "#555" }}>
+              {f.description}
+            </div>
+          </div>
+        );
+      })}
+    </div>
   </div>
 )}
+
 
 {/* Corners */}
 {product.corner?.length > 0 && (
   <div style={{ marginBottom: "16px" }}>
-    <h3 style={{ fontSize: "18px", fontWeight: "600", marginBottom: "6px" }}>
+    <h3 style={{ fontSize: "18px", fontWeight: "600", marginBottom: "12px" }}>
       Corners
     </h3>
-    <select
-      onChange={(e) =>
-        setSelectedCorner(product.corner.find((c) => c.name === e.target.value))
-      }
+
+    <div
       style={{
-        width: "100%",
-        padding: "8px",
-        borderRadius: "6px",
-        border: "1px solid #ccc",
-        fontSize: "15px",
+        display: "flex",
+        gap: "16px",
+        flexWrap: "wrap",
       }}
     >
-      <option value="">Select corner</option>
-      {product.corner.map((c, i) => (
-        <option key={i} value={c.name}>
-          {c.name} - {c.description}
-        </option>
-      ))}
-    </select>
+      {product.corner.map((c, i) => {
+        // Map corner type to image
+        const cornerImages = {
+          square: "https://shorturl.at/NvRK3",
+          rounded:
+            "https://static.vecteezy.com/system/resources/previews/042/983/171/non_2x/round-corner-skined-filled-icon-vector.jpg",
+        };
+
+        const imgUrl = cornerImages[c.name.toLowerCase()];
+
+        return (
+          <div
+            key={i}
+            onClick={() => setSelectedCorner(c)}
+            style={{
+              border:
+                selectedCorner?.name === c.name
+                  ? "2px solid #007bff"
+                  : "1px solid #ccc",
+              borderRadius: "8px",
+              padding: "10px",
+              cursor: "pointer",
+              textAlign: "center",
+              width: "160px",
+              transition: "all 0.2s ease-in-out",
+              boxShadow:
+                selectedCorner?.name === c.name
+                  ? "0px 4px 12px rgba(0,0,0,0.15)"
+                  : "none",
+            }}
+          >
+            {imgUrl && (
+              <img
+                src={imgUrl}
+                alt={c.name}
+                style={{
+                  width: "100%",
+                  height: "100px",
+                  objectFit: "contain",
+                  marginBottom: "8px",
+                  borderRadius: "6px",
+                  background: "#f9f9f9",
+                  padding: "6px",
+                }}
+              />
+            )}
+            <div style={{ fontSize: "14px", fontWeight: "500" }}>
+              {c.name}
+            </div>
+            <div style={{ fontSize: "13px", color: "#555" }}>
+              {c.description}
+            </div>
+          </div>
+        );
+      })}
+    </div>
   </div>
 )}
+
 
 
 
@@ -972,7 +1163,7 @@ const isPersonalisedGift = normalize(categoryName) === "personalized gifts";
 
     style={{
 
-      marginTop: "40px",
+      // marginTop: "40px",
 
       display: "flex",
 
@@ -1077,41 +1268,98 @@ const isPersonalisedGift = normalize(categoryName) === "personalized gifts";
 
 
       {/* Custom Text Input */}
+<input
+  type="text"
+  placeholder="Enter your custom message"
+  value={customText}
+  onChange={(e) => setCustomText(e.target.value)}
+  style={{
+    marginTop: "15px",
+    padding: "10px",
+    width: "100%",
+    maxWidth: "300px",
+    borderRadius: "8px",
+    border: "1px solid #ddd",
+    fontSize: "14px",
+    outline: "none",
+  }}
+/>
 
-      <input
+{/* Preview Frame - directly under input */}
+<div
+  style={{
+    marginTop: "20px",
+    position: "relative",
+    width: "300px",
+    height: "300px",
+    marginInline: "auto",
+    borderRadius: "16px",
+    overflow: "hidden",
+    background: "#f9f9f9",
+    boxShadow: "0 8px 20px rgba(0,0,0,0.15)",
+  }}
+>
+  {preparedPreview ? (
+    <img
+      src={preparedPreview}
+      alt="Prepared Preview"
+      style={{
+        width: "100%",
+        height: "100%",
+        objectFit: "cover",
+        position: "absolute",
+        top: 0,
+        left: 0,
+        zIndex: 1,
+      }}
+    />
+  ) : uploadedImage ? (
+    <img
+      src={uploadedImage}
+      alt="Uploaded Preview"
+      style={{
+        width: "100%",
+        height: "100%",
+        objectFit: "cover",
+        position: "absolute",
+        top: 0,
+        left: 0,
+        zIndex: 1,
+      }}
+    />
+  ) : (
+    <p
+      style={{
+        color: "#aaa",
+        marginTop: "100px",
+        textAlign: "center",
+        fontStyle: "italic",
+        fontSize: "14px",
+      }}
+    >
+      No photo uploaded yet
+    </p>
+  )}
 
-        type="text"
+  {/* Frame Overlay */}
+  {FRAME_URL && (
+    <img
+      src={FRAME_URL}
+      alt="Frame"
+      style={{
+        width: "100%",
+        height: "100%",
+        position: "absolute",
+        top: 0,
+        left: 0,
+        zIndex: 2,
+        pointerEvents: "none",
+      }}
+    />
+  )}
+</div>
 
-        placeholder="Enter your custom message"
-
-        value={customText}
-
-        onChange={(e) => setCustomText(e.target.value)}
-
-        style={{
-
-          marginTop: "15px",
-
-          padding: "10px",
-
-          width: "100%",
-
-          maxWidth: "300px",
-
-          borderRadius: "8px",
-
-          border: "1px solid #ddd",
-
-          fontSize: "14px",
-
-          outline: "none",
-
-        }}
-
-      />
-
-
-{/* Frame Selection */}
+{/* Frame Selection - moved BELOW preview */}
 <div
   style={{
     display: "flex",
@@ -1168,173 +1416,49 @@ const isPersonalisedGift = normalize(categoryName) === "personalized gifts";
   ))}
 </div>
 
-
-    {/* Preview Frame */}
-
+{/* Buttons */}
 <div
-
   style={{
-
-    marginTop: "25px",
-
-    position: "relative",
-
-    width: "300px",
-
-    height: "300px",
-
-    marginInline: "auto",
-
-    borderRadius: "16px",
-
-    overflow: "hidden",
-
-    background: "#f9f9f9",
-
-    boxShadow: "0 8px 20px rgba(0,0,0,0.15)",
-
+    display: "flex",
+    gap: "12px",
+    marginTop: "18px",
+    justifyContent: "center",
   }}
-
 >
+  <button
+    onClick={handlePrepareAndUpload}
+    style={{
+      padding: "10px 16px",
+      background: "#10b981",
+      color: "#fff",
+      borderRadius: "8px",
+      border: "none",
+      cursor: "pointer",
+      fontWeight: 600,
+    }}
+  >
+    Prepare & Upload
+  </button>
 
-  {preparedPreview ? (
-
-    // ✅ Show final prepared image
-
-    <img
-
-      src={preparedPreview}
-
-      alt="Prepared Preview"
-
-      style={{
-
-        width: "100%",
-
-        height: "100%",
-
-        objectFit: "cover",
-
-        position: "absolute",
-
-        top: 0,
-
-        left: 0,
-
-        zIndex: 1,
-
-      }}
-
-    />
-
-  ) : uploadedImage ? (
-
-    // fallback: show raw uploaded image
-<img
-  src={uploadedImage}
-  alt="Uploaded Preview"
-  style={{
-    width: "100%",
-    height: "100%",
-    objectFit: "cover",
-    position: "absolute",
-    top: 0,
-    left: 0,
-    zIndex: 1,
-  }}
-/>
-
-  ) : (
-
-    // fallback: placeholder text
-
-    <p
-
-      style={{
-
-        color: "#aaa",
-
-        marginTop: "100px",
-
-        textAlign: "center",
-
-        fontStyle: "italic",
-
-        fontSize: "14px",
-
-      }}
-
-    >
-
-      No photo uploaded yet
-
-    </p>
-
-  )}
-
-
-
-  {/* Frame Overlay */}
-
-<img
-  src={FRAME_URL}
-  alt="Frame"
-  style={{
-    width: "100%",
-    height: "100%",
-    position: "absolute",
-    top: 0,
-    left: 0,
-    zIndex: 2,
-    pointerEvents: "none",
-  }}
-/>
-
+  <button
+    onClick={async () => {
+      await handlePrepareAndUpload();
+      navigate("/checkout");
+    }}
+    style={{
+      padding: "10px 16px",
+      background: "#3b82f6",
+      color: "#fff",
+      borderRadius: "8px",
+      border: "none",
+      cursor: "pointer",
+      fontWeight: 600,
+    }}
+  >
+    🛍️ Buy Now
+  </button>
 </div>
 
-
-
-      {/* Optional: Submit / Prepare buttons */}
-
-      <div style={{ display: "flex", gap: "12px", marginTop: "18px", justifyContent: "center" }}>
-
-       
-
-<button
-  onClick={handlePrepareAndUpload}
-  style={{
-    padding: "10px 16px",
-    background: "#10b981",
-    color: "#fff",
-    borderRadius: "8px",
-    border: "none",
-    cursor: "pointer",
-    fontWeight: 600,
-  }}
->
-  Prepare & Upload
-</button>
-
-       <button
-  onClick={async () => {
-    await handlePrepareAndUpload(); // saves customization to imgbb + DB
-    navigate("/checkout");
-  }}
-  style={{
-    padding: "10px 16px",
-    background: "#3b82f6",
-    color: "#fff",
-    borderRadius: "8px",
-    border: "none",
-    cursor: "pointer",
-    fontWeight: 600,
-  }}
->
-  🛍️ Buy Now
-</button>
-
-
-      </div>
 
     </div>
 

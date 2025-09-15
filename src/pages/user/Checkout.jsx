@@ -25,7 +25,18 @@ const [appliedCoupon, setAppliedCoupon] = useState(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [availableCoupons, setAvailableCoupons] = useState([]);
 
+ // ✅ New state for delivery method
+  const [deliveryMethod, setDeliveryMethod] = useState("north"); // default
 
+  // calculate delivery cost
+  const getDeliveryCost = () => {
+    if (deliveryMethod === "north") return 7;
+    if (deliveryMethod === "south") return 12;
+    if (deliveryMethod === "pickup") return 0;
+    return 0;
+  };
+
+  const deliveryCost = getDeliveryCost();
   
   const [newAddress, setNewAddress] = useState({
     fullName: "",
@@ -186,11 +197,12 @@ console.log("worked");
 
 
   // ✅ Place order
-  const handlePlaceOrder = async () => {
-    if (!selectedAddress) {
+   const handlePlaceOrder = async () => {
+    if (!selectedAddress && deliveryMethod !== "pickup") {
       Swal.fire("Warning", "Please select a shipping address.", "warning");
       return;
     }
+
     Swal.fire({
       title: "Place Order?",
       text: "Do you want to place this order?",
@@ -209,8 +221,10 @@ console.log("worked");
                 productId: item.id,
                 quantity: item.qty,
               })),
-              address: selectedAddress,
-              totalPrice: total,
+              address: deliveryMethod === "pickup" ? null : selectedAddress,
+              deliveryMethod,
+              deliveryCost,
+              totalPrice: total - discountAmount + deliveryCost,
             },
             { withCredentials: true }
           );
@@ -224,7 +238,7 @@ console.log("worked");
                   orderDetails: {
                     orderId: order._id,
                     orderData: order,
-                    amount: (total - discountAmount) * 100, // cents
+                    amount: (total - discountAmount + deliveryCost) * 100, // cents
                     currency: "USD",
                   },
                 },
@@ -232,7 +246,6 @@ console.log("worked");
             }
           );
         } catch (err) {
-          console.error("Checkout error:", err);
           Swal.fire("Error", "Failed to place order", "error");
         }
       }
@@ -620,6 +633,94 @@ console.log("worked");
 </div>
 
 
+  {/* Delivery Method Section */}
+          <div style={{ marginTop: "20px" }}>
+            <h3 style={{ fontSize: "16px", fontWeight: "600", marginBottom: "10px" }}>
+              Delivery Method
+            </h3>
+            <div style={{ border: "1px solid #ddd", borderRadius: "6px" }}>
+              {/* North Island */}
+              <label
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  padding: "12px",
+                  borderBottom: "1px solid #eee",
+                  background: deliveryMethod === "north" ? "#f0f7ff" : "#fff",
+                  cursor: "pointer",
+                }}
+              >
+                <div>
+                  <input
+                    type="radio"
+                    checked={deliveryMethod === "north"}
+                    onChange={() => setDeliveryMethod("north")}
+                    style={{ marginRight: "10px" }}
+                  />
+                  <span>North Island Standard Shipping</span>
+                  <div style={{ fontSize: "12px", color: "#666" }}>
+                    3-5 business days
+                  </div>
+                </div>
+                <span>NZ$7.00</span>
+              </label>
+
+              {/* South Island */}
+              <label
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  padding: "12px",
+                  borderBottom: "1px solid #eee",
+                  background: deliveryMethod === "south" ? "#f0f7ff" : "#fff",
+                  cursor: "pointer",
+                }}
+              >
+                <div>
+                  <input
+                    type="radio"
+                    checked={deliveryMethod === "south"}
+                    onChange={() => setDeliveryMethod("south")}
+                    style={{ marginRight: "10px" }}
+                  />
+                  <span>South Island Standard Shipping</span>
+                  <div style={{ fontSize: "12px", color: "#666" }}>
+                    3-5 business days
+                  </div>
+                </div>
+                <span>NZ$12.00</span>
+              </label>
+
+              {/* Store Pickup */}
+              <label
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  padding: "12px",
+                  background: deliveryMethod === "pickup" ? "#f0f7ff" : "#fff",
+                  cursor: "pointer",
+                }}
+              >
+                <div>
+                  <input
+                    type="radio"
+                    checked={deliveryMethod === "pickup"}
+                    onChange={() => setDeliveryMethod("pickup")}
+                    style={{ marginRight: "10px" }}
+                  />
+                  <span>Store Pickup</span>
+                  <div style={{ fontSize: "12px", color: "#666" }}>
+                    242 Grey Street, Hamilton, Waikato, 3216, New Zealand
+                  </div>
+                </div>
+                <span>Free</span>
+              </label>
+            </div>
+          </div>
+
   {/* Price calculation */}
   <h4
     style={{
@@ -670,7 +771,7 @@ console.log("worked");
               cursor: "pointer",
             }}
           >
-           Customize And Place order
+           Place order
           </button>
         ) : (
           <div
