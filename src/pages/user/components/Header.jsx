@@ -5,7 +5,7 @@ import GoogleTranslateDropdown from "../GoogleTranslateDropdown.jsx";
 import { AuthContext } from "../../../context/AuthContext.jsx";
 import API_BASE_URL from "../../../config.js";
 import Swal from "sweetalert2";
-
+import { X } from "lucide-react";
 
 
 
@@ -417,6 +417,10 @@ const handleCartClick = (e) => {
 
       {/* Mobile Menu */}
       {isMobile && menuOpen && (
+      <>   <div 
+      style={styles.overlay} 
+      onClick={() => setMenuOpen(false)} 
+    />
         <div style={styles.mobileMenu}>
           <div style={styles.mobileHeader}>
             <div style={styles.mobileSearchWrapper}>
@@ -439,16 +443,15 @@ const handleCartClick = (e) => {
                 isMobile={true}
               />
             </div>
-            <i className="fas fa-times" onClick={() => setMenuOpen(false)} style={styles.closeIcon}></i>
+           <X onClick={() => setMenuOpen(false)} size={26} style={styles.closeIcon} />
           </div>
-        <div style={styles.mobileContent}>
+<div style={styles.mobileContent}>
   {menuItems.map((item) => (
     <div
       key={item._id}
       style={styles.mobileBox}
-      onClick={() =>
-        setHoveredMenu(hoveredMenu === item._id ? null : item._id)
-      }
+      onMouseEnter={() => setHoveredMenu(item._id)}
+      onMouseLeave={() => setHoveredMenu(null)}
     >
       <div style={styles.mobileBoxHeader}>
         <Link to={`/allProducts/${item._id}`} style={styles.mobileBoxLink}>
@@ -487,6 +490,7 @@ const handleCartClick = (e) => {
 </div>
 
 
+
           {/* Mobile Footer */}
           <div style={styles.mobileFooter}>
             {isLoggedIn ? (
@@ -520,6 +524,7 @@ const handleCartClick = (e) => {
 
           </div>
         </div>
+          </>
       )}
 
       {/* Offer Bar */}
@@ -529,6 +534,7 @@ const handleCartClick = (e) => {
 
       <style>{styles.responsive}</style>
     </header>
+  
   );
 }
 
@@ -583,6 +589,16 @@ mobileDropdownItem: {
   padding: "6px 0",
   fontSize: "14px",
 },
+overlay: {
+  position: "fixed",
+  top: 0,
+  left: 0,
+  width: "100%",
+  height: "100%",
+  backgroundColor: "rgba(0,0,0,0.5)", // dim background
+  zIndex: 998,
+},
+
 
   logoWrapper: { display: "flex", alignItems: "center" },
   logo: { height: "50px", objectFit: "contain", width: "115px" },
@@ -607,11 +623,11 @@ mobileDropdownItem: {
   divider: { borderTop: "1px solid #eee", marginTop: "8px" },
   logoutBtn: { margin: "10px auto 0 auto", padding: "8px 16px", backgroundColor: "#0073e6", color: "#fff", border: "none", borderRadius: "6px", cursor: "pointer", fontSize: "14px", fontWeight: "500" },
   mobileMenu: { position: "fixed", top: 0, right: 0, bottom: 0, maxHeight: "100vh", width: "80%", backgroundColor: "#fff", zIndex: 999, boxShadow: "-2px 0 8px rgba(0,0,0,0.2)", overflowY: "scroll", display: "flex", flexDirection: "column" },
-  mobileHeader: { display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 16px", borderBottom: "1px solid #eee", backgroundColor: "#fff", position: "relative" },
+  mobileHeader: { display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 16px", borderBottom: "1px solid #eee", backgroundColor: "#fff", position: "relative" ,zIndex:1000},
   mobileSearchWrapper: { position: "relative", flex: 1, marginRight: "10px" },
   mobileSearchInput: { width: "100%", padding: "8px 36px 8px 12px", fontSize: "16px", border: "1px solid #ccc", borderRadius: "4px" },
   mobileSearchIcon: { position: "absolute", right: "10px", top: "50%", transform: "translateY(-50%)", fontSize: "16px", color: "#888" },
-  closeIcon: { fontSize: "22px", cursor: "pointer", color: "#333" },
+  closeIcon: { fontSize: "22px", cursor: "pointer", color: "#333",marginLeft:"12px" },
   mobileContent: { flex: 1, overflowY: "auto", padding: "20px" },
   mobileNavItem: { fontWeight: "bold", display: "block", padding: "12px", marginBottom: "10px", backgroundColor: "#f9f9f9", borderRadius: "8px", textDecoration: "none", color: "#111" },
   mobileNavToggle: { padding: "12px 16px", fontSize: "16px", fontWeight: "500", backgroundColor: "#f8f9fa", borderRadius: "8px", marginBottom: "10px", boxShadow: "0 2px 4px rgba(0,0,0,0.08)", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center" },

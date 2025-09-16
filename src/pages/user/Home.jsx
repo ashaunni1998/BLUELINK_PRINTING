@@ -8,7 +8,7 @@ import "./Home.css";
 import { useEffect } from "react";
 import API_BASE_URL from "../../config"; // adjust the path properly
 import { TranslateProvider } from "../../context/TranslateProvider";
-
+import FlyerSection from "./FlyerSection";
 
 
 const Home = () => {
@@ -399,7 +399,7 @@ const Home = () => {
 
 
 
-      <section
+      {/* <section
         style={{
           display: "flex",
           flexWrap: "wrap",
@@ -440,8 +440,8 @@ const Home = () => {
             Choose from fancy finishes and premium papers.
           </p>
         </div>
-      </section>
-
+      </section> */}
+<FlyerSection/>
 
 
 

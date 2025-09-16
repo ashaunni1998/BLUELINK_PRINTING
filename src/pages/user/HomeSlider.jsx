@@ -5,33 +5,34 @@ const homeSlides = [
     image: "https://www.moo.com/dam/jcr:cfd23cfc-64cf-451c-90e2-b6fee400f950/0812WF-HPC-3840x1000-Business-Cards-Standard.jpg",
     title: "Fast & Reliable Blueprint Printing",
     description: "Upload your files, customize your order, and we’ll deliver it to your door.",
-    cardLinks:[
-             "Normal Business Cards",
-              "Super Business Cards",
-              "Luxe Business Cards",
-              "Cotton Business Cards",
-    ]
+    cardLinks: [
+      { label: "New Business Cards", link: "/allProducts/${cat._id}" },
+      { label: "Indian Business Cards", link: "/products/business-cards/super" },
+      { label: "Indian Business Cards", link: "/products/business-cards/luxe" },
+      { label: "Super Business Cards", link: "/products/business-cards/cotton" },
+    ],
   },
   {
     image: "https://www.moo.com/dam/jcr:cc5361fb-cdeb-4763-a58b-1d6c45358e65/0812WF-HPC-3840x1000-EN-Business-Reseller0.jpg",
     title: "High-Quality Prints for Professionals",
     description: "Architectural and engineering prints done with precision and care.",
-    cardLinks:[
-      "Business Boost",
-      "Business Boost Plus",
-      "Business Boost Pro",
-
-    ]
+     cardLinks: [
+      { label: "Normal Business Cards", link: "/products/business-cards/normal" },
+      { label: "Super Business Cards", link: "/products/business-cards/super" },
+      { label: "Luxe Business Cards", link: "/products/business-cards/luxe" },
+      { label: "Cotton Business Cards", link: "/products/business-cards/cotton" },
+    ],
   },
   {
     image: "https://www.moo.com/dam/jcr:77605a35-92ad-48a8-8b13-076f67780224/0812WF-HPC-3840x1000-Invitations.jpg",
     title: "Upload Blueprints with Ease",
     description: "Just drag and drop your files, select options, and checkout quickly.",
-    cardLinks:[
-         "Matte Paper Stickers",
-         "Glossy Paper Stickers",
-         "Craft Paper Stickers",
-    ]
+     cardLinks: [
+      { label: "New Business Cards", link: "/products/business-cards/normal" },
+      { label: "Super Business Cards", link: "/products/business-cards/super" },
+      { label: "Luxe Business Cards", link: "/products/business-cards/luxe" },
+      { label: "Cotton Business Cards", link: "/products/business-cards/cotton" },
+    ],
   },
 ];
 
@@ -216,6 +217,7 @@ export default function HomeSlider() {
           {/* Card Links */}
         
 {/* Card Links (Desktop Only) */}
+{/* Card Links (Desktop Only) */}
 {!isMobile && (
   <div
     style={{
@@ -226,21 +228,24 @@ export default function HomeSlider() {
     }}
   >
     {slide.cardLinks.map((item, idx) => (
-      <div
+      <a
         key={idx}
+        href={item.link}
         style={{
           fontSize: "13px",
           color: "#112211",
           fontWeight: "600",
           cursor: "pointer",
           whiteSpace: "nowrap",
+          textDecoration: "none",
         }}
       >
-        {item}
-      </div>
+        {item.label}
+      </a>
     ))}
   </div>
 )}
+
 
         </div>
 
