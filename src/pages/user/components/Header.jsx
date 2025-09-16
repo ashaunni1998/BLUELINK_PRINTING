@@ -441,14 +441,51 @@ const handleCartClick = (e) => {
             </div>
             <i className="fas fa-times" onClick={() => setMenuOpen(false)} style={styles.closeIcon}></i>
           </div>
-          
-          <div style={styles.mobileContent}>
-            {/* {menuItems.map((item) => <MobileMenuItem key={item.name} item={item} />)} */}
-           {menuItems.map((item) => (
-  <MobileMenuItem key={item._id} item={item} />
-))}
+        <div style={styles.mobileContent}>
+  {menuItems.map((item) => (
+    <div
+      key={item._id}
+      style={styles.mobileBox}
+      onClick={() =>
+        setHoveredMenu(hoveredMenu === item._id ? null : item._id)
+      }
+    >
+      <div style={styles.mobileBoxHeader}>
+        <Link to={`/allProducts/${item._id}`} style={styles.mobileBoxLink}>
+          {item.name}
+        </Link>
+        {item.products?.length > 0 && (
+          <i
+            className={`fa-solid fa-angle-${hoveredMenu === item._id ? "up" : "down"}`}
+            style={styles.mobileArrow}
+          ></i>
+        )}
+      </div>
 
-          </div>
+      {item.products?.length > 0 && hoveredMenu === item._id && (
+        <div style={styles.mobileDropdown}>
+          <Link
+            to={`/allProducts/${item._id}`}
+            style={styles.mobileDropdownItem}
+            key={`all-${item._id}`}
+          >
+            All {item.name}
+          </Link>
+          {item.products.map((product) => (
+            <Link
+              key={product._id}
+              to={`/product/${product._id}`}
+              style={styles.mobileDropdownItem}
+            >
+              {product.name}
+            </Link>
+          ))}
+        </div>
+      )}
+    </div>
+  ))}
+</div>
+
 
           {/* Mobile Footer */}
           <div style={styles.mobileFooter}>
@@ -512,6 +549,41 @@ const styles = {
     alignItems: "center",
     padding: "5px 0px",
   },
+  mobileBox: {
+  background: "#fff",
+  borderRadius: "8px",
+  padding: "10px 15px",
+  margin: "6px 0",
+  boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
+  cursor: "pointer",
+},
+mobileBoxHeader: {
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
+},
+mobileBoxLink: {
+  textDecoration: "none",
+  color: "#000",
+  fontWeight: "600",
+},
+mobileArrow: {
+  marginLeft: "10px",
+  fontSize: "14px",
+},
+mobileDropdown: {
+  marginTop: "8px",
+  marginLeft: "10px",
+  display: "flex",
+  flexDirection: "column",
+},
+mobileDropdownItem: {
+  textDecoration: "none",
+  color: "#333",
+  padding: "6px 0",
+  fontSize: "14px",
+},
+
   logoWrapper: { display: "flex", alignItems: "center" },
   logo: { height: "50px", objectFit: "contain", width: "115px" },
   topRightRow: { display: "flex", alignItems: "center", gap: "20px", flexWrap: "wrap", justifyContent: "flex-end", flex: 1 },
