@@ -600,7 +600,7 @@ overlay: {
 },
 
 
-  logoWrapper: { display: "flex", alignItems: "center" },
+  logoWrapper: { display: "flex", alignItems: "center",marginLeft:"5px" },
   logo: { height: "50px", objectFit: "contain", width: "115px" },
   topRightRow: { display: "flex", alignItems: "center", gap: "20px", flexWrap: "wrap", justifyContent: "flex-end", flex: 1 },
   topLink: { cursor: "pointer", color: "#333", fontSize: "14px", textDecoration: "none" },
@@ -610,7 +610,7 @@ overlay: {
   searchIcon: { position: "absolute", right: "10px", top: "50%", transform: "translateY(-50%)", fontSize: "16px", color: "#333", pointerEvents: "none" },
   searchDropdown: { position: "absolute", top: "42px", left: 0, right: 0, backgroundColor: "#fff", border: "1px solid #ccc", zIndex: 2000, maxHeight: "250px", overflowY: "auto",borderRadius:"6px", },
   searchItem: { padding: "10px", borderBottom: "1px solid #eee", cursor: "pointer", color: "#999" },
-  hamburger: { fontSize: "24px", cursor: "pointer" },
+  hamburger: { fontSize: "24px", cursor: "pointer",marginRight:"5px" },
   navBar: { position: "relative", zIndex: 20 },
   navLinks: { display: "flex", gap: "25px", flexWrap: "nowrap", whiteSpace: "nowrap", position: "relative", zIndex: 1 },
   navItem: { position: "relative" },

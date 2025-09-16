@@ -9,6 +9,7 @@ import { useEffect } from "react";
 import API_BASE_URL from "../../config"; // adjust the path properly
 import { TranslateProvider } from "../../context/TranslateProvider";
 import FlyerSection from "./FlyerSection";
+import EnhancedHomeSections from "./EnhancedHomeSections";
 
 
 const Home = () => {
@@ -210,7 +211,7 @@ const Home = () => {
       <Header />
 
       {/* Hero Section */}
-      <HomeSlider />
+      <HomeSlider  />
       {/* Features Section */}
     <section style={{ padding: "40px 20px", backgroundColor: "#ffffff" }}>
   <div
@@ -446,8 +447,12 @@ const Home = () => {
 
 
 
+<EnhancedHomeSections/>
 
-      <section
+
+
+
+ {/* <section
         style={{
           backgroundColor: "#f5f5f5",
           padding: "60px 20px",
@@ -460,9 +465,9 @@ const Home = () => {
             gap: "30px",
             justifyContent: "center",
           }}
-        >
+        > */}
           {/* Business Card Design Examples */}
-          <div
+          {/* <div
             style={{
               backgroundColor: "#fff",
               maxWidth: "500px",
@@ -495,10 +500,10 @@ const Home = () => {
                 Read more &gt;
               </a>
             </div>
-          </div>
+          </div> */}
 
           {/* Invites Section */}
-          <div
+          {/* <div
             style={{
               backgroundColor: "#fff",
               maxWidth: "500px",
@@ -533,15 +538,15 @@ const Home = () => {
             </div>
           </div>
         </div>
-      </section>
+      </section> */}
 
      {/* Section 1 - Flyers */}
-<section
+{/* <section
  
   className="promo-section"
->
+> */}
   {/* Left Image */}
-  <div
+  {/* <div
     
   className="promo-image"
   >
@@ -559,10 +564,10 @@ const Home = () => {
       onMouseOver={(e) => (e.currentTarget.style.transform = "scale(1.03)")}
       onMouseOut={(e) => (e.currentTarget.style.transform = "scale(1)")}
     />
-  </div>
+  </div> */}
 
   {/* Right Text */}
-  <div
+  {/* <div
    className="promo-card"
   >
     <h2 style={{ fontSize: "32px", marginBottom: "20px", fontWeight: "700", color: "#111" }}>
@@ -591,15 +596,15 @@ const Home = () => {
       Shop Flyers & Leaflets 
     </a>
   </div>
-</section>
+</section> */}
 
 {/* Section 2 - Gifts */}
-<section
+{/* <section
 
   className="promo-section reverse"
->
+> */}
   {/* Left Text */}
-  <div
+  {/* <div
     className="promo-card"
   >
     <h2 style={{ fontSize: "32px", marginBottom: "20px", fontWeight: "700", color: "#111" }}>
@@ -627,10 +632,10 @@ const Home = () => {
     >
       Shop Personalized Gifts 
     </a>
-  </div>
+  </div> */}
 
   {/* Right Image */}
-  <div
+  {/* <div
    className="promo-image "
   >
     <img
@@ -648,9 +653,7 @@ const Home = () => {
       onMouseOut={(e) => (e.currentTarget.style.transform = "scale(1)")}
     />
   </div>
-</section>
-
-
+</section> */}
 
       {/* CTA Banner */}
       <section

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Sparkles, Palette, FileText, ArrowRight, Star, Zap } from 'lucide-react';
+import { useNavigate } from "react-router-dom";
 
 const FlyerSection = () => {
   const [isVisible, setIsVisible] = useState(false);
@@ -22,23 +23,26 @@ const FlyerSection = () => {
     { id: 4, size: 50, delay: 1 }
   ];
 
+
+   const navigate = useNavigate();
+
   return (
-    <section className="relative min-h-screen bg-gradient-to-br from-blue-900 via-purple-900 to-pink-900 overflow-hidden">
+    <section className="relative min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-100 overflow-hidden">
       {/* Animated Background Elements */}
       <div className="absolute inset-0">
         {floatingElements.map((element) => (
           <div
             key={element.id}
-            className="absolute animate-pulse opacity-20"
+            className="absolute animate-pulse opacity-30"
             style={{
               width: `${element.size}px`,
               height: `${element.size}px`,
               left: `${Math.random() * 100}%`,
               top: `${Math.random() * 100}%`,
               animationDelay: `${element.delay}s`,
-              background: 'linear-gradient(45deg, #ff6b9d, #4ecdc4)',
+              background: 'linear-gradient(45deg, #3b82f6, #60a5fa)',
               borderRadius: '50%',
-              filter: 'blur(1px)'
+              filter: 'blur(2px)'
             }}
           />
         ))}
@@ -46,11 +50,11 @@ const FlyerSection = () => {
 
       {/* Geometric Pattern Overlay */}
       <div 
-        className="absolute inset-0 opacity-10"
+        className="absolute inset-0 opacity-20"
         style={{
           backgroundImage: `
-            radial-gradient(circle at 25% 25%, #fff 2px, transparent 2px),
-            radial-gradient(circle at 75% 75%, #fff 1px, transparent 1px)
+            radial-gradient(circle at 25% 25%, #3b82f6 2px, transparent 2px),
+            radial-gradient(circle at 75% 75%, #60a5fa 1px, transparent 1px)
           `,
           backgroundSize: '60px 60px, 40px 40px'
         }}
@@ -63,27 +67,27 @@ const FlyerSection = () => {
           <div className={`space-y-8 transform transition-all duration-1000 ${isVisible ? 'translate-x-0 opacity-100' : '-translate-x-20 opacity-0'}`}>
             
             {/* Badge */}
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-md rounded-full text-white/90 text-sm font-medium">
-              <Zap className="w-4 h-4 text-yellow-400" />
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 border border-blue-200 rounded-full text-blue-700 text-sm font-medium">
+              <Zap className="w-4 h-4 text-blue-500" />
               Premium Print Solutions
             </div>
 
             {/* Main Heading */}
             <div className="space-y-4">
-              <h1 className="text-5xl lg:text-7xl font-black text-white leading-tight">
+              <h1 className="text-5xl lg:text-7xl font-black text-gray-900 leading-tight">
                 Flyers &
-                <span className="block bg-gradient-to-r from-pink-400 via-purple-400 to-indigo-400 bg-clip-text text-transparent">
+                <span className="block bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 bg-clip-text text-transparent">
                   Leaflets
                 </span>
               </h1>
-              <div className="w-24 h-1 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full" />
+              <div className="w-24 h-1 bg-gradient-to-r from-blue-400 to-blue-600 rounded-full" />
             </div>
 
             {/* Description */}
-            <p className="text-xl lg:text-2xl text-white/80 leading-relaxed max-w-lg">
+            <p className="text-xl lg:text-2xl text-gray-700 leading-relaxed max-w-lg">
               Elevate your marketing with stunning flyer designs. 
-              <span className="text-pink-300 font-semibold"> Premium papers</span> meet 
-              <span className="text-purple-300 font-semibold"> exquisite finishes</span> for 
+              <span className="text-blue-600 font-semibold"> Premium papers</span> meet 
+              <span className="text-blue-700 font-semibold"> exquisite finishes</span> for 
               maximum impact.
             </p>
 
@@ -92,27 +96,30 @@ const FlyerSection = () => {
               {features.map((feature, index) => (
                 <div
                   key={index}
-                  className={`p-4 rounded-2xl bg-white/5 backdrop-blur-md border border-white/10 cursor-pointer transition-all duration-300 hover:bg-white/10 hover:scale-105 ${
-                    activeFeature === index ? 'bg-white/15 border-pink-400/50' : ''
+                  className={`p-4 rounded-2xl bg-white/90 backdrop-blur-md border border-blue-200 cursor-pointer transition-all duration-300 hover:bg-white hover:scale-105 shadow-lg ${
+                    activeFeature === index ? 'bg-white border-blue-400 shadow-xl' : ''
                   }`}
                   onMouseEnter={() => setActiveFeature(index)}
                 >
-                  <feature.icon className="w-8 h-8 text-pink-400 mb-2" />
-                  <h3 className="text-white font-semibold text-sm mb-1">{feature.title}</h3>
-                  <p className="text-white/60 text-xs">{feature.desc}</p>
+                  <feature.icon className="w-8 h-8 text-blue-500 mb-2" />
+                  <h3 className="text-gray-900 font-semibold text-sm mb-1">{feature.title}</h3>
+                  <p className="text-gray-600 text-xs">{feature.desc}</p>
                 </div>
               ))}
             </div>
 
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 pt-4">
-              <button className="group px-8 py-4 bg-gradient-to-r from-pink-500 to-purple-600 text-white font-bold rounded-2xl shadow-xl transform transition-all duration-300 hover:scale-105 hover:shadow-2xl flex items-center justify-center gap-2">
-                Get Started
-                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-              </button>
-              <button className="px-8 py-4 border-2 border-white/30 text-white font-semibold rounded-2xl backdrop-blur-md hover:bg-white/10 transition-all duration-300">
+              <button
+      onClick={() => navigate("/sign-in")}
+      className="group px-8 py-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white font-bold rounded-2xl shadow-xl transform transition-all duration-300 hover:scale-105 hover:shadow-2xl flex items-center justify-center gap-2"
+    >
+      Get Started
+      <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+    </button>
+              {/* <button className="px-8 py-4 border-2 border-blue-400 text-blue-600 font-semibold rounded-2xl bg-white/80 backdrop-blur-md hover:bg-blue-50 transition-all duration-300">
                 View Samples
-              </button>
+              </button> */}
             </div>
           </div>
 
@@ -123,10 +130,10 @@ const FlyerSection = () => {
             <div className="relative group">
               
               {/* Glow Effect */}
-              <div className="absolute -inset-4 bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 rounded-3xl opacity-30 blur-2xl group-hover:opacity-50 transition-opacity duration-500" />
+              <div className="absolute -inset-4 bg-gradient-to-r from-blue-400 via-blue-500 to-blue-600 rounded-3xl opacity-40 blur-2xl group-hover:opacity-60 transition-opacity duration-500" />
               
               {/* Image Frame */}
-              <div className="relative bg-gradient-to-br from-white/20 to-white/5 p-6 rounded-3xl backdrop-blur-lg border border-white/20">
+              <div className="relative bg-gradient-to-br from-white/95 to-white/80 p-6 rounded-3xl backdrop-blur-lg border border-blue-200 shadow-2xl">
                 <div
                   className="w-full h-80 lg:h-96 rounded-2xl bg-cover bg-center shadow-2xl transform group-hover:scale-[1.02] transition-transform duration-500"
                   style={{
@@ -136,7 +143,7 @@ const FlyerSection = () => {
                   }}
                 >
                   {/* Overlay Content */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent rounded-2xl flex items-end p-6">
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent rounded-2xl flex items-end p-6">
                     <div className="text-white">
                       <div className="flex items-center gap-2 mb-2">
                         {[...Array(5)].map((_, i) => (
@@ -149,14 +156,14 @@ const FlyerSection = () => {
                 </div>
                 
                 {/* Floating Stats */}
-                <div className="absolute -top-4 -right-4 bg-white rounded-2xl p-4 shadow-xl">
+                <div className="absolute -top-4 -right-4 bg-white rounded-2xl p-4 shadow-xl border border-blue-100">
                   <div className="text-center">
-                    <div className="text-2xl font-black text-gray-800">24h</div>
+                    <div className="text-2xl font-black text-blue-600">24h</div>
                     <div className="text-xs text-gray-600 font-medium">Fast Delivery</div>
                   </div>
                 </div>
                 
-                <div className="absolute -bottom-4 -left-4 bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-2xl p-4 shadow-xl">
+                <div className="absolute -bottom-4 -left-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-2xl p-4 shadow-xl">
                   <div className="text-center">
                     <div className="text-2xl font-black">99%</div>
                     <div className="text-xs font-medium opacity-90">Satisfaction</div>
@@ -165,8 +172,8 @@ const FlyerSection = () => {
               </div>
 
               {/* Decorative Elements */}
-              <div className="absolute -z-10 top-10 -right-10 w-32 h-32 bg-pink-500/20 rounded-full blur-3xl animate-pulse" />
-              <div className="absolute -z-10 -bottom-10 -left-10 w-40 h-40 bg-purple-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+              <div className="absolute -z-10 top-10 -right-10 w-32 h-32 bg-blue-400/30 rounded-full blur-3xl animate-pulse" />
+              <div className="absolute -z-10 -bottom-10 -left-10 w-40 h-40 bg-blue-500/30 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
             </div>
           </div>
         </div>
@@ -180,10 +187,10 @@ const FlyerSection = () => {
             { number: "24/7", label: "Support" }
           ].map((stat, index) => (
             <div key={index} className="text-center group">
-              <div className="text-3xl lg:text-4xl font-black text-white mb-2 group-hover:scale-110 transition-transform duration-300">
+              <div className="text-3xl lg:text-4xl font-black text-blue-600 mb-2 group-hover:scale-110 transition-transform duration-300">
                 {stat.number}
               </div>
-              <div className="text-white/60 font-medium">{stat.label}</div>
+              <div className="text-gray-600 font-medium">{stat.label}</div>
             </div>
           ))}
         </div>

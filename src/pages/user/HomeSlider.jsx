@@ -6,9 +6,9 @@ const homeSlides = [
     title: "Fast & Reliable Blueprint Printing",
     description: "Upload your files, customize your order, and we’ll deliver it to your door.",
     cardLinks: [
-      { label: "New Business Cards", link: "/allProducts/${cat._id}" },
-      { label: "Indian Business Cards", link: "/products/business-cards/super" },
-      { label: "Indian Business Cards", link: "/products/business-cards/luxe" },
+      { label: "New Business Cards", link: "/Products/All{Item.name}" },
+      { label: "Indian Business Man Cards", link: "/products/business-cards/super" },
+      { label: "Normal Business Cards", link: "/products/business-cards/luxe" },
       { label: "Super Business Cards", link: "/products/business-cards/cotton" },
     ],
   },
@@ -17,10 +17,10 @@ const homeSlides = [
     title: "High-Quality Prints for Professionals",
     description: "Architectural and engineering prints done with precision and care.",
      cardLinks: [
-      { label: "Normal Business Cards", link: "/products/business-cards/normal" },
-      { label: "Super Business Cards", link: "/products/business-cards/super" },
-      { label: "Luxe Business Cards", link: "/products/business-cards/luxe" },
-      { label: "Cotton Business Cards", link: "/products/business-cards/cotton" },
+      { label: "PostCards", link: "/products/business-cards/normal" },
+      { label: "Normal PostCards", link: "/products/business-cards/super" },
+      { label: "Super PostCards", link: "/products/business-cards/luxe" },
+      // { label: "Cotton Business Cards", link: "/products/business-cards/cotton" },
     ],
   },
   {
@@ -28,9 +28,9 @@ const homeSlides = [
     title: "Upload Blueprints with Ease",
     description: "Just drag and drop your files, select options, and checkout quickly.",
      cardLinks: [
-      { label: "New Business Cards", link: "/products/business-cards/normal" },
-      { label: "Super Business Cards", link: "/products/business-cards/super" },
-      { label: "Luxe Business Cards", link: "/products/business-cards/luxe" },
+      { label: "Photo Frames", link: "/products/business-cards/normal" },
+      { label: "Birthday Mugs", link: "/products/business-cards/super" },
+      { label: "Flyers", link: "/products/business-cards/luxe" },
       { label: "Cotton Business Cards", link: "/products/business-cards/cotton" },
     ],
   },
@@ -39,6 +39,8 @@ const homeSlides = [
 export default function HomeSlider() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+const [hoveredMenu, setHoveredMenu] = useState(null); 
+
 
   useEffect(() => {
     const handleResize = () => {
@@ -102,7 +104,7 @@ export default function HomeSlider() {
               color: "black",
               maxWidth: "400px",
               borderRadius: "10px",
-              paddingLeft: "60px",
+              paddingLeft: "100px",
               textAlign: "left",
             }}
           >
@@ -173,6 +175,7 @@ export default function HomeSlider() {
               "linear-gradient(to bottom, rgba(255,255,255,0) 0%, rgba(248,213,148,0.95) 70%, rgba(248,213,148,1) 100%)",
             padding: "10px 30px 20px",
             boxSizing: "border-box",
+            paddingLeft:"100px",
           }}
         >
           {/* Progress Bars */}
@@ -183,7 +186,7 @@ export default function HomeSlider() {
       display: "flex",
       justifyContent: "flex-start",
       gap: "6px",
-      marginTop: "5px",
+      marginTop: "15px",
       marginBottom:"10px"
     }}
   >
@@ -196,8 +199,8 @@ export default function HomeSlider() {
           backgroundColor: "#ddd",
           borderRadius: "10px",
           overflow: "hidden",
-          // position: "relative",
-          Width: "50px",
+           position: "relative",
+          width: "50px",
         }}
       >
         <div
@@ -224,24 +227,36 @@ export default function HomeSlider() {
       display: "flex",
       justifyContent: "center",
       flexWrap: "wrap",
-      gap: "30px",
+      gap: "15px",
+      marginTop:"15px",
+
     }}
   >
     {slide.cardLinks.map((item, idx) => (
-      <a
-        key={idx}
-        href={item.link}
-        style={{
-          fontSize: "13px",
-          color: "#112211",
-          fontWeight: "600",
-          cursor: "pointer",
-          whiteSpace: "nowrap",
-          textDecoration: "none",
-        }}
-      >
-        {item.label}
-      </a>
+  <a
+  key={idx}
+  href={item.link}
+  style={{
+    fontSize: "14px",
+    color: "#007bff", // brand blue
+    fontWeight: "400",
+    cursor: "pointer",
+    textDecoration: "none",
+    transition: "color 0.3s ease",
+  }}
+  onMouseOver={(e) => {
+    e.currentTarget.style.color = "#0056b3"; // darker blue on hover
+    e.currentTarget.style.textDecoration = "underline"; // underline on hover
+  }}
+  onMouseOut={(e) => {
+    e.currentTarget.style.color = "#007bff";
+    e.currentTarget.style.textDecoration = "none";
+  }}
+>
+  {item.label}
+</a>
+
+       
     ))}
   </div>
 )}

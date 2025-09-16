@@ -1,22 +1,27 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Star } from 'lucide-react';
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import Review from "./Review";
+import Cropper from "react-easy-crop"; // make sure you installed: npm install react-easy-crop
 // import CropImage from "./CropImage";
 // import CustomRequirement from "./CustomerRequirement";
 import API_BASE_URL from "../../config";
 import { FaWhatsapp, FaFacebookMessenger, FaPhoneAlt } from "react-icons/fa";
 import { FaPaperPlane } from "react-icons/fa";
-
 export default function ProductDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  
+  const [croppingImage, setCroppingImage] = useState(null); // dataURL shown in cropper
+const [crop, setCrop] = useState({ x: 0, y: 0 });
+const [zoom, setZoom] = useState(1);
+const [originalImage, setOriginalImage] = useState(null);
+const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
+const hiddenCropFileRef = useRef(null); // optional hidden file input
   // UI state
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedSize, setSelectedSize] = useState("");
@@ -234,26 +239,124 @@ const isMobile = useMediaQuery("(max-width: 768px)");
 
 
 const handleFileChange = (e, side) => {
-  const file = e.target.files[0];
+  const file = e.target.files?.[0];
   if (!file) return;
+
+  if (!file.type.startsWith("image/")) {
+    alert("Please upload an image file.");
+    return;
+  }
 
   const reader = new FileReader();
   reader.onloadend = () => {
-    if (side === "front") {
-      setFrontFile(file);
-      setFrontPreview(reader.result);
-      setCroppingSide("front");
-      setIsCropOpen(true);
-    } else {
-      setBackFile(file);
-      setBackPreview(reader.result);
-      setCroppingSide("back");
-      setIsCropOpen(true);
-    }
+    const dataUrl = reader.result;
+    setOriginalImage(dataUrl);   // ✅ save original
+    setCroppingImage(dataUrl);   // show in cropper
+    setCrop({ x: 0, y: 0 });
+    setZoom(1);
+    setCroppedAreaPixels(null);
+    setCroppingSide(side);
+    setIsCropOpen(true);
+  };
+  reader.readAsDataURL(file);
+  e.target.value = "";
+};
+
+const getCroppedImg = (imageSrc, cropPixels) => {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.crossOrigin = "anonymous";
+    image.src = imageSrc;
+    image.onload = () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.max(1, Math.round(cropPixels.width));
+      canvas.height = Math.max(1, Math.round(cropPixels.height));
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(
+        image,
+        Math.round(cropPixels.x),
+        Math.round(cropPixels.y),
+        Math.round(cropPixels.width),
+        Math.round(cropPixels.height),
+        0,
+        0,
+        Math.round(cropPixels.width),
+        Math.round(cropPixels.height)
+      );
+      resolve(canvas.toDataURL("image/jpeg", 0.92));
+    };
+    image.onerror = (err) => reject(err);
+  });
+};
+
+
+
+const openCropWithFile = (file, side = "uploaded") => {
+  if (!file) return;
+  if (!file.type?.startsWith?.("image/")) {
+    alert("Only image files allowed");
+    return;
+  }
+  const reader = new FileReader();
+  reader.onloadend = () => {
+    const dataUrl = reader.result;
+    setOriginalImage(dataUrl);     // store original so we can revert
+    setCroppingImage(dataUrl);     // show in cropper
+    setCrop({ x: 0, y: 0 });
+    setZoom(1);
+    setCroppedAreaPixels(null);
+    setCroppingSide(side);
+    setIsCropOpen(true);
   };
   reader.readAsDataURL(file);
 };
 
+// react-easy-crop callback
+const onCropComplete = useCallback((_, croppedPixels) => {
+  setCroppedAreaPixels(croppedPixels);
+}, []);
+const handleRevertToOriginal = () => {
+  if (!originalImage) return;
+  setCroppingImage(originalImage);
+  setCrop({ x: 0, y: 0 });
+  setZoom(1);
+  setCroppedAreaPixels(null);
+  // do NOT auto-save — user must press Save Crop
+};
+// Save crop: produce base64 and store into frontPreview/backPreview (depending on croppingSide)
+const handleSaveCrop = async () => {
+  try {
+    if (!croppingImage || !croppedAreaPixels) {
+      alert("Please adjust and then press Save Crop.");
+      return;
+    }
+    const croppedBase64 = await getCroppedImg(croppingImage, croppedAreaPixels);
+
+    // apply cropped result depending on which side/context
+    if (croppingSide === "front") {
+      setFrontPreview?.(croppedBase64);            // optional - keep if you have front preview state
+      setCroppedImages?.((p) => ({ ...(p || {}), front: croppedBase64 }));
+    } else if (croppingSide === "back") {
+      setBackPreview?.(croppedBase64);
+      setCroppedImages?.((p) => ({ ...(p || {}), back: croppedBase64 }));
+    } else {
+      // default: uploaded / prepared preview
+      setPreparedPreview?.(croppedBase64);
+      setUploadedImage?.(croppedBase64);
+    }
+
+    // close and reset crop UI
+    setIsCropOpen(false);
+    setCroppingImage(null);
+    setCrop({ x: 0, y: 0 });
+    setZoom(1);
+    setCroppedAreaPixels(null);
+    setCroppingSide(null);
+  } catch (err) {
+    console.error("Crop save error:", err);
+    alert("Error saving crop — check console.");
+  }
+};
 // const handleCropComplete = (croppedDataUrl) => {
 //   if (croppingSide === "front") {
 //     setFrontPreview(croppedDataUrl);
@@ -769,7 +872,7 @@ const isPersonalisedGift = normalize(categoryName) === "personalized gifts";
           {/* Details */}
  <div style={styles.detailsSection}>
   {/* Product Title */}
-  <h1 style={{ fontSize: "28px", fontWeight: "600", marginBottom: "8px",fontFamily:"initial" ,color:"#007bff" }}>
+  <h1 style={{ fontSize: "28px", fontWeight: "600", marginBottom: "8px" ,color:"#007bff" }}>
     {product.name}
   </h1>
 <p
@@ -778,7 +881,7 @@ const isPersonalisedGift = normalize(categoryName) === "personalized gifts";
     fontWeight: "500",
     color: "#444",
     marginBottom: "16px",
-    fontFamily: "cursive",
+ 
     // backgroundColor: "#a5a7c1ff", // soft yellow highlight
     padding: "12px 16px",
     // borderLeft: "4px solid #ff9800", // orange accent bar
@@ -1252,18 +1355,12 @@ const isPersonalisedGift = normalize(categoryName) === "personalized gifts";
       </label>
 
       <input
-
-        id="upload-photo"
-
-        type="file"
-
-        accept="image/*"
-
-        onChange={handlePersonalisedUpload}
-
-        style={{ display: "none" }}
-
-      />
+  id="upload-photo"
+  type="file"
+  accept="image/*"
+  onChange={(e) => handleFileChange(e, "uploaded")}
+  style={{ display: "none" }}
+/>
 
 
 
@@ -1357,6 +1454,40 @@ const isPersonalisedGift = normalize(categoryName) === "personalized gifts";
       }}
     />
   )}
+
+  {/* ✂️ Re-Crop Button (only if image exists) */}
+{/* 🔄 Revert to Original */}
+{/* ✂️ Re-Crop Button (only if image exists) */}
+{(uploadedImage || preparedPreview || originalImage) && (
+  <button
+    onClick={() => {
+      // prefer uploadedImage, fallback to preparedPreview, finally originalImage
+      setCroppingImage(uploadedImage || preparedPreview || originalImage);
+      setCroppingSide("uploaded");
+      setIsCropOpen(true);
+      // ensure crop UI defaults
+      setCrop({ x: 0, y: 0 });
+      setZoom(1);
+      setCroppedAreaPixels(null);
+    }}
+    style={{
+      position: "absolute",
+      bottom: "10px",
+      right: "10px",
+      padding: "6px 12px",
+      background: "#2563eb",
+      color: "#fff",
+      border: "none",
+      borderRadius: "6px",
+      cursor: "pointer",
+      fontSize: "12px",
+      zIndex: 3,
+    }}
+  >
+    ✂️ Re-Crop
+  </button>
+)}
+
 </div>
 
 {/* Frame Selection - moved BELOW preview */}
@@ -2050,8 +2181,211 @@ const isPersonalisedGift = normalize(categoryName) === "personalized gifts";
 </div>
 
 
+{/* ---------- REPLACE CROP MODAL START ---------- */}
+{isCropOpen && croppingImage && (
+  <div
+    style={{
+      position: "fixed",
+      inset: 0,
+      background: "rgba(0,0,0,0.6)",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      zIndex: 9999,
+      padding: 12,
+    }}
+  >
+    <div
+      style={{
+        width: "100%",
+        maxWidth: 980,
+        maxHeight: "96vh",
+        background: "#fff",
+        borderRadius: 12,
+        overflow: "hidden",
+        display: "flex",
+        flexDirection: "column",
+        boxShadow: "0 12px 40px rgba(2,6,23,0.35)",
+      }}
+    >
+      {/* Header: Revert (optional) + Cancel + Save */}
+      <div
+        style={{
+          display: "flex",
+          gap: 8,
+          alignItems: "center",
+          padding: 12,
+          borderBottom: "1px solid #eee",
+          flexWrap: "wrap",
+        }}
+      >
+        {originalImage && croppingImage && croppingImage !== originalImage && (
+          <button
+            onClick={handleRevertToOriginal}
+            title="Revert to original uploaded photo"
+            style={{
+              padding: "8px 12px",
+              borderRadius: 8,
+              border: "1px solid #ddd",
+              background: "#ef4444",
+              color: "#fff",
+              cursor: "pointer",
+            }}
+          >
+            🔄 Revert
+          </button>
+        )}
 
+        <div style={{ marginLeft: "auto", display: "flex", gap: 8 }}>
+          <button
+            onClick={() => {
+              setIsCropOpen(false);
+              setCroppingImage(null);
+              setCroppingSide(null);
+            }}
+            style={{
+              padding: "8px 12px",
+              borderRadius: 8,
+              border: "1px solid #ddd",
+              background: "#fff",
+              cursor: "pointer",
+            }}
+          >
+            Cancel
+          </button>
 
+          <button
+            onClick={handleSaveCrop}
+            style={{
+              padding: "8px 12px",
+              borderRadius: 8,
+              border: "none",
+              background: "#2563eb",
+              color: "#fff",
+              cursor: "pointer",
+            }}
+          >
+            Save Crop
+          </button>
+        </div>
+      </div>
+
+      {/* Body: crop area + controls */}
+      <div
+        style={{
+          display: "flex",
+          flex: 1,
+          gap: 12,
+          minHeight: 0,
+          flexDirection: window.innerWidth <= 768 ? "column" : "row",
+          overflow: "hidden",
+        }}
+      >
+        {/* Crop area: explicit responsive height so Cropper is visible */}
+        <div
+          style={{
+            flex: 1,
+            position: "relative",
+            minHeight: window.innerWidth <= 768 ? "50vh" : "60vh",
+            background: "#111", // helps visibility while image loads
+          }}
+        >
+          {/* The Cropper must fill its parent */}
+          <div style={{ position: "absolute", inset: 0 }}>
+            <Cropper
+              image={croppingImage}
+              crop={crop}
+              zoom={zoom}
+              aspect={1}
+              onCropChange={setCrop}
+              onZoomChange={setZoom}
+              onCropComplete={onCropComplete}
+              showGrid={false}
+            />
+          </div>
+        </div>
+
+        {/* Controls sidebar (no duplicate preview) */}
+        <aside
+          style={{
+            width: window.innerWidth <= 768 ? "100%" : 300,
+            padding: 12,
+            display: "flex",
+            flexDirection: "column",
+            gap: 12,
+            overflowY: "auto",
+            boxSizing: "border-box",
+          }}
+        >
+          <div>
+            <label style={{ display: "block", fontSize: 13, color: "#374151", marginBottom: 6 }}>
+              Zoom
+            </label>
+            <input
+              type="range"
+              min={1}
+              max={3}
+              step={0.01}
+              value={zoom}
+              onChange={(e) => setZoom(Number(e.target.value))}
+              style={{ width: "100%" }}
+            />
+          </div>
+
+          <div>
+            <label style={{ display: "block", fontSize: 13, color: "#374151", marginBottom: 6 }}>
+              X position
+            </label>
+            <input
+              type="range"
+              min={-100}
+              max={100}
+              step={1}
+              value={Math.round(crop.x)}
+              onChange={(e) => setCrop((c) => ({ ...c, x: Number(e.target.value) }))}
+              style={{ width: "100%" }}
+            />
+          </div>
+
+          <div>
+            <label style={{ display: "block", fontSize: 13, color: "#374151", marginBottom: 6 }}>
+              Y position
+            </label>
+            <input
+              type="range"
+              min={-100}
+              max={100}
+              step={1}
+              value={Math.round(crop.y)}
+              onChange={(e) => setCrop((c) => ({ ...c, y: Number(e.target.value) }))}
+              style={{ width: "100%" }}
+            />
+          </div>
+
+          <div style={{ display: "flex", gap: 8, marginTop: "auto" }}>
+            <button
+              onClick={() => {
+                setCrop({ x: 0, y: 0 });
+                setZoom(1);
+              }}
+              style={{
+                padding: "10px 12px",
+                borderRadius: 8,
+                border: "1px solid #ddd",
+                background: "#fff",
+                cursor: "pointer",
+                width: "100%",
+              }}
+            >
+              Reset
+            </button>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </div>
+)}
+{/* ---------- REPLACE CROP MODAL END ---------- */}
           
 <Review productId={id}/>
 
