@@ -381,7 +381,7 @@ const arrowButtonStyle = (position) => ({
                   <div>
                     <h3 className="product-name">{product.name}</h3>
                     <p className="product-subtitle">{product.subtitle}</p>
-                    <p className="product-price">₹{product.price}</p>
+                    <p className="product-price">${product.price}</p>
                   </div>
                   <div className="product-actions">
                     <button
@@ -396,7 +396,7 @@ const arrowButtonStyle = (position) => ({
             ))}
           </div>
         )}
-        <BusinessCardOptions/>
+        {/* <BusinessCardOptions/> */}
        
       </div>
       

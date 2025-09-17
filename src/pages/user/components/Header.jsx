@@ -5,9 +5,7 @@ import GoogleTranslateDropdown from "../GoogleTranslateDropdown.jsx";
 import { AuthContext } from "../../../context/AuthContext.jsx";
 import API_BASE_URL from "../../../config.js";
 import Swal from "sweetalert2";
-import { X } from "lucide-react";
-
-
+import { X, ChevronDown, ChevronUp } from "lucide-react";
 
 export default function Header() {
   const [menuItems, setMenuItems] = useState([{ name: "Help & Faq" }, { name: "The Blog" }]);
@@ -32,10 +30,6 @@ useEffect(() => {
   window.addEventListener("resize", handleResize);
   return () => window.removeEventListener("resize", handleResize);
 }, []);
-
-
-
-  
 
   // Fetch menu data
   useEffect(() => {
@@ -91,7 +85,6 @@ useEffect(() => {
   const delayDebounce = setTimeout(fetchResults, 400);
   return () => clearTimeout(delayDebounce);
 }, [searchQuery]);
-
 
   // Mobile scroll lock
   useEffect(() => {
@@ -157,7 +150,6 @@ useEffect(() => {
   });
 };
 
-
   // Inside Header component, before return()
 const SearchDropdown = ({ results, onSelect, isMobile = false }) => (
   searchQuery && (
@@ -181,8 +173,7 @@ const SearchDropdown = ({ results, onSelect, isMobile = false }) => (
   )
 );
 
-
-  const AccountDropdown = () => (
+const AccountDropdown = () => (
   accountDropdown && (
     <div style={styles.accountDropdown}>
       <Link to="/account?tab=overview" style={styles.accountLink}>
@@ -197,108 +188,6 @@ const SearchDropdown = ({ results, onSelect, isMobile = false }) => (
 );
 
 
-  // const MobileMenuItem = ({ item }) => {
-  //   const hasSubItems = item.subItems?.length > 0;
-  //   if (!hasSubItems) {
-  //     return (
-  //       <Link key={item.name} to={item.link} style={styles.mobileNavItem} onClick={() => setMenuOpen(false)}>
-  //         {item.name}
-  //       </Link>
-  //     );
-  //   }
-
-    
-
-  //   return (
-  //     <div key={item.name}>
-  //       <div onClick={() => toggleSubMenu(item.name)} style={styles.mobileNavToggle}>
-  //         <span>{item.name}</span>
-  //         <i className={`fa-solid fa-angle-${expandedMenus[item.name] ? 'up' : 'down'}`}></i>
-  //       </div>
-  //       {expandedMenus[item.name] && (
-  //         <div style={styles.mobileSubMenu}>
-  //           {item.subItems.map((subItem, i) => (
-  //             <div key={i}>
-  //               {subItem.subItems ? (
-  //                 <>
-  //                   <div onClick={() => toggleSubMenu(`${item.name} > ${subItem.label}`)} style={styles.mobileSubToggle}>
-  //                     <span>{subItem.label}</span>
-  //                     <i className={`fa-solid fa-angle-${expandedMenus[`${item.name} > ${subItem.label}`] ? 'up' : 'down'}`}></i>
-  //                   </div>
-  //                   {expandedMenus[`${item.name} > ${subItem.label}`] && (
-  //                     <div style={styles.mobileNestedMenu}>
-  //                       {subItem.subItems.map((child, j) => (
-  //                         <Link key={j} to={child.link} style={styles.mobileSubItem} onClick={() => setMenuOpen(false)}>
-  //                           {child.label}
-  //                         </Link>
-  //                       ))}
-  //                     </div>
-  //                   )}
-  //                 </>
-  //               ) : (
-  //                 <Link to={subItem.link} style={styles.mobileSubLink} onClick={() => setMenuOpen(false)}>
-  //                   {subItem.label}
-  //                 </Link>
-  //               )}
-  //             </div>
-  //           ))}
-  //         </div>
-  //       )}
-  //     </div>
-  //   );
-  // };
-
-
-  // Dynamic Mobile Menu Item
-const MobileMenuItem = ({ item }) => {
-  const hasProducts = item.products?.length > 0;
-
-  if (!hasProducts) {
-    return (
-      <Link
-        key={item._id}
-        to={`/category/${item._id}`}
-        style={styles.mobileNavItem}
-        onClick={() => setMenuOpen(false)}
-      >
-        {item.name}
-      </Link>
-    );
-  }
-
-  return (
-    <div key={item._id}>
-      {/* Toggle main category */}
-      <div
-        onClick={() => toggleSubMenu(item._id)}
-        style={styles.mobileNavToggle}
-      >
-        <span>{item.name}</span>
-        <i
-          className={`fa-solid fa-angle-${
-            expandedMenus[item._id] ? "up" : "down"
-          }`}
-        ></i>
-      </div>
-
-      {/* Products under category */}
-      {expandedMenus[item._id] && (
-        <div style={styles.mobileSubMenu}>
-          {item.products.map((product) => (
-            <Link
-              key={product._id}
-              to={`/product/${product._id}`}
-              style={styles.mobileSubLink}
-              onClick={() => setMenuOpen(false)}
-            >
-              {product.name}
-            </Link>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-};
 
 
 // Cart click handler
@@ -320,13 +209,16 @@ const handleCartClick = (e) => {
   }
 };
 
-
-
   return (
     <header style={styles.header}>
       {/* Top Section */}
       <div style={styles.topBar}>
-        <div style={styles.logoWrapper}>
+       <div
+  style={{
+    ...styles.logoWrapper,
+    marginLeft: isMobile ? "5px" : "80px",
+  }}
+>
           <a href="/">
             <img src="/assets/logo/logo2.jpg" alt="Logo" style={styles.logo} />
           </a>
@@ -351,7 +243,6 @@ const handleCartClick = (e) => {
   <i className="fa-solid fa-cart-shopping" style={{ marginRight: "5px" }}></i>
   {t("cart") || "Cart"}
 </Link>
-
 
             <div style={styles.searchWrapper}>
               <input
@@ -389,21 +280,36 @@ const handleCartClick = (e) => {
                   <Link to ={ `/allProducts/${item._id}`}style={styles.navLink}>{item.name}</Link>
                 ) : (
                     <Link to={`/allProducts/${item._id}`} style={styles.navLink}>{item.name}</Link>
-                  // <div onClick={() => {}} style={styles.navButton}>{item.name}</div>
                 )}
                 
                 {item.products?.length > 0 && hoveredMenu === item._id && (
                   <div style={styles.dropdown}>
                      <Link 
       to={`/allProducts/${item._id}`} 
-      style={styles.dropdownItem}
+      style={styles.dropdownItemFirst}
       key={`all-${item._id}`}
     >
       All {item.name}
     </Link>
-                    {item.products.map((product) => (
-                    
-                      <Link key={product._id} to={`/product/${product._id}`} style={styles.dropdownItem}>
+                    {item.products.map((product, index) => (
+                      <Link 
+                        key={product._id} 
+                        to={`/product/${product._id}`} 
+                        style={{
+                          ...styles.dropdownItem,
+                          borderBottom: index === item.products.length - 1 ? 'none' : '1px solid #f1f3f4'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.target.style.backgroundColor = '#f7fafc';
+                          e.target.style.color = '#2b6cb0';
+                          e.target.style.paddingLeft = '24px';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.target.style.backgroundColor = 'transparent';
+                          e.target.style.color = '#4a5568';
+                          e.target.style.paddingLeft = '20px';
+                        }}
+                      >
                         {product.name}
                       </Link>
                     ))}
@@ -417,10 +323,11 @@ const handleCartClick = (e) => {
 
       {/* Mobile Menu */}
       {isMobile && menuOpen && (
-      <>   <div 
-      style={styles.overlay} 
-      onClick={() => setMenuOpen(false)} 
-    />
+      <>   
+        <div 
+          style={styles.overlay} 
+          onClick={() => setMenuOpen(false)} 
+        />
         <div style={styles.mobileMenu}>
           <div style={styles.mobileHeader}>
             <div style={styles.mobileSearchWrapper}>
@@ -445,51 +352,63 @@ const handleCartClick = (e) => {
             </div>
            <X onClick={() => setMenuOpen(false)} size={26} style={styles.closeIcon} />
           </div>
-<div style={styles.mobileContent}>
-  {menuItems.map((item) => (
-    <div
-      key={item._id}
-      style={styles.mobileBox}
-      onMouseEnter={() => setHoveredMenu(item._id)}
-      onMouseLeave={() => setHoveredMenu(null)}
-    >
-      <div style={styles.mobileBoxHeader}>
-        <Link to={`/allProducts/${item._id}`} style={styles.mobileBoxLink}>
-          {item.name}
-        </Link>
-        {item.products?.length > 0 && (
-          <i
-            className={`fa-solid fa-angle-${hoveredMenu === item._id ? "up" : "down"}`}
-            style={styles.mobileArrow}
-          ></i>
-        )}
-      </div>
 
-      {item.products?.length > 0 && hoveredMenu === item._id && (
-        <div style={styles.mobileDropdown}>
-          <Link
-            to={`/allProducts/${item._id}`}
-            style={styles.mobileDropdownItem}
-            key={`all-${item._id}`}
-          >
-            All {item.name}
-          </Link>
-          {item.products.map((product) => (
-            <Link
-              key={product._id}
-              to={`/product/${product._id}`}
-              style={styles.mobileDropdownItem}
-            >
-              {product.name}
-            </Link>
-          ))}
-        </div>
-      )}
-    </div>
-  ))}
-</div>
+          <div style={styles.mobileContent}>
+            {menuItems.map((item) => (
+              <div key={item._id} style={styles.mobileMenuItem}>
+                <div 
+                  style={styles.mobileMenuHeader}
+                  onClick={() => item.products?.length > 0 ? toggleSubMenu(item._id) : null}
+                >
+                  <Link 
+                    to={`/allProducts/${item._id}`} 
+                    style={styles.mobileMenuLink}
+                    onClick={(e) => {
+                      if (item.products?.length > 0) {
+                        e.preventDefault();
+                      } else {
+                        setMenuOpen(false);
+                      }
+                    }}
+                  >
+                    {item.name}
+                  </Link>
+                  {item.products?.length > 0 && (
+                    <div style={styles.arrowContainer}>
+                      {expandedMenus[item._id] ? (
+                        <ChevronUp size={18} color="#666" />
+                      ) : (
+                        <ChevronDown size={18} color="#666" />
+                      )}
+                    </div>
+                  )}
+                </div>
 
-
+                {/* Dropdown content */}
+                {item.products?.length > 0 && expandedMenus[item._id] && (
+                  <div style={styles.mobileDropdownContent}>
+                    <Link
+                      to={`/allProducts/${item._id}`}
+                      style={styles.mobileDropdownLink}
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      All {item.name}
+                    </Link>
+                    {item.products.map((product) => (
+                      <Link
+                        key={product._id}
+                        to={`/product/${product._id}`}
+                        style={styles.mobileDropdownLink}
+                        onClick={() => setMenuOpen(false)}
+                      >
+                        {product.name}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
 
           {/* Mobile Footer */}
           <div style={styles.mobileFooter}>
@@ -497,7 +416,11 @@ const handleCartClick = (e) => {
               <div style={styles.mobileAccountSection}>
                 <div onClick={() => setShowAccountDropdown(!showAccountDropdown)} style={styles.mobileAccountToggle}>
                   Account
-                  <i className={`fa-solid fa-angle-${showAccountDropdown ? 'up' : 'down'}`}></i>
+                  {showAccountDropdown ? (
+                    <ChevronUp size={18} color="#fff" />
+                  ) : (
+                    <ChevronDown size={18} color="#fff" />
+                  )}
                 </div>
                 {showAccountDropdown && (
                   <div style={styles.mobileAccountDropdown}>
@@ -516,15 +439,14 @@ const handleCartClick = (e) => {
               </div>
             )}
            <div style={styles.mobileCart}>
-  <Link to="/cart" style={styles.mobileCartLink} onClick={handleCartClick}>
-    <i className="fas fa-shopping-cart" style={{ marginRight: "8px" }}></i>
-    Cart
-  </Link>
-</div>
-
+              <Link to="/cart" style={styles.mobileCartLink} onClick={handleCartClick}>
+                <i className="fas fa-shopping-cart" style={{ marginRight: "8px" }}></i>
+                Cart
+              </Link>
+            </div>
           </div>
         </div>
-          </>
+      </>
       )}
 
       {/* Offer Bar */}
@@ -534,7 +456,6 @@ const handleCartClick = (e) => {
 
       <style>{styles.responsive}</style>
     </header>
-  
   );
 }
 
@@ -555,52 +476,17 @@ const styles = {
     alignItems: "center",
     padding: "5px 0px",
   },
-  mobileBox: {
-  background: "#fff",
-  borderRadius: "8px",
-  padding: "10px 15px",
-  margin: "6px 0",
-  boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
-  cursor: "pointer",
-},
-mobileBoxHeader: {
-  display: "flex",
-  justifyContent: "space-between",
-  alignItems: "center",
-},
-mobileBoxLink: {
-  textDecoration: "none",
-  color: "#000",
-  fontWeight: "600",
-},
-mobileArrow: {
-  marginLeft: "10px",
-  fontSize: "14px",
-},
-mobileDropdown: {
-  marginTop: "8px",
-  marginLeft: "10px",
-  display: "flex",
-  flexDirection: "column",
-},
-mobileDropdownItem: {
-  textDecoration: "none",
-  color: "#333",
-  padding: "6px 0",
-  fontSize: "14px",
-},
-overlay: {
-  position: "fixed",
-  top: 0,
-  left: 0,
-  width: "100%",
-  height: "100%",
-  backgroundColor: "rgba(0,0,0,0.5)", // dim background
-  zIndex: 998,
-},
-
-
-  logoWrapper: { display: "flex", alignItems: "center",marginLeft:"5px" },
+  overlay: {
+    position: "fixed",
+    top: 0,
+    left: 0,
+    width: "100%",
+    height: "100%",
+    backgroundColor: "rgba(0,0,0,0.5)",
+    zIndex: 998,
+  },
+  logoWrapper: { display: "flex", alignItems: "center", marginLeft: "50px" },
+  
   logo: { height: "50px", objectFit: "contain", width: "115px" },
   topRightRow: { display: "flex", alignItems: "center", gap: "20px", flexWrap: "wrap", justifyContent: "flex-end", flex: 1 },
   topLink: { cursor: "pointer", color: "#333", fontSize: "14px", textDecoration: "none" },
@@ -608,46 +494,238 @@ overlay: {
   searchWrapper: { position: "relative", width: "160px" },
   searchInput: { width: "100%", padding: "8px 36px 8px 12px", border: "1px solid #ccc", borderRadius: "6px" },
   searchIcon: { position: "absolute", right: "10px", top: "50%", transform: "translateY(-50%)", fontSize: "16px", color: "#333", pointerEvents: "none" },
-  searchDropdown: { position: "absolute", top: "42px", left: 0, right: 0, backgroundColor: "#fff", border: "1px solid #ccc", zIndex: 2000, maxHeight: "250px", overflowY: "auto",borderRadius:"6px", },
+  searchDropdown: { position: "absolute", top: "42px", left: 0, right: 0, backgroundColor: "#fff", border: "1px solid #ccc", zIndex: 2000, maxHeight: "250px", overflowY: "auto", borderRadius: "6px" },
   searchItem: { padding: "10px", borderBottom: "1px solid #eee", cursor: "pointer", color: "#999" },
-  hamburger: { fontSize: "24px", cursor: "pointer",marginRight:"5px" },
+  hamburger: { fontSize: "24px", cursor: "pointer", marginRight: "5px" },
   navBar: { position: "relative", zIndex: 20 },
-  navLinks: { display: "flex", gap: "25px", flexWrap: "nowrap", whiteSpace: "nowrap", position: "relative", zIndex: 1 },
+  navLinks: { display: "flex", gap: "25px", flexWrap: "nowrap", whiteSpace: "nowrap", position: "relative", zIndex: 1 ,marginLeft:"80px"},
   navItem: { position: "relative" },
   navLink: { fontSize: "14px", color: "#111", fontWeight: "500", textDecoration: "none" },
-  navButton: { fontWeight: "600", fontSize: "16px", color: "#222", borderRadius: "4px", cursor: "pointer", padding: "8px 12px" },
-  dropdown: { position: "absolute", top: "100%", left: "0", backgroundColor: "#fff", border: "1px solid #ddd", borderRadius: "4px", boxShadow: "0 2px 8px rgba(0,0,0,0.1)", zIndex: 1000, minWidth: "200px", padding: "8px 0" },
-  dropdownItem: { display: "block", padding: "8px 16px", textDecoration: "none", color: "#333", whiteSpace: "nowrap", borderBottom: "1px solid #f0f0f0", transition: "background-color 0.2s ease" },
+  dropdown: {
+    position: "absolute",
+    top: "100%",
+    left: "0",
+    backgroundColor: "#fff",
+    border: "1px solid #e0e6ed",
+    borderRadius: "8px",
+    boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+    zIndex: 1000,
+    minWidth: "240px",
+    padding: "0",
+    opacity: 0,
+    transform: "translateY(10px)",
+    animation: "fadeInUp 0.3s forwards",
+    overflow: "hidden",
+  },
+  dropdownItem: {
+    display: "block",
+    padding: "12px 20px",
+    textDecoration: "none",
+    color: "#4a5568",
+    fontSize: "15px",
+    fontWeight: "400",
+    borderBottom: "1px solid #f1f3f4",
+    transition: "all 0.2s ease",
+    position: "relative",
+  },
+  dropdownItemFirst: {
+    display: "block",
+    padding: "12px 20px",
+    textDecoration: "none",
+    color: "#2d3748",
+    fontSize: "15px",
+    fontWeight: "600",
+    borderBottom: "2px solid #e2e8f0",
+    transition: "all 0.2s ease",
+    backgroundColor: "#f8f9fa",
+  },
   accountDropdown: { position: "absolute", top: "100%", left: "50%", transform: "translateX(-50%)", backgroundColor: "#fff", boxShadow: "0px 4px 10px rgba(0,0,0,0.1)", borderRadius: "8px", display: "flex", flexDirection: "column", alignItems: "stretch", minWidth: "180px", padding: "10px 0", zIndex: 1000 },
   accountLink: { padding: "10px 15px", textDecoration: "none", color: "#0073e6", fontSize: "14px", fontWeight: "500", transition: "background-color 0.2s ease" },
   divider: { borderTop: "1px solid #eee", marginTop: "8px" },
   logoutBtn: { margin: "10px auto 0 auto", padding: "8px 16px", backgroundColor: "#0073e6", color: "#fff", border: "none", borderRadius: "6px", cursor: "pointer", fontSize: "14px", fontWeight: "500" },
-  mobileMenu: { position: "fixed", top: 0, right: 0, bottom: 0, maxHeight: "100vh", width: "80%", backgroundColor: "#fff", zIndex: 999, boxShadow: "-2px 0 8px rgba(0,0,0,0.2)", overflowY: "scroll", display: "flex", flexDirection: "column" },
-  mobileHeader: { display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 16px", borderBottom: "1px solid #eee", backgroundColor: "#fff", position: "relative" ,zIndex:1000},
-  mobileSearchWrapper: { position: "relative", flex: 1, marginRight: "10px" },
-  mobileSearchInput: { width: "100%", padding: "8px 36px 8px 12px", fontSize: "16px", border: "1px solid #ccc", borderRadius: "4px" },
-  mobileSearchIcon: { position: "absolute", right: "10px", top: "50%", transform: "translateY(-50%)", fontSize: "16px", color: "#888" },
-  closeIcon: { fontSize: "22px", cursor: "pointer", color: "#333",marginLeft:"12px" },
-  mobileContent: { flex: 1, overflowY: "auto", padding: "20px" },
-  mobileNavItem: { fontWeight: "bold", display: "block", padding: "12px", marginBottom: "10px", backgroundColor: "#f9f9f9", borderRadius: "8px", textDecoration: "none", color: "#111" },
-  mobileNavToggle: { padding: "12px 16px", fontSize: "16px", fontWeight: "500", backgroundColor: "#f8f9fa", borderRadius: "8px", marginBottom: "10px", boxShadow: "0 2px 4px rgba(0,0,0,0.08)", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center" },
-  mobileSubMenu: { paddingLeft: "16px" },
-  mobileSubToggle: { padding: "6px 10px", fontSize: "14px", borderBottom: "1px solid #eee", textDecoration: "none", color: "black", display: "flex", justifyContent: "space-between", alignItems: "center", fontWeight: "bold", cursor: "pointer" },
-  mobileSubLink: { fontWeight: "bold", display: "block", padding: "10px 12px", textDecoration: "none", color: "#000" },
-  mobileNestedMenu: { paddingLeft: "20px", display: "flex", flexDirection: "column", gap: "8px", marginTop: "8px" },
-  mobileSubItem: { padding: "6px 10px", fontSize: "14px", borderBottom: "1px solid #eee", textDecoration: "none", color: "black" },
-  mobileFooter: { backgroundColor: "#374151", color: "white", padding: "10px 15px", borderTop: "1px solid #555" },
-  mobileAccountSection: { marginBottom: "10px" },
-  mobileAccountToggle: { display: "flex", justifyContent: "space-between", alignItems: "center", fontWeight: "bold", padding: "12px", backgroundColor: "#4B5563", borderRadius: "6px", cursor: "pointer" },
-  mobileAccountDropdown: { marginTop: "10px", backgroundColor: "#1F2937", borderRadius: "6px", padding: "10px" },
-  mobileAccountLink: { padding: "8px 0", fontSize: "14px", cursor: "pointer", textDecoration: "none", display: "block", color: "white" },
-  mobileLogoutBtn: { background: "none", border: "none", cursor: "pointer", color: "inherit", textAlign: "left", padding: "8px 0", width: "100%" },
-  mobileSignIn: { marginBottom: "10px", padding: "12px" },
-  mobileSignInLink: { color: "#fff", textDecoration: "none", fontWeight: "bold" },
-  mobileCart: { padding: "12px", backgroundColor: "#007bff", textAlign: "center", borderRadius: "6px", fontWeight: "bold", color: "white" },
-  mobileCartLink: { color: "white", textDecoration: "none" },
-  offerBar: { backgroundColor: "#007BFF", color: "#fff", textAlign: "center", padding: "10px 20px", fontSize: "14px", fontWeight: "500", lineHeight: "1.4", wordWrap: "break-word" },
+  
+  // Mobile Menu Styles
+  mobileMenu: { 
+    position: "fixed", 
+    top: 0, 
+    right: 0, 
+    bottom: 0, 
+    maxHeight: "100vh", 
+    width: "85%", 
+    backgroundColor: "#f8f9fa", 
+    zIndex: 999, 
+    boxShadow: "-2px 0 8px rgba(0,0,0,0.2)", 
+    overflowY: "auto", 
+    display: "flex", 
+    flexDirection: "column" 
+  },
+  mobileHeader: { 
+    display: "flex", 
+    justifyContent: "space-between", 
+    alignItems: "center", 
+    padding: "15px 20px", 
+    borderBottom: "1px solid #dee2e6", 
+    backgroundColor: "#fff", 
+    position: "sticky",
+    top: 0,
+    zIndex: 1000
+  },
+  mobileSearchWrapper: { position: "relative", flex: 1, marginRight: "15px" },
+  mobileSearchInput: { width: "100%", padding: "10px 40px 10px 15px", fontSize: "16px", border: "1px solid #ced4da", borderRadius: "8px", backgroundColor: "#fff" },
+  mobileSearchIcon: { position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", fontSize: "16px", color: "#6c757d" },
+  mobileSearchDropdown: {
+    position: "absolute",
+    top: "48px",
+    left: 0,
+    right: 0,
+    backgroundColor: "#fff",
+    border: "1px solid #ced4da",
+    borderRadius: "8px",
+    zIndex: 2000,
+    maxHeight: "200px",
+    overflowY: "auto",
+    boxShadow: "0 4px 6px rgba(0,0,0,0.1)"
+  },
+  closeIcon: { fontSize: "22px", cursor: "pointer", color: "#6c757d", marginLeft: "12px" },
+  mobileContent: { 
+    flex: 1, 
+    overflowY: "auto", 
+    padding: "0" 
+  },
+  
+  // Updated Mobile Menu Item Styles
+  mobileMenuItem: {
+    borderBottom: "1px solid #e9ecef",
+    backgroundColor: "#fff",
+  },
+  mobileMenuHeader: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: "16px 20px",
+    cursor: "pointer",
+    transition: "background-color 0.2s ease",
+  },
+  mobileMenuLink: {
+    textDecoration: "none",
+    color: "#212529",
+    fontSize: "16px",
+    fontWeight: "500",
+    flex: 1,
+    display: "block",
+  },
+  arrowContainer: {
+    marginLeft: "12px",
+    display: "flex",
+    alignItems: "center",
+    padding: "2px",
+  },
+  mobileDropdownContent: {
+    backgroundColor: "#f8f9fa",
+    borderTop: "1px solid #e9ecef",
+    paddingLeft: "20px",
+  },
+  mobileDropdownLink: {
+    display: "block",
+    padding: "12px 20px",
+    textDecoration: "none",
+    color: "#495057",
+    fontSize: "15px",
+    borderBottom: "1px solid #e9ecef",
+    transition: "background-color 0.2s ease",
+  },
+  
+  mobileFooter: { 
+    backgroundColor: "#343a40", 
+    color: "white", 
+    padding: "20px", 
+    borderTop: "1px solid #495057",
+    marginTop: "auto"
+  },
+  mobileAccountSection: { marginBottom: "15px" },
+  mobileAccountToggle: { 
+    display: "flex", 
+    justifyContent: "space-between", 
+    alignItems: "center", 
+    fontWeight: "600", 
+    fontSize: "16px",
+    padding: "15px 20px", 
+    backgroundColor: "#495057", 
+    borderRadius: "8px", 
+    cursor: "pointer",
+    transition: "background-color 0.2s ease"
+  },
+  mobileAccountDropdown: { 
+    marginTop: "10px", 
+    backgroundColor: "#212529", 
+    borderRadius: "8px", 
+    padding: "10px 0",
+    overflow: "hidden"
+  },
+  mobileAccountLink: { 
+    padding: "12px 20px", 
+    fontSize: "15px", 
+    cursor: "pointer", 
+    textDecoration: "none", 
+    display: "block", 
+    color: "#f8f9fa",
+    transition: "background-color 0.2s ease"
+  },
+  mobileLogoutBtn: { 
+    background: "none", 
+    border: "none", 
+    cursor: "pointer", 
+    color: "#f8f9fa", 
+    textAlign: "left", 
+    padding: "12px 20px", 
+    width: "100%",
+    fontSize: "15px",
+    transition: "background-color 0.2s ease"
+  },
+  mobileSignIn: { 
+    marginBottom: "15px", 
+    padding: "15px 20px",
+    backgroundColor: "#495057",
+    borderRadius: "8px",
+    textAlign: "center"
+  },
+  mobileSignInLink: { 
+    color: "#fff", 
+    textDecoration: "none", 
+    fontWeight: "600",
+    fontSize: "16px"
+  },
+  mobileCart: { 
+    padding: "15px 20px", 
+    backgroundColor: "#007bff", 
+    textAlign: "center", 
+    borderRadius: "8px", 
+    fontWeight: "600"
+  },
+  mobileCartLink: { 
+    color: "white", 
+    textDecoration: "none",
+    fontSize: "16px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center"
+  },
+  offerBar: { 
+    backgroundColor: "#007BFF", 
+    color: "#fff", 
+    textAlign: "center", 
+    padding: "10px 20px", 
+    fontSize: "14px", 
+    fontWeight: "500", 
+    lineHeight: "1.4", 
+    wordWrap: "break-word" 
+  },
   responsive: `
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
     @media (min-width: 768px) {
       .top-bar { flex-direction: row !important; justify-content: space-between !important; padding: 10px 30px; align-items: center; }
     }

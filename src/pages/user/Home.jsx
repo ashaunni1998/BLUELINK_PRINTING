@@ -10,7 +10,8 @@ import API_BASE_URL from "../../config"; // adjust the path properly
 import { TranslateProvider } from "../../context/TranslateProvider";
 import FlyerSection from "./FlyerSection";
 import EnhancedHomeSections from "./EnhancedHomeSections";
-
+import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
 
 const Home = () => {
 
@@ -30,6 +31,29 @@ const Home = () => {
   }, []);
 
 
+const navigate = useNavigate();
+
+const handleBuyNow = (productId) => {
+  const isLoggedIn = localStorage.getItem("userToken"); // adjust to your auth check
+
+  if (!isLoggedIn) {
+    Swal.fire({
+      title: "Login Required",
+      text: "Please sign in to continue your purchase.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#007bff",
+      cancelButtonColor: "#6c757d",
+      confirmButtonText: "Sign In",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        navigate("/sign-in"); // redirect to sign-in
+      }
+    });
+  } else {
+    navigate(`/checkout/${productId}`); // go to checkout
+  }
+};
 
 
   const [showModal, setShowModal] = useState(false);
@@ -183,6 +207,7 @@ const Home = () => {
       </g>
     </svg>
   );
+console.log(products);
 
 
   return (
@@ -317,12 +342,46 @@ const Home = () => {
 
       {/* Popular Products Section */}
       <section style={{ backgroundColor: "#f5f8f6", padding: "50px 0px", textAlign: "center" }}>
-  <h2 style={{ fontSize: "28px", marginBottom: "10px", fontWeight: "600", color: "#111" }}>
-    Popular products
-  </h2>
-  <p style={{ fontSize: "16px", color: "#666", marginBottom: "40px" }}>
-    These are tried and true favorites that will have you set to get down to business.
-  </p>
+  <h2
+  style={{
+    fontSize: "34px",
+    marginBottom: "14px",
+    fontWeight: "700",
+    color: "#111",
+    textAlign: "center",
+    position: "relative",
+    display: "inline-block",
+  }}
+>
+  Popular Products
+  <span
+    style={{
+      position: "absolute",
+      left: "50%",
+      bottom: "-6px",
+      transform: "translateX(-50%)",
+      width: "60px",
+      height: "4px",
+      // backgroundColor: "#007bff", // brand accent underline
+      borderRadius: "2px",
+    }}
+  ></span>
+</h2>
+
+<p
+  style={{
+    fontSize: "17px",
+    color: "#555",
+    marginBottom: "50px",
+    maxWidth: "650px",
+    marginInline: "auto",
+    lineHeight: "1.6",
+    textAlign: "center",
+  }}
+>
+  These are tried and true favorites that will have you set to get down to business.
+</p>
+
 
   <div
     style={{
@@ -444,6 +503,185 @@ const Home = () => {
       </section> */}
 <FlyerSection/>
 
+{/*  */}
+
+{/* 🔹 Flyers Section */}
+<section
+  style={{
+    backgroundColor: "#f9fafb", // light grey for contrast
+    padding: "70px 20px",
+    textAlign: "center",
+  }}
+>
+  <h2
+    style={{
+      fontSize: "32px",
+      marginBottom: "12px",
+      fontWeight: "700",
+      color: "#111",
+    }}
+  >
+    Our Flyers
+  </h2>
+  <p
+    style={{
+      fontSize: "17px",
+      color: "#555",
+      marginBottom: "50px",
+      maxWidth: "700px",
+      marginInline: "auto",
+      lineHeight: "1.6",
+    }}
+  >
+    Showcase your business with professional, eye-catching flyers designed to
+    leave a lasting impression.
+  </p>
+
+  <div
+    style={{
+      display: "grid",
+      gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
+      gap: "35px",
+      maxWidth: "1200px",
+      margin: "0 auto",
+    }}
+  >
+    {products
+      .filter((product) => {
+        const category =
+          typeof product.category === "string"
+            ? product.category.toLowerCase()
+            : "";
+        const name =
+          typeof product.name === "string"
+            ? product.name.toLowerCase()
+            : "";
+        return category.includes("flyer") || name.includes("flyer");
+      })
+      .map((flyer) => (
+        <div
+          key={flyer._id}
+          style={{
+            backgroundColor: "#fff",
+            borderRadius: "14px",
+            overflow: "hidden",
+            boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
+            transition: "transform 0.3s ease, box-shadow 0.3s ease",
+            cursor: "pointer",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = "translateY(-6px)";
+            e.currentTarget.style.boxShadow =
+              "0 8px 25px rgba(0,0,0,0.12)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = "translateY(0)";
+            e.currentTarget.style.boxShadow =
+              "0 4px 20px rgba(0,0,0,0.08)";
+          }}
+        >
+          {/* Image wrapper */}
+          <div
+            style={{
+              width: "100%",
+              aspectRatio: "4/3",
+              overflow: "hidden",
+              background: "#f3f4f6",
+            }}
+          >
+            <img
+              src={flyer.images[0] || "https://via.placeholder.com/300"}
+              alt={flyer.name}
+              style={{
+                width: "100%",
+                height: "100%",
+                objectFit: "cover", // cover = modern look
+                display: "block",
+                transition: "transform 0.4s ease",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = "scale(1.08)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = "scale(1)";
+              }}
+            />
+          </div>
+
+          {/* Product details */}
+          <div
+            style={{
+              padding: "18px",
+              textAlign: "center",
+            }}
+          >
+            <Link
+              to={`/product/${flyer._id}`}
+              style={{
+                color: "#007bff",
+                textDecoration: "none",
+                fontWeight: "600",
+                fontSize: "16px",
+                display: "block",
+                marginBottom: "8px",
+              }}
+            >
+              {flyer.name}
+            </Link>
+<div
+  style={{
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: "12px",
+    marginBottom: "12px",
+  }}
+>
+  <span
+    style={{
+      display: "inline-block",
+      padding: "6px 16px",
+      backgroundColor: "#eaf4ff", // softer light-blue background
+      color: "#007bff",           // brand blue
+      fontSize: "15px",
+      fontWeight: "700",
+      borderRadius: "30px",       // round pill shape
+      boxShadow: "0 2px 6px rgba(0,0,0,0.08)",
+      minWidth: "60px",
+    }}
+  >
+    ${flyer.price}
+  </span>
+
+            {/* Buy Now button */}
+            <button
+              style={{
+                padding: "10px 18px",
+                fontSize: "14px",
+                fontWeight: "600",
+                backgroundColor: "#007bff",
+                color: "#fff",
+                border: "none",
+                borderRadius: "6px",
+                cursor: "pointer",
+                transition: "background 0.3s ease",
+              }}
+              onMouseEnter={(e) =>
+                (e.currentTarget.style.backgroundColor = "#007bff")
+              }
+              onMouseLeave={(e) =>
+                (e.currentTarget.style.backgroundColor = "#007bff")
+              }
+            >
+              Buy Now
+            </button>
+            </div>
+          </div>
+        </div>
+      ))}
+  </div>
+</section>
+
 
 
 
@@ -452,208 +690,192 @@ const Home = () => {
 
 
 
- {/* <section
-        style={{
-          backgroundColor: "#f5f5f5",
-          padding: "60px 20px",
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            flexWrap: "wrap",
-            gap: "30px",
-            justifyContent: "center",
-          }}
-        > */}
-          {/* Business Card Design Examples */}
-          {/* <div
-            style={{
-              backgroundColor: "#fff",
-              maxWidth: "500px",
-              flex: "1 1 300px",
-              borderRadius: "8px",
-              overflow: "hidden",
-              boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
-            }}
-          >
-            <img
-              src="/homeimages/business-cards-sample.jpg"
-              alt="Business Card Examples"
-              style={{ width: "100%", height: "auto" }}
-            />
-            <div style={{ padding: "24px" }}>
-              <h3 style={{ fontSize: "20px", fontWeight: "600", marginBottom: "10px" }}>
-                10 Business Card design examples
-              </h3>
-              <p style={{ fontSize: "15px", color: "#555", marginBottom: "16px" }}>
-                Blue Links’s designers share 10 standout business cards from different industries.
-              </p>
-              <a
-                href="#"
-                style={{
-                  color: "#007bff",
-                  fontWeight: "600",
-                  textDecoration: "none",
-                }}
-              >
-                Read more &gt;
-              </a>
-            </div>
-          </div> */}
 
-          {/* Invites Section */}
-          {/* <div
+
+
+
+
+<section
+  style={{
+    backgroundColor: "#f9fafb", // light grey for contrast
+    padding: "70px 20px",
+    textAlign: "center",
+  }}
+>
+  <h2
+    style={{
+      fontSize: "32px",
+      marginBottom: "12px",
+      fontWeight: "700",
+      color: "#111",
+    }}
+  >
+    Personalized Gifts
+  </h2>
+  <p
+    style={{
+      fontSize: "17px",
+      color: "#555",
+      marginBottom: "50px",
+      maxWidth: "700px",
+      marginInline: "auto",
+      lineHeight: "1.6",
+    }}
+  >
+    Make every occasion special with personalized gifts designed to create
+    lasting memories.
+  </p>
+
+  <div
+    style={{
+      display: "grid",
+      gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
+      gap: "35px",
+      maxWidth: "1200px",
+      margin: "0 auto",
+    }}
+  >
+    {products
+      .filter((product) => {
+        const category =
+          typeof product.category === "string"
+            ? product.category.toLowerCase()
+            : "";
+        const name =
+          typeof product.name === "string"
+            ? product.name.toLowerCase()
+            : "";
+        return category.includes("PhotoFrame") || name.includes("photo frame") || name.includes("mugs");
+      })
+      .map((gift) => (
+        <div
+          key={gift._id}
+          style={{
+            backgroundColor: "#fff",
+            borderRadius: "14px",
+            overflow: "hidden",
+            boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
+            transition: "transform 0.3s ease, box-shadow 0.3s ease",
+            cursor: "pointer",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = "translateY(-6px)";
+            e.currentTarget.style.boxShadow =
+              "0 8px 25px rgba(0,0,0,0.12)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = "translateY(0)";
+            e.currentTarget.style.boxShadow =
+              "0 4px 20px rgba(0,0,0,0.08)";
+          }}
+        >
+          {/* Image wrapper */}
+          <div
             style={{
-              backgroundColor: "#fff",
-              maxWidth: "500px",
-              flex: "1 1 300px",
-              borderRadius: "8px",
+              width: "100%",
+              aspectRatio: "4/3",
               overflow: "hidden",
-              boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
+              background: "#f3f4f6",
             }}
           >
             <img
-              src="/homeimages/invites-sample.jpg"
-              alt="Event Invitations"
-              style={{ width: "100%", height: "auto" }}
+              src={gift.images[0] || "https://via.placeholder.com/300"}
+              alt={gift.name}
+              style={{
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+                display: "block",
+                transition: "transform 0.4s ease",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = "scale(1.08)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = "scale(1)";
+              }}
             />
-            <div style={{ padding: "24px" }}>
-              <h3 style={{ fontSize: "20px", fontWeight: "600", marginBottom: "10px" }}>
-                Invites they won’t ignore
-              </h3>
-              <p style={{ fontSize: "15px", color: "#555", marginBottom: "16px" }}>
-                How to create paper invites that actually get a “yes.”
-              </p>
-              <a
-                href="#"
+          </div>
+
+          {/* Product details */}
+          <div
+            style={{
+              padding: "18px",
+              textAlign: "center",
+            }}
+          >
+            <Link
+              to={`/product/${gift._id}`}
+              style={{
+                color: "#007bff",
+                textDecoration: "none",
+                fontWeight: "600",
+                fontSize: "16px",
+                display: "block",
+                marginBottom: "8px",
+              }}
+            >
+              {gift.name}
+            </Link>
+
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                gap: "12px",
+                marginBottom: "12px",
+              }}
+            >
+              <span
                 style={{
+                  display: "inline-block",
+                  padding: "6px 16px",
+                  backgroundColor: "#eaf4ff",
                   color: "#007bff",
-                  fontWeight: "600",
-                  textDecoration: "none",
+                  fontSize: "15px",
+                  fontWeight: "700",
+                  borderRadius: "30px",
+                  boxShadow: "0 2px 6px rgba(0,0,0,0.08)",
+                  minWidth: "60px",
                 }}
               >
-                Read more &gt;
-              </a>
+                ${gift.price}
+              </span>
+
+              {/* Buy Now button */}
+ <button
+  style={{
+    padding: "10px 18px",
+    fontSize: "14px",
+    fontWeight: "600",
+    backgroundColor: "#007bff",
+    color: "#fff",
+    border: "none",
+    borderRadius: "6px",
+    cursor: "pointer",
+    transition: "background 0.3s ease, transform 0.2s ease",
+  }}
+  onMouseEnter={(e) => {
+    e.currentTarget.style.backgroundColor = "#0056b3";
+    e.currentTarget.style.transform = "translateY(-2px)";
+  }}
+  onMouseLeave={(e) => {
+    e.currentTarget.style.backgroundColor = "#007bff";
+    e.currentTarget.style.transform = "translateY(0)";
+  }}
+  onClick={() => handleBuyNow(gift._id)}
+>
+  Buy Now
+</button>
+
+
             </div>
           </div>
         </div>
-      </section> */}
-
-     {/* Section 1 - Flyers */}
-{/* <section
- 
-  className="promo-section"
-> */}
-  {/* Left Image */}
-  {/* <div
-    
-  className="promo-image"
-  >
-    <img
-      src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQd19vInA8bUX20OregUR32xvV6CbNZ_kMhDQ&s"
-      alt="Flyers & Leaflets"
-      style={{
-        width: "100%",
-        maxWidth: "600px",
-        height: "auto",
-        borderRadius: "16px",
-        boxShadow: "0 6px 25px rgba(0,0,0,0.1)",
-        transition: "transform 0.3s ease",
-      }}
-      onMouseOver={(e) => (e.currentTarget.style.transform = "scale(1.03)")}
-      onMouseOut={(e) => (e.currentTarget.style.transform = "scale(1)")}
-    />
-  </div> */}
-
-  {/* Right Text */}
-  {/* <div
-   className="promo-card"
-  >
-    <h2 style={{ fontSize: "32px", marginBottom: "20px", fontWeight: "700", color: "#111" }}>
-      Flyers & Leaflets. Spread the word.
-    </h2>
-    <p style={{ fontSize: "18px", color: "#444", marginBottom: "30px", lineHeight: "1.6" }}>
-      Make your message loud and clear with professional, high-impact flyers and
-      leaflets – ideal for promotions, menus, and more.
-    </p>
-    <a
-      href="#"
-      style={{
-        fontSize: "16px",
-        padding: "12px 28px",
-        borderRadius: "8px",
-        backgroundColor: "#007bff",
-        color: "#fff",
-        fontWeight: "600",
-        textDecoration: "none",
-        display: "inline-block",
-        transition: "background 0.3s ease",
-      }}
-      onMouseOver={(e) => (e.currentTarget.style.backgroundColor = "#005f47")}
-      onMouseOut={(e) => (e.currentTarget.style.backgroundColor = "#007a5e")}
-    >
-      Shop Flyers & Leaflets 
-    </a>
+      ))}
   </div>
-</section> */}
-
-{/* Section 2 - Gifts */}
-{/* <section
-
-  className="promo-section reverse"
-> */}
-  {/* Left Text */}
-  {/* <div
-    className="promo-card"
-  >
-    <h2 style={{ fontSize: "32px", marginBottom: "20px", fontWeight: "700", color: "#111" }}>
-      Personalized Gifts. Make it special.
-    </h2>
-    <p style={{ fontSize: "18px", color: "#444", marginBottom: "30px", lineHeight: "1.6" }}>
-      Add a personal touch with custom gifts perfect for any occasion – from
-      birthdays to business branding.
-    </p>
-    <a
-      href="#"
-      style={{
-        fontSize: "16px",
-        padding: "12px 28px",
-        borderRadius: "8px",
-        backgroundColor: "#007bff",
-        color: "#fff",
-        fontWeight: "600",
-        textDecoration: "none",
-        display: "inline-block",
-        transition: "background 0.3s ease",
-      }}
-      onMouseOver={(e) => (e.currentTarget.style.backgroundColor = "#005f47")}
-      onMouseOut={(e) => (e.currentTarget.style.backgroundColor = "#007a5e")}
-    >
-      Shop Personalized Gifts 
-    </a>
-  </div> */}
-
-  {/* Right Image */}
-  {/* <div
-   className="promo-image "
-  >
-    <img
-      src="https://thesignaturebox.com/cdn/shop/articles/personalised-gifts-5-things-to-consider-before-choosing-personalized-gifts-294055.jpg?v=1706979689&width=1280"
-      alt="Personalized Gift"
-      style={{
-        width: "100%",
-        maxWidth: "600px",
-        height: "auto",
-        borderRadius: "16px",
-        boxShadow: "0 6px 25px rgba(0,0,0,0.1)",
-        transition: "transform 0.3s ease",
-      }}
-      onMouseOver={(e) => (e.currentTarget.style.transform = "scale(1.03)")}
-      onMouseOut={(e) => (e.currentTarget.style.transform = "scale(1)")}
-    />
-  </div>
-</section> */}
+</section>
 
       {/* CTA Banner */}
       <section

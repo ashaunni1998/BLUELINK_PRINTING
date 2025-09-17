@@ -32,6 +32,8 @@ const hiddenCropFileRef = useRef(null); // optional hidden file input
   const [showReviews, setShowReviews] = useState(false);
 const [selectedPaper, setSelectedPaper] = useState(null);
 
+// In ProductDetail.jsx, add state for menu
+const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
 
 
@@ -821,7 +823,7 @@ const isPersonalisedGift = normalize(categoryName) === "personalized gifts";
   return (
     <div style={styles.container}>
       <div className="responsive-container">
-        <Header />
+        <Header onMenuStateChange={setMobileMenuOpen}/>
 
         {/* Main */}
         <div style={{
@@ -2074,7 +2076,8 @@ const isPersonalisedGift = normalize(categoryName) === "personalized gifts";
     position: "fixed",
     bottom: "25px",
     right: "25px",
-    zIndex: 1000,
+   zIndex: isMobile ? 50 : 1000, // Lower z-index on mobile
+    display: isMobile && showGuideline ? "none" : "block", // Hide on mobile when guideline panel is open
   }}
 >
   {/* Floating Button */}
