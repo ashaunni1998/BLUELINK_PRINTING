@@ -505,7 +505,7 @@ console.log(products);
 
 {/*  */}
 
-{/* 🔹 Flyers Section */}
+
 <section
   style={{
     backgroundColor: "#f9fafb", // light grey for contrast
@@ -521,7 +521,7 @@ console.log(products);
       color: "#111",
     }}
   >
-    Our Flyers
+    Our Postcards
   </h2>
   <p
     style={{
@@ -533,8 +533,8 @@ console.log(products);
       lineHeight: "1.6",
     }}
   >
-    Showcase your business with professional, eye-catching flyers designed to
-    leave a lasting impression.
+    Send your message in style with high-quality, beautifully designed postcards
+    that make a real impact.
   </p>
 
   <div
@@ -556,11 +556,11 @@ console.log(products);
           typeof product.name === "string"
             ? product.name.toLowerCase()
             : "";
-        return category.includes("flyer") || name.includes("flyer");
+        return category.includes("postcard") || name.includes("postcard");
       })
-      .map((flyer) => (
+      .map((postcard) => (
         <div
-          key={flyer._id}
+          key={postcard._id}
           style={{
             backgroundColor: "#fff",
             borderRadius: "14px",
@@ -590,12 +590,12 @@ console.log(products);
             }}
           >
             <img
-              src={flyer.images[0] || "https://via.placeholder.com/300"}
-              alt={flyer.name}
+              src={postcard.images[0] || "https://via.placeholder.com/300"}
+              alt={postcard.name}
               style={{
                 width: "100%",
                 height: "100%",
-                objectFit: "cover", // cover = modern look
+                objectFit: "cover", // modern look
                 display: "block",
                 transition: "transform 0.4s ease",
               }}
@@ -616,7 +616,7 @@ console.log(products);
             }}
           >
             <Link
-              to={`/product/${flyer._id}`}
+              to={`/product/${postcard._id}`}
               style={{
                 color: "#007bff",
                 textDecoration: "none",
@@ -626,61 +626,64 @@ console.log(products);
                 marginBottom: "8px",
               }}
             >
-              {flyer.name}
+              {postcard.name}
             </Link>
-<div
-  style={{
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    gap: "12px",
-    marginBottom: "12px",
-  }}
->
-  <span
-    style={{
-      display: "inline-block",
-      padding: "6px 16px",
-      backgroundColor: "#eaf4ff", // softer light-blue background
-      color: "#007bff",           // brand blue
-      fontSize: "15px",
-      fontWeight: "700",
-      borderRadius: "30px",       // round pill shape
-      boxShadow: "0 2px 6px rgba(0,0,0,0.08)",
-      minWidth: "60px",
-    }}
-  >
-    ${flyer.price}
-  </span>
 
-            {/* Buy Now button */}
-            <button
+            <div
               style={{
-                padding: "10px 18px",
-                fontSize: "14px",
-                fontWeight: "600",
-                backgroundColor: "#007bff",
-                color: "#fff",
-                border: "none",
-                borderRadius: "6px",
-                cursor: "pointer",
-                transition: "background 0.3s ease",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                gap: "12px",
+                marginBottom: "12px",
               }}
-              onMouseEnter={(e) =>
-                (e.currentTarget.style.backgroundColor = "#007bff")
-              }
-              onMouseLeave={(e) =>
-                (e.currentTarget.style.backgroundColor = "#007bff")
-              }
             >
-              Buy Now
-            </button>
+              <span
+                style={{
+                  display: "inline-block",
+                  padding: "6px 16px",
+                  backgroundColor: "#eaf4ff",
+                  color: "#007bff",
+                  fontSize: "15px",
+                  fontWeight: "700",
+                  borderRadius: "30px",
+                  boxShadow: "0 2px 6px rgba(0,0,0,0.08)",
+                  minWidth: "60px",
+                }}
+              >
+                ${postcard.price}
+              </span>
+
+              {/* Buy Now button */}
+              <button
+                style={{
+                  padding: "10px 18px",
+                  fontSize: "14px",
+                  fontWeight: "600",
+                  backgroundColor: "#007bff",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: "6px",
+                  cursor: "pointer",
+                  transition: "background 0.3s ease",
+                }}
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.backgroundColor = "#007bff")
+                }
+                onMouseLeave={(e) =>
+                  (e.currentTarget.style.backgroundColor = "#007bff")
+                }
+              >
+                Buy Now
+              </button>
             </div>
           </div>
         </div>
       ))}
   </div>
 </section>
+
+
 
 
 
@@ -877,6 +880,183 @@ console.log(products);
   </div>
 </section>
 
+
+{/* 🔹 Flyers Section */}
+<section
+  style={{
+    backgroundColor: "#f9fafb", // light grey for contrast
+    padding: "70px 20px",
+    textAlign: "center",
+  }}
+>
+  <h2
+    style={{
+      fontSize: "32px",
+      marginBottom: "12px",
+      fontWeight: "700",
+      color: "#111",
+    }}
+  >
+    Our Flyers
+  </h2>
+  <p
+    style={{
+      fontSize: "17px",
+      color: "#555",
+      marginBottom: "50px",
+      maxWidth: "700px",
+      marginInline: "auto",
+      lineHeight: "1.6",
+    }}
+  >
+    Showcase your business with professional, eye-catching flyers designed to
+    leave a lasting impression.
+  </p>
+
+  <div
+    style={{
+      display: "grid",
+      gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
+      gap: "35px",
+      maxWidth: "1200px",
+      margin: "0 auto",
+    }}
+  >
+    {products
+      .filter((product) => {
+        const category =
+          typeof product.category === "string"
+            ? product.category.toLowerCase()
+            : "";
+        const name =
+          typeof product.name === "string"
+            ? product.name.toLowerCase()
+            : "";
+        return category.includes("flyer") || name.includes("flyer");
+      })
+      .map((flyer) => (
+        <div
+          key={flyer._id}
+          style={{
+            backgroundColor: "#fff",
+            borderRadius: "14px",
+            overflow: "hidden",
+            boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
+            transition: "transform 0.3s ease, box-shadow 0.3s ease",
+            cursor: "pointer",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = "translateY(-6px)";
+            e.currentTarget.style.boxShadow =
+              "0 8px 25px rgba(0,0,0,0.12)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = "translateY(0)";
+            e.currentTarget.style.boxShadow =
+              "0 4px 20px rgba(0,0,0,0.08)";
+          }}
+        >
+          {/* Image wrapper */}
+          <div
+            style={{
+              width: "100%",
+              aspectRatio: "4/3",
+              overflow: "hidden",
+              background: "#f3f4f6",
+            }}
+          >
+            <img
+              src={flyer.images[0] || "https://via.placeholder.com/300"}
+              alt={flyer.name}
+              style={{
+                width: "100%",
+                height: "100%",
+                objectFit: "cover", // cover = modern look
+                display: "block",
+                transition: "transform 0.4s ease",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = "scale(1.08)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = "scale(1)";
+              }}
+            />
+          </div>
+
+          {/* Product details */}
+          <div
+            style={{
+              padding: "18px",
+              textAlign: "center",
+            }}
+          >
+            <Link
+              to={`/product/${flyer._id}`}
+              style={{
+                color: "#007bff",
+                textDecoration: "none",
+                fontWeight: "600",
+                fontSize: "16px",
+                display: "block",
+                marginBottom: "8px",
+              }}
+            >
+              {flyer.name}
+            </Link>
+<div
+  style={{
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: "12px",
+    marginBottom: "12px",
+  }}
+>
+  <span
+    style={{
+      display: "inline-block",
+      padding: "6px 16px",
+      backgroundColor: "#eaf4ff", // softer light-blue background
+      color: "#007bff",           // brand blue
+      fontSize: "15px",
+      fontWeight: "700",
+      borderRadius: "30px",       // round pill shape
+      boxShadow: "0 2px 6px rgba(0,0,0,0.08)",
+      minWidth: "60px",
+    }}
+  >
+    ${flyer.price}
+  </span>
+
+            {/* Buy Now button */}
+            <button
+              style={{
+                padding: "10px 18px",
+                fontSize: "14px",
+                fontWeight: "600",
+                backgroundColor: "#007bff",
+                color: "#fff",
+                border: "none",
+                borderRadius: "6px",
+                cursor: "pointer",
+                transition: "background 0.3s ease",
+              }}
+              onMouseEnter={(e) =>
+                (e.currentTarget.style.backgroundColor = "#007bff")
+              }
+              onMouseLeave={(e) =>
+                (e.currentTarget.style.backgroundColor = "#007bff")
+              }
+            >
+              Buy Now
+            </button>
+            </div>
+          </div>
+        </div>
+      ))}
+  </div>
+</section>
       {/* CTA Banner */}
       <section
         style={{

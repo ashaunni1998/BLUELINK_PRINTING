@@ -877,6 +877,42 @@ const isPersonalisedGift = normalize(categoryName) === "personalized gifts";
   <h1 style={{ fontSize: "28px", fontWeight: "600", marginBottom: "8px" ,color:"#007bff" }}>
     {product.name}
   </h1>
+   <h3 style={{ fontSize: "28px", fontWeight: "600", marginBottom: "8px" ,color:"#111316ff" }}>
+    {product.subtitle}
+  </h3>
+
+
+<p
+  style={{
+    fontSize: "16px",
+    marginBottom: "16px",
+    backgroundColor: "#f0f7ff", // light blue highlight
+    padding: "10px 14px",
+    borderRadius: "8px",
+    fontWeight: "500",
+    display: "inline-block",
+    boxShadow: "0 2px 6px rgba(0,0,0,0.08)",
+  }}
+>
+  <strong style={{ color: "#1a73e8" }}>{product.quantity}</strong>50 cards from{" "}
+  <span style={{ fontWeight: "700", fontSize: "18px", color: "#e53935" }}>
+    ${product.price}
+  </span>
+</p>
+
+
+  {/* Rating */}
+  <div style={{ display: "flex", alignItems: "center", marginBottom: "20px" }}>
+    <span style={{ color: "#007bff", fontSize: "20px", marginRight: "8px" }}>★★★★★</span>
+    <span style={{ fontSize: "15px", color: "#555" }}>
+      {product.rating.count > 0
+        ? `${product.rating.count} reviews`
+        : "No reviews yet"}
+    </span>
+  </div>
+
+
+
 <p
   style={{
     fontSize: "16px",
@@ -894,36 +930,6 @@ const isPersonalisedGift = normalize(categoryName) === "personalized gifts";
 >
   {product.description}
 </p>
-
-<p
-  style={{
-    fontSize: "16px",
-    marginBottom: "16px",
-    backgroundColor: "#f0f7ff", // light blue highlight
-    padding: "10px 14px",
-    borderRadius: "8px",
-    fontWeight: "500",
-    display: "inline-block",
-    boxShadow: "0 2px 6px rgba(0,0,0,0.08)",
-  }}
->
-  <strong style={{ color: "#1a73e8" }}>{product.quantity}</strong> from{" "}
-  <span style={{ fontWeight: "700", fontSize: "18px", color: "#e53935" }}>
-    ${product.price}
-  </span>
-</p>
-
-
-  {/* Rating */}
-  <div style={{ display: "flex", alignItems: "center", marginBottom: "20px" }}>
-    <span style={{ color: "#007bff", fontSize: "20px", marginRight: "8px" }}>★★★★★</span>
-    <span style={{ fontSize: "15px", color: "#555" }}>
-      {product.rating.count > 0
-        ? `${product.rating.count} reviews`
-        : "No reviews yet"}
-    </span>
-  </div>
-
   {/* Premium Section */}
   {/* <h2 style={{ fontSize: "20px", fontWeight: "600", marginBottom: "8px" }}>
     Premium as standard
