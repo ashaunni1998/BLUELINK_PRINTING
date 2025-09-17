@@ -10,7 +10,7 @@ import DashboardPage from '../../adminElements/dashboard/dashboardPages/Dashboar
 import UsersPage from '../../adminElements/users/usersPages/Users'
 import Category from '../../adminElements/category/categoryPages/Category'
 import Product from '../../adminElements/product/productPage/ProductPage'
-import OrderPage from '../../adminElements/order/orderPages/orderPage';
+import OrderPage from "../../adminElements/order/orderPages/OrderPage.jsx";
 import CouponsPage from '../../adminElements/coupons/couponsPage/MainPage'
 import SettingsPage from '../../adminElements/settings/settingPages/MainPage'
 
