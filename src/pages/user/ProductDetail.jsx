@@ -877,7 +877,7 @@ const isPersonalisedGift = normalize(categoryName) === "personalized gifts";
   <h1 style={{ fontSize: "28px", fontWeight: "600", marginBottom: "8px" ,color:"#007bff" }}>
     {product.name}
   </h1>
-   <h3 style={{ fontSize: "28px", fontWeight: "600", marginBottom: "8px" ,color:"#111316ff" }}>
+   <h3 style={{ fontSize: "28px", fontWeight: "400", marginBottom: "8px" ,color:"#111316ff" }}>
     {product.subtitle}
   </h3>
 
