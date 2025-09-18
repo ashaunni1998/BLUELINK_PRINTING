@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Sparkles, Palette, FileText, ArrowRight, Star, Zap } from 'lucide-react';
-import { useNavigate } from "react-router-dom";
 
 const FlyerSection = () => {
   const [isVisible, setIsVisible] = useState(false);
@@ -23,11 +22,13 @@ const FlyerSection = () => {
     { id: 4, size: 50, delay: 1 }
   ];
 
-
-   const navigate = useNavigate();
+  const handleGetStarted = () => {
+    // Navigate to sign-in page - replace with your navigation logic
+    console.log('Navigate to sign-in page');
+  };
 
   return (
-    <section className="relative min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-100 overflow-hidden">
+    <section className="relative min-h-screen bg-white overflow-hidden">
       {/* Animated Background Elements */}
       <div className="absolute inset-0">
         {floatingElements.map((element) => (
@@ -76,11 +77,11 @@ const FlyerSection = () => {
             <div className="space-y-4">
               <h1 className="text-5xl lg:text-7xl font-black text-gray-900 leading-tight">
                 Flyers &
-                <span className="block bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 bg-clip-text text-transparent">
+                <span className="block text-blue-600">
                   Leaflets
                 </span>
               </h1>
-              <div className="w-24 h-1 bg-gradient-to-r from-blue-400 to-blue-600 rounded-full" />
+              <div className="w-24 h-1 bg-blue-500 rounded-full" />
             </div>
 
             {/* Description */}
@@ -96,8 +97,8 @@ const FlyerSection = () => {
               {features.map((feature, index) => (
                 <div
                   key={index}
-                  className={`p-4 rounded-2xl bg-white/90 backdrop-blur-md border border-blue-200 cursor-pointer transition-all duration-300 hover:bg-white hover:scale-105 shadow-lg ${
-                    activeFeature === index ? 'bg-white border-blue-400 shadow-xl' : ''
+                  className={`p-4 rounded-2xl bg-white border-2 border-blue-200 cursor-pointer transition-all duration-300 hover:bg-blue-50 hover:scale-105 ${
+                    activeFeature === index ? 'bg-blue-50 border-blue-400' : ''
                   }`}
                   onMouseEnter={() => setActiveFeature(index)}
                 >
@@ -111,15 +112,12 @@ const FlyerSection = () => {
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 pt-4">
               <button
-      onClick={() => navigate("/sign-in")}
-      className="group px-8 py-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white font-bold rounded-2xl shadow-xl transform transition-all duration-300 hover:scale-105 hover:shadow-2xl flex items-center justify-center gap-2"
-    >
-      Get Started
-      <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-    </button>
-              {/* <button className="px-8 py-4 border-2 border-blue-400 text-blue-600 font-semibold rounded-2xl bg-white/80 backdrop-blur-md hover:bg-blue-50 transition-all duration-300">
-                View Samples
-              </button> */}
+                onClick={handleGetStarted}
+                className="group px-8 py-4 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-2xl transform transition-all duration-300 hover:scale-105 flex items-center justify-center gap-2"
+              >
+                Get Started
+                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              </button>
             </div>
           </div>
 
@@ -129,13 +127,10 @@ const FlyerSection = () => {
             {/* Main Image Container */}
             <div className="relative group">
               
-              {/* Glow Effect */}
-              <div className="absolute -inset-4 bg-gradient-to-r from-blue-400 via-blue-500 to-blue-600 rounded-3xl opacity-40 blur-2xl group-hover:opacity-60 transition-opacity duration-500" />
-              
               {/* Image Frame */}
-              <div className="relative bg-gradient-to-br from-white/95 to-white/80 p-6 rounded-3xl backdrop-blur-lg border border-blue-200 shadow-2xl">
+              <div className="relative bg-white p-6 rounded-3xl border-2 border-blue-200">
                 <div
-                  className="w-full h-80 lg:h-96 rounded-2xl bg-cover bg-center shadow-2xl transform group-hover:scale-[1.02] transition-transform duration-500"
+                  className="w-full h-80 lg:h-96 rounded-2xl bg-cover bg-center transform group-hover:scale-[1.02] transition-transform duration-500"
                   style={{
                     backgroundImage: "url('/homeimages/flyer.jpeg')",
                     backgroundSize: 'cover',
@@ -143,8 +138,8 @@ const FlyerSection = () => {
                   }}
                 >
                   {/* Overlay Content */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent rounded-2xl flex items-end p-6">
-                    <div className="text-white">
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 rounded-2xl flex items-end p-6 transition-all duration-300">
+                    <div className="text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                       <div className="flex items-center gap-2 mb-2">
                         {[...Array(5)].map((_, i) => (
                           <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
@@ -156,14 +151,14 @@ const FlyerSection = () => {
                 </div>
                 
                 {/* Floating Stats */}
-                <div className="absolute -top-4 -right-4 bg-white rounded-2xl p-4 shadow-xl border border-blue-100">
+                <div className="absolute -top-4 -right-4 bg-white rounded-2xl p-4 border-2 border-blue-100">
                   <div className="text-center">
                     <div className="text-2xl font-black text-blue-600">24h</div>
                     <div className="text-xs text-gray-600 font-medium">Fast Delivery</div>
                   </div>
                 </div>
                 
-                <div className="absolute -bottom-4 -left-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-2xl p-4 shadow-xl">
+                <div className="absolute -bottom-4 -left-4 bg-blue-500 text-white rounded-2xl p-4">
                   <div className="text-center">
                     <div className="text-2xl font-black">99%</div>
                     <div className="text-xs font-medium opacity-90">Satisfaction</div>

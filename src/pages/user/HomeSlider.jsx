@@ -108,7 +108,7 @@ export default function HomeSlider() {
           backgroundImage: `url(${slide.image || ""})`,
           backgroundSize: "cover",
           backgroundPosition: "center",
-          height: isMobile ? "200px" : "450px",
+          height: isMobile ? "200px" : "340px",
           position: "relative",
           display: "flex",
           alignItems: "center",
@@ -188,6 +188,7 @@ export default function HomeSlider() {
                     overflow: "hidden",
                     position: "relative",
                     width: "50px",
+                    marginTop:"50px",
                   }}
                 >
                   <div

@@ -475,6 +475,7 @@ const styles = {
     justifyContent: "space-between",
     alignItems: "center",
     padding: "5px 0px",
+    width:"100%",
   },
   overlay: {
     position: "fixed",
@@ -488,7 +489,10 @@ const styles = {
   logoWrapper: { display: "flex", alignItems: "center", marginLeft: "50px" },
   
   logo: { height: "50px", objectFit: "contain", width: "115px" },
-  topRightRow: { display: "flex", alignItems: "center", gap: "20px", flexWrap: "wrap", justifyContent: "flex-end", flex: 1 },
+  topRightRow: { display: "flex", alignItems: "center", gap: "20px", marginLeft: "auto", // This pushes everything to the right
+  marginRight: "100px", // Match the left margin of logo for consistency
+  flex: "0 0 auto", // Prevent growing/shrinking justifyContent: "flex-end", 
+   },
   topLink: { cursor: "pointer", color: "#333", fontSize: "14px", textDecoration: "none" },
   accountContainer: { position: "relative", display: "inline-block" },
   searchWrapper: { position: "relative", width: "160px" },

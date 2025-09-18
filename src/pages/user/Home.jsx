@@ -238,27 +238,27 @@ console.log(products);
       {/* Hero Section */}
       <HomeSlider  />
       {/* Features Section */}
-    <section style={{ padding: "40px 20px", backgroundColor: "#ffffff" }}>
+<section style={{ padding: "20px 10px", backgroundColor: "#ffffff" }}>
   <div
     style={{
       display: "flex",
       justifyContent: "center",
       alignItems: "stretch",
       flexWrap: "wrap",
-      gap: "30px",
+      gap: "15px",
       textAlign: "center",
-      maxWidth: "1200px",
+      maxWidth: "1100px",
       margin: "0 auto",
     }}
   >
     {/* Card 1 */}
-   <div
+    <div
       style={{
-        flex: "1 1 280px",
-        maxWidth: "320px",
-        padding: "25px 20px",
-        borderRadius: "12px",
-        boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
+        flex: "1 1 220px",
+        maxWidth: "260px",
+        padding: "12px 10px",
+        borderRadius: "8px",
+        boxShadow: "0 2px 6px rgba(0,0,0,0.05)",
         backgroundColor: "#fff",
         display: "flex",
         flexDirection: "column",
@@ -269,42 +269,40 @@ console.log(products);
       <img
         src="https://img.icons8.com/ios-filled/100/007bff/blueprint.png"
         alt="Print"
-        style={{ marginBottom: "15px", height: "80px" }}
+        style={{ marginBottom: "8px", height: "50px" }}
       />
-      <h3 style={{ fontSize: "20px", marginBottom: "10px", fontWeight: "600" }}>
+      <h3 style={{ fontSize: "16px", marginBottom: "4px", fontWeight: "600" }}>
         High-Quality Prints
       </h3>
-      <p style={{ color: "#555", fontSize: "15px", lineHeight: "1.6" }}>
+      <p style={{ color: "#555", fontSize: "13px", lineHeight: "1.4" }}>
         Crisp, clear, and durable blueprint prints for professionals.
       </p>
     </div>
-  
 
     {/* Card 2 */}
     <div
       style={{
-        flex: "1 1 280px",
-        maxWidth: "320px",
-        padding: "25px 20px",
-        borderRadius: "12px",
-        boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
+        flex: "1 1 240px",
+        maxWidth: "260px",
+        padding: "12px 10px",
+        borderRadius: "8px",
+        boxShadow: "0 2px 6px rgba(0,0,0,0.05)",
         backgroundColor: "#fff",
-                display: "flex",
+        display: "flex",
         flexDirection: "column",
         alignItems: "center",
         textAlign: "center",
-
       }}
     >
       <img
         src="https://img.icons8.com/ios-filled/100/007bff/shipped.png"
         alt="Delivery"
-        style={{ marginBottom: "15px", height: "80px" }}
+        style={{ marginBottom: "8px", height: "50px" }}
       />
-      <h3 style={{ fontSize: "20px", marginBottom: "10px", fontWeight: "600" }}>
+      <h3 style={{ fontSize: "16px", marginBottom: "4px", fontWeight: "600" }}>
         Fast Delivery
       </h3>
-      <p style={{ color: "#555", fontSize: "15px", lineHeight: "1.6" }}>
+      <p style={{ color: "#555", fontSize: "13px", lineHeight: "1.4" }}>
         Next-day delivery available for urgent projects and deadlines.
       </p>
     </div>
@@ -312,40 +310,40 @@ console.log(products);
     {/* Card 3 */}
     <div
       style={{
-        flex: "1 1 280px",
-        maxWidth: "320px",
-        padding: "20px",
-        borderRadius: "12px",
-        boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
+        flex: "1 1 220px",
+        maxWidth: "260px",
+        padding: "12px 10px",
+        borderRadius: "8px",
+        boxShadow: "0 2px 6px rgba(0,0,0,0.05)",
         backgroundColor: "#fff",
-                display: "flex",
+        display: "flex",
         flexDirection: "column",
         alignItems: "center",
         textAlign: "center",
-
       }}
     >
       <img
         src="https://img.icons8.com/ios-filled/100/007bff/customer-support.png"
         alt="Support"
-        style={{ marginBottom: "15px", height: "80px" }}
+        style={{ marginBottom: "8px", height: "50px" }}
       />
-      <h3 style={{ fontSize: "20px", marginBottom: "10px", fontWeight: "600" }}>
+      <h3 style={{ fontSize: "16px", marginBottom: "4px", fontWeight: "600" }}>
         Customer Support
       </h3>
-      <p style={{ color: "#555", fontSize: "15px", lineHeight: "1.6" }}>
+      <p style={{ color: "#555", fontSize: "13px", lineHeight: "1.4" }}>
         Reach out any time—our team is here to help you succeed.
       </p>
     </div>
   </div>
 </section>
 
+
       {/* Popular Products Section */}
-      <section style={{ backgroundColor: "#f5f8f6", padding: "50px 0px", textAlign: "center" }}>
+      <section style={{ backgroundColor: "#f5f8f6", padding: "30px 0px 40px", textAlign: "center" }}>
   <h2
   style={{
-    fontSize: "34px",
-    marginBottom: "14px",
+    fontSize: "26px",
+    marginBottom: "10px",
     fontWeight: "700",
     color: "#111",
     textAlign: "center",
@@ -370,12 +368,12 @@ console.log(products);
 
 <p
   style={{
-    fontSize: "17px",
+    fontSize: "14px",
     color: "#555",
-    marginBottom: "50px",
-    maxWidth: "650px",
+    marginBottom: "30px",
+    maxWidth: "600px",
     marginInline: "auto",
-    lineHeight: "1.6",
+    lineHeight: "1.5",
     textAlign: "center",
   }}
 >
@@ -386,9 +384,9 @@ console.log(products);
   <div
     style={{
       display: "grid",
-      gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-      gap: "30px",
-      maxWidth: "1200px",
+      gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+      gap: "20px",
+      maxWidth: "1100px",
       margin: "0 auto",
     }}
   >
@@ -397,9 +395,9 @@ console.log(products);
         key={product._id}
         style={{
           backgroundColor: "#fff",
-          borderRadius: "8px",
+          borderRadius: "6px",
           overflow: "hidden",
-          boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+          boxShadow: "0 1px 6px rgba(0,0,0,0.07)",
           transition: "transform 0.2s ease",
         }}
       >
