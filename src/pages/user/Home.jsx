@@ -402,11 +402,13 @@ console.log(products);
         }}
       >
         {/* Image wrapper */}
-        <div
+ <Link
+          to={`/product/${product._id}`}
           style={{
             width: "100%",
-            aspectRatio: "4/3", // keeps images same shape
+            aspectRatio: "4/3",
             overflow: "hidden",
+            display: "block",
           }}
         >
           <img
@@ -420,7 +422,7 @@ console.log(products);
               backgroundColor: "#f9f9f9",
             }}
           />
-        </div>
+        </Link>
 
         {/* Product details */}
         <div
@@ -433,7 +435,7 @@ console.log(products);
           <Link
             to={`/product/${product._id}`}
             style={{
-              color: "#007a5e",
+              color: "#007abf",
               textDecoration: "none",
               fontWeight: "500",
               fontSize: "15px",
@@ -441,7 +443,7 @@ console.log(products);
               marginBottom: "6px",
             }}
           >
-            {product.name} &gt;
+            {product.name};
           </Link>
           <p style={{ fontSize: "14px", color: "#444", margin: 0 }}>
             ${product.price}
@@ -504,182 +506,6 @@ console.log(products);
 {/*  */}
 
 
-<section
-  style={{
-    backgroundColor: "#f9fafb", // light grey for contrast
-    padding: "70px 20px",
-    textAlign: "center",
-  }}
->
-  <h2
-    style={{
-      fontSize: "32px",
-      marginBottom: "12px",
-      fontWeight: "700",
-      color: "#111",
-    }}
-  >
-    Our Postcards
-  </h2>
-  <p
-    style={{
-      fontSize: "17px",
-      color: "#555",
-      marginBottom: "50px",
-      maxWidth: "700px",
-      marginInline: "auto",
-      lineHeight: "1.6",
-    }}
-  >
-    Send your message in style with high-quality, beautifully designed postcards
-    that make a real impact.
-  </p>
-
-  <div
-    style={{
-      display: "grid",
-      gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
-      gap: "35px",
-      maxWidth: "1200px",
-      margin: "0 auto",
-    }}
-  >
-    {products
-      .filter((product) => {
-        const category =
-          typeof product.category === "string"
-            ? product.category.toLowerCase()
-            : "";
-        const name =
-          typeof product.name === "string"
-            ? product.name.toLowerCase()
-            : "";
-        return category.includes("postcard") || name.includes("postcard");
-      })
-      .map((postcard) => (
-        <div
-          key={postcard._id}
-          style={{
-            backgroundColor: "#fff",
-            borderRadius: "14px",
-            overflow: "hidden",
-            boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
-            transition: "transform 0.3s ease, box-shadow 0.3s ease",
-            cursor: "pointer",
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.transform = "translateY(-6px)";
-            e.currentTarget.style.boxShadow =
-              "0 8px 25px rgba(0,0,0,0.12)";
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.transform = "translateY(0)";
-            e.currentTarget.style.boxShadow =
-              "0 4px 20px rgba(0,0,0,0.08)";
-          }}
-        >
-          {/* Image wrapper */}
-          <div
-            style={{
-              width: "100%",
-              aspectRatio: "4/3",
-              overflow: "hidden",
-              background: "#f3f4f6",
-            }}
-          >
-            <img
-              src={postcard.images[0] || "https://via.placeholder.com/300"}
-              alt={postcard.name}
-              style={{
-                width: "100%",
-                height: "100%",
-                objectFit: "cover", // modern look
-                display: "block",
-                transition: "transform 0.4s ease",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = "scale(1.08)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = "scale(1)";
-              }}
-            />
-          </div>
-
-          {/* Product details */}
-          <div
-            style={{
-              padding: "18px",
-              textAlign: "center",
-            }}
-          >
-            <Link
-              to={`/product/${postcard._id}`}
-              style={{
-                color: "#007bff",
-                textDecoration: "none",
-                fontWeight: "600",
-                fontSize: "16px",
-                display: "block",
-                marginBottom: "8px",
-              }}
-            >
-              {postcard.name}
-            </Link>
-
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                gap: "12px",
-                marginBottom: "12px",
-              }}
-            >
-              <span
-                style={{
-                  display: "inline-block",
-                  padding: "6px 16px",
-                  backgroundColor: "#eaf4ff",
-                  color: "#007bff",
-                  fontSize: "15px",
-                  fontWeight: "700",
-                  borderRadius: "30px",
-                  boxShadow: "0 2px 6px rgba(0,0,0,0.08)",
-                  minWidth: "60px",
-                }}
-              >
-                ${postcard.price}
-              </span>
-
-              {/* Buy Now button */}
-              <button
-                style={{
-                  padding: "10px 18px",
-                  fontSize: "14px",
-                  fontWeight: "600",
-                  backgroundColor: "#007bff",
-                  color: "#fff",
-                  border: "none",
-                  borderRadius: "6px",
-                  cursor: "pointer",
-                  transition: "background 0.3s ease",
-                }}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.backgroundColor = "#007bff")
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.backgroundColor = "#007bff")
-                }
-              >
-                Buy Now
-              </button>
-            </div>
-          </div>
-        </div>
-      ))}
-  </div>
-</section>
 
 
 
@@ -771,12 +597,14 @@ console.log(products);
           }}
         >
           {/* Image wrapper */}
-          <div
+           <Link
+            to={`/product/${gift._id}`}
             style={{
               width: "100%",
               aspectRatio: "4/3",
               overflow: "hidden",
               background: "#f3f4f6",
+              display: "block",
             }}
           >
             <img
@@ -796,7 +624,7 @@ console.log(products);
                 e.currentTarget.style.transform = "scale(1)";
               }}
             />
-          </div>
+          </Link>
 
           {/* Product details */}
           <div
@@ -845,30 +673,32 @@ console.log(products);
               </span>
 
               {/* Buy Now button */}
- <button
-  style={{
-    padding: "10px 18px",
-    fontSize: "14px",
-    fontWeight: "600",
-    backgroundColor: "#007bff",
-    color: "#fff",
-    border: "none",
-    borderRadius: "6px",
-    cursor: "pointer",
-    transition: "background 0.3s ease, transform 0.2s ease",
-  }}
-  onMouseEnter={(e) => {
-    e.currentTarget.style.backgroundColor = "#0056b3";
-    e.currentTarget.style.transform = "translateY(-2px)";
-  }}
-  onMouseLeave={(e) => {
-    e.currentTarget.style.backgroundColor = "#007bff";
-    e.currentTarget.style.transform = "translateY(0)";
-  }}
-  onClick={() => handleBuyNow(gift._id)}
->
-  Buy Now
-</button>
+     <Link
+                to={`/product/${gift._id}`}
+                style={{
+                  padding: "10px 18px",
+                  fontSize: "14px",
+                  fontWeight: "600",
+                  backgroundColor: "#007bff",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: "6px",
+                  cursor: "pointer",
+                  transition: "background 0.3s ease, transform 0.2s ease",
+                  textDecoration: "none",
+                  display: "inline-block",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = "#0056b3";
+                  e.currentTarget.style.transform = "translateY(-2px)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = "#007bff";
+                  e.currentTarget.style.transform = "translateY(0)";
+                }}
+              >
+                View
+              </Link>
 
 
             </div>
@@ -955,12 +785,14 @@ console.log(products);
           }}
         >
           {/* Image wrapper */}
-          <div
+          <Link
+            to={`/product/${flyer._id}`}
             style={{
               width: "100%",
               aspectRatio: "4/3",
               overflow: "hidden",
               background: "#f3f4f6",
+              display: "block",
             }}
           >
             <img
@@ -980,7 +812,7 @@ console.log(products);
                 e.currentTarget.style.transform = "scale(1)";
               }}
             />
-          </div>
+          </Link>
 
           {/* Product details */}
           <div
@@ -1028,27 +860,32 @@ console.log(products);
   </span>
 
             {/* Buy Now button */}
-            <button
-              style={{
-                padding: "10px 18px",
-                fontSize: "14px",
-                fontWeight: "600",
-                backgroundColor: "#007bff",
-                color: "#fff",
-                border: "none",
-                borderRadius: "6px",
-                cursor: "pointer",
-                transition: "background 0.3s ease",
-              }}
-              onMouseEnter={(e) =>
-                (e.currentTarget.style.backgroundColor = "#007bff")
-              }
-              onMouseLeave={(e) =>
-                (e.currentTarget.style.backgroundColor = "#007bff")
-              }
-            >
-              Buy Now
-            </button>
+              <Link
+                to={`/product/${flyer._id}`}
+                style={{
+                  padding: "10px 18px",
+                  fontSize: "14px",
+                  fontWeight: "600",
+                  backgroundColor: "#007bff",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: "6px",
+                  cursor: "pointer",
+                  transition: "background 0.3s ease, transform 0.2s ease",
+                  textDecoration: "none",
+                  display: "inline-block",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = "#0056b3";
+                  e.currentTarget.style.transform = "translateY(-2px)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = "#007bff";
+                  e.currentTarget.style.transform = "translateY(0)";
+                }}
+              >
+                View
+              </Link>
             </div>
           </div>
         </div>

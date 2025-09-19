@@ -54,6 +54,20 @@ const [croppedImages, setCroppedImages] = useState({ front: null, back: null });
 
 
 
+// Quantity selector
+// const priceOptions = [
+//   { qty: 100, price: 39 },
+//   { qty: 250, price: 60 },
+//   { qty: 500, price: 100 },
+//   { qty: 1000, price: 120 },
+//   { qty: 2000, price: 200 },
+// ];
+
+// const [selectedQty, setSelectedQty] = useState(priceOptions[0].qty);
+// const [displayPrice, setDisplayPrice] = useState(priceOptions[0].price);
+
+
+
 const [showContactModal, setShowContactModal] = useState(false);
 const [showScratchModal, setShowScratchModal] = useState(false);
 const [showGuideline, setShowGuideline] = useState(false);
@@ -199,7 +213,7 @@ const isMobile = useMediaQuery("(max-width: 768px)");
         credentials: "include", // 👈 send login cookie
         body: JSON.stringify({
           productId: product._id,
-          quantity: 1,
+          quantity: selectedQty,
           size: selectedSize,
           finish: selectedFinish,
           corner: selectedCorner
@@ -882,23 +896,7 @@ const isPersonalisedGift = normalize(categoryName) === "personalized gifts";
   </h3>
 
 
-<p
-  style={{
-    fontSize: "16px",
-    marginBottom: "16px",
-    backgroundColor: "#f0f7ff", // light blue highlight
-    padding: "10px 14px",
-    borderRadius: "8px",
-    fontWeight: "500",
-    display: "inline-block",
-    boxShadow: "0 2px 6px rgba(0,0,0,0.08)",
-  }}
->
-  <strong style={{ color: "#1a73e8" }}>{product.quantity}</strong>50 cards from{" "}
-  <span style={{ fontWeight: "700", fontSize: "18px", color: "#e53935" }}>
-    ${product.price}
-  </span>
-</p>
+
 
 
   {/* Rating */}
@@ -1239,11 +1237,95 @@ const isPersonalisedGift = normalize(categoryName) === "personalized gifts";
   </div>
 )}
 
+{/* <div
+  style={{
+    marginBottom: "28px",
+    padding: "20px",
+    background: "linear-gradient(135deg, #f9fafb, #eef2f7)",
+    borderRadius: "14px",
+    boxShadow: "0 6px 18px rgba(0,0,0,0.06)",
+    border: "1px solid #e5e7eb",
+  }}
+>
+  <label
+    htmlFor="quantity"
+    style={{
+      display: "block",
+      fontWeight: "700",
+      fontSize: "16px",
+      marginBottom: "12px",
+      color: "#374151",
+    }}
+  >
+    Select Quantity
+  </label>
+
+  <div
+    style={{
+      display: "flex",
+      alignItems: "center",
+      gap: "18px",
+      flexWrap: "wrap",
+    }}
+  >
+    <select
+      id="quantity"
+      value={selectedQty}
+      onChange={(e) => {
+        const qty = Number(e.target.value);
+        setSelectedQty(qty);
+        const matched = priceOptions.find((p) => p.qty === qty);
+        setDisplayPrice(matched ? matched.price : priceOptions[0].price);
+      }}
+      style={{
+        flex: "1",
+        padding: "12px 16px",
+        borderRadius: "10px",
+        border: "1px solid #d1d5db",
+        fontSize: "15px",
+        fontWeight: "500",
+        cursor: "pointer",
+        background: "#fff",
+        boxShadow: "0 4px 10px rgba(0,0,0,0.05)",
+        transition: "all 0.2s ease",
+      }}
+      onMouseOver={(e) =>
+        (e.currentTarget.style.border = "1px solid #2563eb")
+      }
+      onMouseOut={(e) =>
+        (e.currentTarget.style.border = "1px solid #d1d5db")
+      }
+    >
+      {priceOptions.map((opt) => (
+        <option key={opt.qty} value={opt.qty}>
+          {opt.qty} pcs — ${opt.price}
+        </option>
+      ))}
+    </select>
+ 
+     <span
+      style={{
+        padding: "10px 20px",
+        borderRadius: "12px",
+        background: "linear-gradient(135deg, #2563eb)",
+        color: "#fff",
+        fontWeight: "700",
+        fontSize: "18px",
+        boxShadow: "0 6px 16px rgba(79,70,229,0.3)",
+        whiteSpace: "nowrap",
+      }}
+    >
+      ${displayPrice}
+    </span> 
+  </div>
+</div> */}
+
+
 
 
 
   {/* Add to Cart */}
- {!(isPersonalisedGift && normalize(product.name).includes("photo frame")) && (
+ {/* {!(isPersonalisedGift && normalize(product.name).includes("photo frame")) && (
   <button
     onClick={handleAddToCart}
     style={{
@@ -1263,8 +1345,11 @@ const isPersonalisedGift = normalize(categoryName) === "personalized gifts";
   >
     🛒 Add to Cart
   </button>
-  )}
+  )} */}
 </div>
+
+
+
 
 {/* Personalised Gift Upload */}
 {isPersonalisedGift && (

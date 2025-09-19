@@ -164,7 +164,7 @@ function App() {
           <Route path="/returns" element={<Returns />} />
 
           <Route path="/blog" element={<Blog />} />
-          <Route path="/help" element={<HelpAndFaqPage />} />
+          <Route path="/help-faq" element={<HelpAndFaqPage />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/about" element={<Aboutus />} />
           <Route path="/terms" element={<TermsAndCondition />} />

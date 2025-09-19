@@ -143,7 +143,7 @@ export default function HomeSlider() {
           >
             <h2 style={{ fontSize: "32px", marginBottom: "15px" }}>{slide.title}</h2>
             <p style={{ fontSize: "16px", marginBottom: "25px" }}>{slide.description}</p>
-            <a href="/businesscards">
+            <a href="/AllProducts">
               <button
                 style={{
                   padding: "5px 10px",

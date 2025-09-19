@@ -35,6 +35,16 @@ export default function AllProducts() {
       // description: "From business cards to banners, explore our full catalog.",
     },
   ];
+
+  const categoryBanners = {
+    "68a3fbd48bb89752830da2ed": "/assets/Business/banner3.jpg",   // replace with real _id
+    "68a3fbfb8bb89752830da2f3": "/assets/flyers/banners.jpeg",             // replace with real _id
+    "'68ca591e1b8685254da74b3e": "/assets/flex/default-banner.jpg",           // replace with real _id
+    "68a3fc068bb89752830da2f6": "/assets/Stationery/banner-stickers.jpg",         // replace with real _id
+    "68a3fc498bb89752830da2ff": "/assets/badges/banner.jpg",     // replace with real _id
+    "68a3fc3a8bb89752830da2fc": "/assets/tshirt/banner.jpg",    // replace with real _id
+    "68a3fc278bb89752830da2f9": "/assets/gifts/banner.jpg", // replace with real _id
+  };
   // ✅ Slider state
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
@@ -79,7 +89,7 @@ export default function AllProducts() {
 
         const data = await res.json();
         const categories = data.data;
-
+ console.log("Available Categories:", categories);
         const matchedCategory = categories.find((cat) => cat._id === categoryId);
 
         if (matchedCategory && matchedCategory.products) {
@@ -171,20 +181,163 @@ const arrowButtonStyle = (position) => ({
       <Header />
       
  {/* ✅ Slider Section */}
+            {/* ✅ Fixed Banner Section */}
         <section
           style={{
-            backgroundImage: `url(${slide.image})`,
+            backgroundImage: `url(${categoryBanners[categoryId] || "/assets/flex/default-banner.jpg"})`,
             backgroundSize: "cover",
             backgroundPosition: "center",
             height: isMobile ? "200px" : "450px",
-            position: "relative",
             display: "flex",
             alignItems: "center",
-            justifyContent: isMobile ? "center" : "space-between",
-            flexDirection: isMobile ? "column" : "row",
-            transition: "background-image 1s ease-in-out",
+            justifyContent: "center",
+            transition: "background-image 0.5s ease-in-out",
           }}
         >
+          {/* <div
+            style={{
+              padding: "30px",
+              color: "black",
+              maxWidth: "400px",
+              borderRadius: "10px",
+              textAlign: "center",
+              backgroundColor: "rgba(255,255,255,0.6)",
+            }}
+          >
+            <h2 style={{ fontSize: "32px", marginBottom: "15px" }}>
+              {categoryName}
+            </h2>
+            <p style={{ fontSize: "16px" }}>
+              Explore our {categoryName} collection
+            </p>
+          </div> */}
+        </section>
+  
+
+        <style>
+          {`
+          .all-products-container {
+            padding: 30px;
+            max-width: 1300px;
+            margin: auto;
+          }
+
+          .page-title {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 24px;
+            text-align: center;
+            color: #222;
+          }
+
+          .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 28px;
+          }
+
+          .product-card {
+            background: #fff;
+            border-radius: 14px;
+            overflow: hidden;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+            display: flex;
+            flex-direction: column;
+          }
+
+          .product-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 10px 24px rgba(0,0,0,0.18);
+          }
+
+          .product-image {
+            width: 100%;
+            height: 240px;
+            object-fit: cover;
+            background: #f9f9f9;
+          }
+
+          .product-info {
+            padding: 18px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            flex-grow: 1;
+          }
+
+          .product-name {
+            font-size: 18px;
+            font-weight: 600;
+            margin: 0 0 6px;
+            color: #222;
+          }
+
+          .product-subtitle {
+            font-size: 14px;
+            color: #666;
+            margin: 0 0 12px;
+            min-height: 18px;
+          }
+
+          .product-price {
+            font-size: 18px;
+            font-weight: 700;
+            color: #007bff;
+            margin: 12px 0;
+          }
+
+          .product-actions {
+            margin-top: auto;
+          }
+
+          .btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.25s ease, transform 0.1s ease;
+          }
+
+          .btn:active {
+            transform: scale(0.97);
+          }
+
+          .btn-primary {
+            background: #007bff;
+            color: #fff;
+          }
+          .btn-primary:hover {
+            background: #0056b3;
+          }
+
+          /* Responsive */
+          @media (max-width: 768px) {
+            .all-products-container {
+              padding: 16px;
+            }
+            .page-title {
+              font-size: 22px;
+            }
+            .product-image {
+              height: 200px;
+            }
+          }
+
+          @media (max-width: 480px) {
+            .product-name {
+              font-size: 16px;
+            }
+            .product-price {
+              font-size: 16px;
+            }
+          }
+        `}
+        </style>
+       
           {/* Arrows (hidden on mobile) */}
           {!isMobile && (
             <>
@@ -206,36 +359,7 @@ const arrowButtonStyle = (position) => ({
           )}
 
           {/* Slide Content */}
-          <div
-            style={{
-              padding: "30px",
-              color: "black",
-              maxWidth: "400px",
-              borderRadius: "10px",
-              paddingLeft: "60px",
-              textAlign: "left",
-              backgroundColor: "rgba(255,255,255,0.6)",
-            }}
-          >
-            <h2 style={{ fontSize: "32px", marginBottom: "15px" }}>{slide.title}</h2>
-            <p style={{ fontSize: "16px", marginBottom: "25px" }}>{slide.description}</p>
-            {/* <a href="/businesscards">
-              <button
-                style={{
-                  padding: "8px 16px",
-                  backgroundColor: "#007bff",
-                  color: "#fff",
-                  border: "none",
-                  borderRadius: "5px",
-                  fontSize: "16px",
-                  cursor: "pointer",
-                }}
-              >
-                View Our Products
-              </button>
-            </a> */}
-          </div>
-        </section>
+          
 
       <style>
         
@@ -376,10 +500,14 @@ const arrowButtonStyle = (position) => ({
                   src={product.images?.[0]}
                   alt={product.name}
                   className="product-image"
+
+                  onClick={() => navigate(`/product/${product._id}`)} // 👈 image clickable
+            style={{ cursor: "pointer" }}
                 />
                 <div className="product-info">
                   <div>
-                    <h3 className="product-name">{product.name}</h3>
+                    <h3 className="product-name"  onClick={() => navigate(`/product/${product._id}`)} // 👈 name clickable
+                style={{ cursor: "pointer" }}>{product.name}</h3>
                     <p className="product-subtitle">{product.subtitle}</p>
                     <p className="product-price">${product.price}</p>
                   </div>
