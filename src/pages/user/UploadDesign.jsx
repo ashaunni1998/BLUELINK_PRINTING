@@ -1,11 +1,9 @@
 // UploadDesign.jsx
-import React, { useState, useEffect,useCallback, useRef } from "react";
+import React, { useState, useCallback, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Cropper from "react-easy-crop";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
-import API_BASE_URL from "../../config";
-
 
 /**
  * UploadDesign.jsx
@@ -19,40 +17,11 @@ export default function UploadDesign() {
   const { productId } = useParams();
   const navigate = useNavigate();
 
-
-
-
-  const priceOptions = [
-  { qty: 100, single: 35, double: 45 },
-  { qty: 200, single: 45, double: 55 },
-  { qty: 300, single: 55, double: 65 },
-  { qty: 400, single: 75, double: 85 },
-  { qty: 500, single: 90, double: 95 },
-  { qty: 1000, single: 125, double: 145 },
-  { qty: 1500, single: 170, double: 190 },
-];
-
   // previews and undo
   const [frontPreview, setFrontPreview] = useState(null);
   const [backPreview, setBackPreview] = useState(null);
   const [fullPreview, setFullPreview] = useState(null);
   const [prevPreview, setPrevPreview] = useState({ front: null, back: null, full: null });
-
-
-
-  const isDoubleSided =
-  (frontPreview && backPreview) || fullPreview ? true : false;
-const [selectedQty, setSelectedQty] = useState(priceOptions[0].qty);
-const [displayPrice, setDisplayPrice] = useState(priceOptions[0].single); // default single side
-const [dropdownOpen, setDropdownOpen] = useState(false);
-
-
-useEffect(() => {
-  const matched = priceOptions.find((p) => p.qty === selectedQty);
-  if (matched) {
-    setDisplayPrice(isDoubleSided ? matched.double : matched.single);
-  }
-}, [selectedQty, isDoubleSided]);
 
   // file meta
   const [fileMeta, setFileMeta] = useState({ front: null, back: null, full: null });
@@ -216,43 +185,15 @@ useEffect(() => {
     return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
   };
 
- const handleSubmit = async () => {
-  if (!frontPreview && !backPreview && !fullPreview) {
-    alert("Please upload at least one design.");
-    return;
-  }
-
-  const sideType = isDoubleSided ? "double" : "single";
-
-  try {
-    const res = await fetch(`${API_BASE_URL}/addToCart`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-      body: JSON.stringify({
-        productId,
-        quantity: selectedQty,
-        price: displayPrice,
-        sideType,
-        design: { front: frontPreview, back: backPreview, full: fullPreview }
-      }),
-    });
-
-    const data = await res.json();
-    if (res.ok) {
-      alert("✅ Design added to cart!");
-      navigate("/cart");
-    } else if (res.status === 401) {
-      alert("⚠️ Session expired. Please login again.");
-      navigate("/signin");
-    } else {
-      alert(data.message || "Failed to add design to cart.");
+  const handleSubmit = () => {
+    if (!frontPreview && !backPreview && !fullPreview) {
+      alert("Please upload at least one design.");
+      return;
     }
-  } catch (err) {
-    alert("Something went wrong. Please try again.");
-  }
-};
-
+    // TODO: send to backend
+    alert("Design submitted successfully!");
+    navigate(`/product/${productId}`);
+  };
 
   // hidden file input component
   const InputFile = ({ side, inputRef }) => (
@@ -389,125 +330,6 @@ useEffect(() => {
               );
             })}
           </section>
-
-
-
-<div style={{ margin: "30px 0", position: "relative", maxWidth: "420px" }}>
-  <label
-    style={{
-      display: "block",
-      fontWeight: 700,
-      fontSize: "16px",
-      marginBottom: "10px",
-      color: "#1e293b",
-    }}
-  >
-    Select Quantity
-  </label>
-
-  {/* Dropdown box */}
-  <div
-    onClick={() => setDropdownOpen((prev) => !prev)}
-    style={{
-      padding: "14px 16px",
-      border: "2px solid #e2e8f0",
-      borderRadius: "12px",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "space-between",
-      background: "#fff",
-      cursor: "pointer",
-      boxShadow: "0 4px 14px rgba(0,0,0,0.06)",
-      transition: "all 0.2s ease",
-    }}
-  >
-    <span style={{ fontSize: "15px", fontWeight: 600, color: "#0f172a" }}>
-      {selectedQty} pcs — ${displayPrice}
-    </span>
-    <span
-      style={{
-        transform: dropdownOpen ? "rotate(180deg)" : "rotate(0deg)",
-        transition: "transform 0.25s ease",
-        fontSize: "18px",
-        color: "#475569",
-      }}
-    >
-      ▼
-    </span>
-  </div>
-
-  {/* Dropdown list */}
-  {dropdownOpen && (
-    <div
-      style={{
-        position: "absolute",
-        top: "110%",
-        left: 0,
-        right: 0,
-        background: "#fff",
-        border: "1px solid #e2e8f0",
-        borderRadius: "12px",
-        marginTop: "6px",
-        boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
-        zIndex: 50,
-        overflow: "hidden",
-      }}
-    >
-      {priceOptions.map((opt) => {
-        const price = isDoubleSided ? opt.double : opt.single;
-        const isSelected = selectedQty === opt.qty;
-        return (
-          <div
-            key={opt.qty}
-            onClick={() => {
-              setSelectedQty(opt.qty);
-              setDropdownOpen(false);
-            }}
-            style={{
-              padding: "14px 18px",
-              cursor: "pointer",
-              background: isSelected ? "#2563eb" : "#fff",
-              color: isSelected ? "#fff" : "#0f172a",
-              fontWeight: isSelected ? 700 : 500,
-              fontSize: "15px",
-              borderBottom:
-                opt.qty !== priceOptions[priceOptions.length - 1].qty
-                  ? "1px solid #f1f5f9"
-                  : "none",
-              transition: "all 0.2s ease",
-            }}
-            onMouseEnter={(e) =>
-              (e.currentTarget.style.backgroundColor = isSelected
-                ? "#1e40af"
-                : "#f8fafc")
-            }
-            onMouseLeave={(e) =>
-              (e.currentTarget.style.backgroundColor = isSelected
-                ? "#2563eb"
-                : "#fff")
-            }
-          >
-            {opt.qty} pcs — ${price}
-          </div>
-        );
-      })}
-    </div>
-  )}
-
-  {/* Live price badge */}
-  <div
-    style={{
-      marginTop: "16px",
-      fontSize: "20px",
-      fontWeight: 800,
-      color: "#2563eb",
-      textAlign: "right",
-    }}
-  >
-    Total: ${displayPrice}
-  </div>
-</div>
-
 
           <div className="ud-actions">
             <button className="ud-back" onClick={() => navigate(`/product/${productId}`)}>
