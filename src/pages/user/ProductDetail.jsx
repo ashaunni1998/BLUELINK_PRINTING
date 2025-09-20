@@ -122,7 +122,7 @@ const isMobile = useMediaQuery("(max-width: 768px)");
 
         // Try different endpoints
         const endpoints = [
-          `https://kerala-digital-park-server.vercel.app/api/product/productDetails/${id}`,
+          `${API_BASE_URL}/product/productDetails/${id}`,
         ];
 
         let res;
@@ -149,7 +149,7 @@ const isMobile = useMediaQuery("(max-width: 768px)");
 
         if (!res || !res.ok || !workingEndpoint) {
           // fallback: fetch list
-          const listRes = await fetch('https://kerala-digital-park-server.vercel.app/api/products');
+          const listRes = await fetch(`${API_BASE_URL}/products`);
           if (listRes.ok) {
             const listData = await listRes.json();
             const products = listData.productData || listData.data || listData.products || listData;
@@ -207,7 +207,7 @@ const isMobile = useMediaQuery("(max-width: 768px)");
         return;
       }
 
-      const res = await fetch("https://kerala-digital-park-server.vercel.app/api/addToCart", {
+      const res = await fetch(`${API_BASE_URL}/addToCart`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include", // 👈 send login cookie

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import './Home.css';
-
+import API_BASE_URL from "../../config";
 
 const countryOptions = [
   { name: "India", code: "+91" },
@@ -109,7 +109,7 @@ const SignUp = () => {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch("https://kerala-digital-park-server.vercel.app/api/user/register", {
+      const response = await fetch(`${API_BASE_URL}/user/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

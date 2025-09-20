@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useStripe, useElements, CardElement } from "@stripe/react-stripe-js";
-
+import API_BASE_URL from "../../config";
 const TestingPayment = ({ orderDetails, apiUrl }) => {
   const stripe = useStripe();
   const elements = useElements();
@@ -34,7 +34,7 @@ const TestingPayment = ({ orderDetails, apiUrl }) => {
     try {
       // Call backend dynamically (default fallback)
       const res = await fetch(
-        apiUrl || "https://kerala-digital-park-server.vercel.app/api/order/create-payment-intent",
+        apiUrl || `${API_BASE_URL}/order/create-payment-intent`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

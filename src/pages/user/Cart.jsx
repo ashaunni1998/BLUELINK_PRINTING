@@ -11,7 +11,7 @@ const Cart = () => {
   // ✅ Fetch cart from backend (cookie auth)
   const fetchCart = async () => {
     try {
-      const res = await fetch('https://kerala-digital-park-server.vercel.app/api/getCart', {
+      const res = await fetch(`${API_BASE_URL}/getCart`, {
         method: "GET",
         headers: { 'Content-Type': 'application/json' },
         credentials: "include", // send login cookie
@@ -52,7 +52,7 @@ const Cart = () => {
     setItems(prev => prev.map(item => (item.id === id ? { ...item, qty } : item)));
     try {
       const res = await fetch(
-        `https://kerala-digital-park-server.vercel.app/api/updateCartItem?cartId=${encodeURIComponent(cartId ?? '')}&productId=${encodeURIComponent(id)}&newQty=${encodeURIComponent(qty)}`,
+        `${API_BASE_URL}/updateCartItem?cartId=${encodeURIComponent(cartId ?? '')}&productId=${encodeURIComponent(id)}&newQty=${encodeURIComponent(qty)}`,
         {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
@@ -73,7 +73,7 @@ const Cart = () => {
   const handleRemove = async (id) => {
     try {
       const res = await fetch(
-        `https://kerala-digital-park-server.vercel.app/api/removeCartItem?cartId=${encodeURIComponent(cartId ?? '')}&productId=${encodeURIComponent(id)}`,
+        `${API_BASE_URL}/removeCartItem?cartId=${encodeURIComponent(cartId ?? '')}&productId=${encodeURIComponent(id)}`,
         {
           method: 'DELETE',
           headers: { 'Content-Type': 'application/json' },

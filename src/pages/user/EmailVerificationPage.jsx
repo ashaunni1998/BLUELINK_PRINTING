@@ -5,7 +5,7 @@ import Footer from './components/Footer';
 import Swal from 'sweetalert2';
 import { useContext } from 'react';
 import { AuthContext } from '../../context/AuthContext';
-
+import API_BASE_URL from "../../config";
 const EmailVerificationPage = () => {
   const [otp, setOtp] = useState('');
   const [error, setError] = useState('');
@@ -22,7 +22,7 @@ const { setIsLoggedIn } = useContext(AuthContext);
     if (!email) return;
 
     try {
-      const res = await fetch('https://kerala-digital-park-server.vercel.app/api/user/sendVerifyOtp', {
+      const res = await fetch(`${API_BASE_URL}/user/sendVerifyOtp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),
@@ -58,7 +58,7 @@ const { setIsLoggedIn } = useContext(AuthContext);
     }
 
     try {
-      const response = await fetch('https://kerala-digital-park-server.vercel.app/api/user/verifyOtp', {
+      const response = await fetch('${API_BASE_URL}/user/verifyOtp', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -113,7 +113,7 @@ if (response.ok) {
     setResendDisabled(true);
 
     try {
-      const res = await fetch('https://kerala-digital-park-server.vercel.app/api/user/sendVerifyOtp', {
+      const res = await fetch(`${API_BASE_URL}/user/sendVerifyOtp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),

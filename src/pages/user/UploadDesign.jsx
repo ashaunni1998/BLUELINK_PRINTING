@@ -4,6 +4,8 @@ import { useParams, useNavigate } from "react-router-dom";
 import Cropper from "react-easy-crop";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
+import API_BASE_URL from "../../config";
+
 
 /**
  * UploadDesign.jsx
@@ -223,7 +225,7 @@ useEffect(() => {
   const sideType = isDoubleSided ? "double" : "single";
 
   try {
-    const res = await fetch("https://kerala-digital-park-server.vercel.app/api/addToCart", {
+    const res = await fetch(`${API_BASE_URL}/addToCart`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",

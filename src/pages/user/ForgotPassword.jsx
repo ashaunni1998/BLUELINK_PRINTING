@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
-
+import API_BASE_URL from "../../config";
 const ForgotPassword = () => {
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
@@ -15,7 +15,7 @@ const ForgotPassword = () => {
   setIsSubmitting(true);
 
   try {
-    const response = await fetch(`https://kerala-digital-park-server.vercel.app/api/user/forgot-password/${email}`, {
+    const response = await fetch(`${API_BASE_URL}/user/forgot-password/${email}`, {
       method: "POST",
     });
 

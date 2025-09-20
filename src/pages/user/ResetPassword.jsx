@@ -3,7 +3,7 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import './Home.css'
-
+import API_BASE_URL from "../../config";
 const ResetPassword = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -26,7 +26,7 @@ const ResetPassword = () => {
       }
 
       try {
-        const res = await fetch(`https://kerala-digital-park-server.vercel.app/api/user/verifyResetOtp`, {
+        const res = await fetch(`${API_BASE_URL}/user/verifyResetOtp`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -69,7 +69,7 @@ const ResetPassword = () => {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch("https://kerala-digital-park-server.vercel.app/api/user/reset-password", {
+      const response = await fetch(`${API_BASE_URL}/user/reset-password`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

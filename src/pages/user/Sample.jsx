@@ -36,7 +36,7 @@ const  addressData= {
     // );
 
      const response = await axios.post(
-      'https://kerala-digital-park-server.vercel.app/api/address/add',addressData,
+      `${API_BASE_URL}/address/add`,addressData,
      
       { withCredentials: true }
     );

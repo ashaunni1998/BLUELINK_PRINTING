@@ -8,7 +8,7 @@ import { useContext, useState, useEffect } from "react";
 import { AuthContext } from "../../context/AuthContext"; 
 import Swal from "sweetalert2";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
-
+import API_BASE_URL from "../../config";
 
 
 const SignIn = () => {
@@ -40,7 +40,7 @@ const SignIn = () => {
 
     try {
       const response = await fetch(
-        "https://kerala-digital-park-server.vercel.app/api/user/login",
+        `${API_BASE_URL}/user/login`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

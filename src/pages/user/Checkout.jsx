@@ -61,7 +61,7 @@ const [addressError, setAddressError] = useState("");   // for error messages
   try {
     console.log("📤 Sending GET /address/addresses with cookies");
     console.log("Fetching addresses from:", `${API_BASE_URL}/address/addresses`);
-    const res = await axios.get(`https://kerala-digital-park-server.vercel.app/api/address/addresses`, {
+    const res = await axios.get(`${API_BASE_URL}/address/addresses`, {
       withCredentials: true,
     });
 
@@ -123,7 +123,7 @@ console.log("worked");
     // );
 
      const response = await axios.post(
-      'https://kerala-digital-park-server.vercel.app/api/address/add',
+      '${API_BASE_URL}/address/add',
       addressData,
       { withCredentials: true }
     );

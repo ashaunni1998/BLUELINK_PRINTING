@@ -18,7 +18,7 @@ const VerifyOtp = () => {
 
     try {
       const res = await axios.post(
-        "https://kerala-digital-park-server.vercel.app/api/user/verifyResetOtp",
+        `${API_BASE_URL}/user/verifyResetOtp`,
         { email, otp }
       );
       if (res.data.userData && res.data.userData.token) {
