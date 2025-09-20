@@ -57,7 +57,7 @@ export default function HomeSlider() {
         const slides = [
           {
             image:
-              "https://www.moo.com/dam/jcr:cfd23cfc-64cf-451c-90e2-b6fee400f950/0812WF-HPC-3840x1000-Business-Cards-Standard.jpg",
+              "/assets/homeslider/banner1.jpg",
             title: "Fast & Reliable Blueprint Printing",
             description: "Upload your files, customize your order, and we’ll deliver it to your door.",
             cardLinks: [
@@ -131,30 +131,32 @@ export default function HomeSlider() {
 
         {/* Slide Content (Desktop Only) */}
         {!isMobile && (
-          <div
-            style={{
-              padding: "30px",
-              color: "black",
-              maxWidth: "400px",
-              borderRadius: "10px",
-              paddingLeft: "100px",
-              textAlign: "left",
-            }}
-          >
+         
+         <div
+  style={{
+    position: "absolute",   // ⬅️ new
+    top: "40%",             // ⬅️ new
+    left: "11%",            // ⬅️ adjust this to move left/right
+    transform: "translateY(-50%)", // ⬅️ vertically centered
+    color: "black",
+    maxWidth: "500px",
+    textAlign: "left",
+  }}
+>
             <h2 style={{ fontSize: "32px", marginBottom: "15px" }}>{slide.title}</h2>
             <p style={{ fontSize: "16px", marginBottom: "25px" }}>{slide.description}</p>
             <a href="/AllProducts">
-              <button
-                style={{
-                  padding: "5px 10px",
-                  backgroundColor: "#007bff",
-                  color: "#fff",
-                  border: "none",
-                  borderRadius: "5px",
-                  fontSize: "16px",
-                  cursor: "pointer",
-                  marginBottom: "15px",
-                }}
+               <button
+      style={{
+        padding: "5px 10px",
+        backgroundColor: "#007bff",
+        color: "#fff",
+        border: "none",
+        borderRadius: "5px",
+        fontSize: "16px",
+        cursor: "pointer",
+        marginBottom: "15px",
+      }}
               >
                 View Our Products
               </button>
@@ -172,17 +174,17 @@ export default function HomeSlider() {
               "linear-gradient(to bottom, rgba(255,255,255,0) 0%, rgba(248,213,148,0.95) 70%, rgba(248,213,148,1) 100%)",
             padding: "10px 30px 20px",
             boxSizing: "border-box",
-            paddingLeft: "100px",
+           textAlign: "center",
           }}
         >
           {/* Progress Bars (Desktop Only) */}
           {!isMobile && (
-            <div style={{ display: "flex", justifyContent: "flex-start", gap: "6px", marginTop: "15px", marginBottom: "10px" }}>
+            <div style={{ display: "flex", justifyContent: "flex-start", gap: "6px", marginTop: "15px", marginBottom: "50px",marginLeft:"122px", }}>
               {homeSlides.map((_, index) => (
                 <div
                   key={index}
                   style={{
-                    height: "2px",
+                    height: "1px",
                     backgroundColor: "#ddd",
                     borderRadius: "10px",
                     overflow: "hidden",

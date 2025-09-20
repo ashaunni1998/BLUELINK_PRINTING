@@ -323,7 +323,7 @@ const STATIC_END_ITEMS = [
     <header style={styles.header}>
       {/* TOP BAR */}
       <div style={styles.topBar}>
-        <div style={{ ...styles.logoWrapper, marginLeft: isMobile ? "8px" : "80px" }}>
+        <div style={{ ...styles.logoWrapper, marginLeft: isMobile ? "8px" : "20px" }}>
           <a href="/">
             <img src="/assets/logo/logo2.jpg" alt="Logo" style={styles.logo} />
           </a>
@@ -644,7 +644,7 @@ const styles = {
 
   hamburger: { fontSize: "24px", cursor: "pointer", marginRight: "10px" },
   navBar: { position: "relative", zIndex: 1200 },
-  navLinks: { display: "flex", gap: "15px", flexWrap: "nowrap", whiteSpace: "nowrap", position: "relative", zIndex: 1,  maxWidth: "1100px", 
+  navLinks: { display: "flex", gap: "12px", flexWrap: "nowrap", whiteSpace: "nowrap", position: "relative", zIndex: 1,  maxWidth: "1100px", 
   margin: "0 auto", 
   padding: "0 20px", 
   width: "100%"  },
