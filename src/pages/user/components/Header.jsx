@@ -600,6 +600,7 @@ const STATIC_END_ITEMS = [
 }
 
 /* ---------- styles ---------- */
+/* ---------- styles ---------- */
 const styles = {
   header: {
     fontFamily: "'Segoe UI', sans-serif",
@@ -618,8 +619,9 @@ const styles = {
     padding: "6px 0px",
     maxWidth: "1100px",
     margin: "0 auto",
-
     width: "100%",
+    position: "relative", // Add position relative
+    zIndex: 5000, // Higher z-index for top bar
   },
   overlay: {
     position: "fixed",
@@ -630,24 +632,59 @@ const styles = {
     backgroundColor: "rgba(0,0,0,0.5)",
     zIndex: 998,
   },
-  logoWrapper: { display: "flex", alignItems: "center" },
+  logoWrapper: { display: "flex", alignItems: "center", zIndex: 5001 }, // Higher z-index
   logo: { height: "50px", objectFit: "contain", width: "115px" },
-  topRightRow: { display: "flex", alignItems: "center", gap: "18px", marginLeft: "auto", marginRight: "80px", flex: "0 0 auto", justifyContent: "flex-end" },
+  topRightRow: { 
+    display: "flex", 
+    alignItems: "center", 
+    gap: "18px", 
+    marginLeft: "auto", 
+    marginRight: "80px", 
+    flex: "0 0 auto", 
+    justifyContent: "flex-end",
+    position: "relative", // Add position relative
+    zIndex: 5001, // Higher z-index
+  },
   topLink: { cursor: "pointer", color: "#333", fontSize: "14px", textDecoration: "none" },
-  accountContainer: { position: "relative", display: "inline-block" },
-  searchWrapper: { position: "relative", width: "160px" },
+  accountContainer: { position: "relative", display: "inline-block", zIndex: 4000 }, // Higher z-index
+  searchWrapper: { position: "relative", width: "160px", zIndex: 4000 }, // Higher z-index
   searchInput: { width: "100%", padding: "8px 36px 8px 12px", border: "1px solid #ccc", borderRadius: "6px" },
   searchIcon: { position: "absolute", right: "10px", top: "50%", transform: "translateY(-50%)", fontSize: "16px", color: "#333", pointerEvents: "none" },
 
-  searchDropdown: { position: "absolute", top: "42px", left: 0, right: 0, backgroundColor: "#fff", border: "1px solid #ccc", zIndex: 3000, maxHeight: "250px", overflowY: "auto", borderRadius: "6px" },
+  searchDropdown: { 
+    position: "absolute", 
+    top: "42px", 
+    left: 0, 
+    right: 0, 
+    backgroundColor: "#fff", 
+    border: "1px solid #ccc", 
+    zIndex: 5002, // Higher z-index for search dropdown
+    maxHeight: "250px", 
+    overflowY: "auto", 
+    borderRadius: "6px",
+    boxShadow: "0 4px 12px rgba(0,0,0,0.15)", // Add shadow for better visibility
+  },
   searchItem: { padding: "10px", borderBottom: "1px solid #eee", cursor: "pointer", color: "#333" },
 
   hamburger: { fontSize: "24px", cursor: "pointer", marginRight: "10px" },
-  navBar: { position: "relative", zIndex: 1200 },
-  navLinks: { display: "flex", gap: "12px", flexWrap: "nowrap", whiteSpace: "nowrap", position: "relative", zIndex: 1,  maxWidth: "1100px", 
-  margin: "0 auto", 
-  padding: "0 20px", 
-  width: "100%"  },
+  navBar: { 
+    position: "relative", 
+    zIndex: 3000, // Lower than top bar elements
+    backgroundColor: "white", // Ensure solid background
+  },
+  navLinks: { 
+    display: "flex", 
+    gap: "12px", 
+    flexWrap: "nowrap", 
+    whiteSpace: "nowrap", 
+    position: "relative", 
+    zIndex: 3001,  
+    maxWidth: "1100px", 
+    margin: "0 auto", 
+    padding: "0 20px", 
+    width: "100%",
+    backgroundColor: "white", // Ensure solid background
+  },
   navItem: { position: "relative" },
   navLink: { fontSize: "14px", color: "#111", fontWeight: "500", textDecoration: "none", padding: "12px 6px", display: "inline-block" },
 
@@ -659,7 +696,7 @@ const styles = {
     border: "1px solid #e0e6ed",
     borderRadius: "8px",
     boxShadow: "0 6px 20px rgba(0,0,0,0.08)",
-    zIndex: 2000,
+    zIndex: 3500, // Lower than top bar, higher than nav
     minWidth: "240px",
     padding: "0",
     overflow: "hidden",
@@ -686,12 +723,26 @@ const styles = {
     backgroundColor: "#f8f9fa",
   },
 
-  accountDropdown: { position: "absolute", top: "100%", left: "50%", transform: "translateX(-50%)", backgroundColor: "#fff", boxShadow: "0px 6px 18px rgba(0,0,0,0.12)", borderRadius: "8px", display: "flex", flexDirection: "column", alignItems: "stretch", minWidth: "180px", padding: "10px 0", zIndex: 1000 },
+  accountDropdown: { 
+    position: "absolute", 
+    top: "100%", 
+    left: "50%", 
+    transform: "translateX(-50%)", 
+    backgroundColor: "#fff", 
+    boxShadow: "0px 6px 18px rgba(0,0,0,0.12)", 
+    borderRadius: "8px", 
+    display: "flex", 
+    flexDirection: "column", 
+    alignItems: "stretch", 
+    minWidth: "180px", 
+    padding: "10px 0", 
+    zIndex: 5002, // Higher z-index for account dropdown
+  },
   accountLink: { padding: "10px 15px", textDecoration: "none", color: "#0073e6", fontSize: "14px", fontWeight: "500" },
   divider: { borderTop: "1px solid #eee", marginTop: "8px" },
   logoutBtn: { margin: "10px auto 0 auto", padding: "8px 16px", backgroundColor: "#0073e6", color: "#fff", border: "none", borderRadius: "6px", cursor: "pointer", fontSize: "14px", fontWeight: "500" },
 
-  // mobile
+  // mobile (unchanged)
   mobileMenu: { position: "fixed", top: 0, right: 0, bottom: 0, maxHeight: "100vh", width: "85%", backgroundColor: "#f8f9fa", zIndex: 999, boxShadow: "-2px 0 8px rgba(0,0,0,0.2)", overflowY: "auto", display: "flex", flexDirection: "column" },
   mobileHeader: { display: "flex", justifyContent: "space-between", alignItems: "center", padding: "15px 16px", borderBottom: "1px solid #dee2e6", backgroundColor: "#fff", position: "sticky", top: 0, zIndex: 1000 },
   mobileSearchWrapper: { position: "relative", flex: 1, marginRight: "12px" },
