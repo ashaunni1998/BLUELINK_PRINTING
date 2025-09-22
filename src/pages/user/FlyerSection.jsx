@@ -87,7 +87,7 @@ const FlyerSection = () => {
           <div className={`relative transform transition-all duration-1000 delay-300 ${isVisible ? 'translate-x-0 opacity-100' : 'translate-x-20 opacity-0'}`}>
             
             {/* Main Image Container - Adjusted sizing to respect header boundaries */}
-            <div className="relative group max-w-lg mx-auto lg:mx-0">
+            <div className="relative group max-w-lg mx-auto lg:mx-11">
               
               {/* Image Frame */}
               <div className="relative bg-white p-4 lg:p-6 rounded-3xl border-2 border-blue-200">
