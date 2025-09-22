@@ -37,7 +37,7 @@ export default function AllProducts() {
   ];
 
   const categoryBanners = {
-    "68a3fbd48bb89752830da2ed": "/assets/Business/banner3.jpg",   // replace with real _id
+    "68d0c2c624e909081c989aad": "/assets/Business/banner1.jpg",   // replace with real _id
     "68a3fbfb8bb89752830da2f3": "/assets/flyers/banners.jpeg",             // replace with real _id
     "'68ca591e1b8685254da74b3e": "/assets/flex/default-banner.jpg",           // replace with real _id
     "68a3fc068bb89752830da2f6": "/assets/Stationery/banner-stickers.jpg",         // replace with real _id

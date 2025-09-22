@@ -848,11 +848,14 @@ const isPersonalisedGift = normalize(categoryName) === "personalized gifts";
 
         {/* Main */}
         <div style={{
-          
+           maxWidth: '1100px',
+  margin: '0 auto',
+  padding: isMobile ? '20px 16px' : '40px 20px',
+  width: '100%',
         
-          padding: isMobile ? '20px' : '40px',
-          // maxWidth: '1200px',
-          margin: '0 auto',
+          // padding: isMobile ? '20px' : '40px',
+          // // maxWidth: '1200px',
+          // margin: '0 auto',
           
         }}>
            <div style={{

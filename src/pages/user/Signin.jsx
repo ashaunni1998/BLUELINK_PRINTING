@@ -10,7 +10,6 @@ import { FaEye, FaEyeSlash } from "react-icons/fa";
 import Swal from "sweetalert2";
 const API = API_BASE_URL.replace(/\/$/, "");
 
-
 /**
  * SignIn.jsx
  * - Renders Google's official GSI button and handles id_token flow.
@@ -21,7 +20,7 @@ const API = API_BASE_URL.replace(/\/$/, "");
 
 export default function SignIn() {
   const navigate = useNavigate();
-  const { setIsLoggedIn } = useContext(AuthContext) || {};
+  const { setIsLoggedIn, isLoggedIn, authLoading } = useContext(AuthContext) || {};
 
   const googleBtnRef = useRef(null);
   const gsiInitializedRef = useRef(false);
@@ -31,6 +30,13 @@ export default function SignIn() {
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // If user is already logged in, redirect them
+  useEffect(() => {
+    if (!authLoading && isLoggedIn) {
+      navigate("/", { replace: true });
+    }
+  }, [authLoading, isLoggedIn, navigate]);
 
   // helper to load external script once
   const loadScript = (src) =>
@@ -56,28 +62,28 @@ export default function SignIn() {
       document.head.appendChild(s);
     });
 
-const postIdToken = async (id_token) => {
-  if (!id_token) return { ok: false, error: "no id_token" };
-  const endpoint = `${API}/auth/google/token`; // <-- updated
-  try {
-    console.log("[SignIn] POST id_token ->", endpoint);
-    const res = await fetch(endpoint, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id_token }),
-      credentials: "include", // important to receive HttpOnly cookie
-    });
-    const text = await res.text();
-    let body;
-    try { body = JSON.parse(text); } catch { body = text; }
-    console.log("[SignIn] POST response:", res.status, body);
-    if (!res.ok) return { ok: false, status: res.status, body };
-    return { ok: true, status: res.status, body };
-  } catch (err) {
-    console.error("[SignIn] network error posting id_token:", err);
-    return { ok: false, error: err.message || String(err) };
-  }
-};
+  const postIdToken = async (id_token) => {
+    if (!id_token) return { ok: false, error: "no id_token" };
+    const endpoint = `${API}/auth/google/token`;
+    try {
+      console.log("[SignIn] POST id_token ->", endpoint);
+      const res = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id_token }),
+        credentials: "include", // important to receive HttpOnly cookie
+      });
+      const text = await res.text();
+      let body;
+      try { body = JSON.parse(text); } catch { body = text; }
+      console.log("[SignIn] POST response:", res.status, body);
+      if (!res.ok) return { ok: false, status: res.status, body };
+      return { ok: true, status: res.status, body };
+    } catch (err) {
+      console.error("[SignIn] network error posting id_token:", err);
+      return { ok: false, error: err.message || String(err) };
+    }
+  };
 
   // callback from Google's GSI when user signs in
   const handleCredentialResponse = async (response) => {
@@ -101,9 +107,18 @@ const postIdToken = async (id_token) => {
     }
 
     // success: backend should have set cookie; update UI
-    try { setIsLoggedIn?.(true); } catch (e) {}
-    localStorage.setItem("app_is_logged_in", "1");
-    Swal.fire({ icon: "success", title: result.body?.message || "Signed in with Google", toast: true, position: "top-end", timer: 1400, showConfirmButton: false });
+    // ONLY call setIsLoggedIn - let AuthContext handle localStorage
+    if (setIsLoggedIn) {
+      setIsLoggedIn(true);
+    }
+    Swal.fire({ 
+      icon: "success", 
+      title: result.body?.message || "Signed in with Google", 
+      toast: true, 
+      position: "top-end", 
+      timer: 1400, 
+      showConfirmButton: false 
+    });
     navigate("/", { replace: true });
   };
 
@@ -153,39 +168,14 @@ const postIdToken = async (id_token) => {
   };
 
   useEffect(() => {
-    initGsi();
-    // try again shortly if script loads slower
-    const t = setTimeout(() => initGsi(), 1500);
-    return () => clearTimeout(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // check session on mount (backend cookie-based)
-  useEffect(() => {
-    const checkSession = async () => {
-      try {
-        const res = await fetch(`${API}/user/me`, { credentials: "include" });
-
-        if (res.ok) {
-          const json = await res.json();
-          if (json && (json.user || json.userData)) {
-            setIsLoggedIn?.(true);
-            navigate("/", { replace: true });
-          } else {
-            // server didn't return user -> clear optimistic flag
-            localStorage.removeItem("app_is_logged_in");
-            setIsLoggedIn?.(false);
-          }
-        } else {
-          localStorage.removeItem("app_is_logged_in");
-          setIsLoggedIn?.(false);
-        }
-      } catch (err) {
-        console.debug("checkSession error:", err);
-      }
-    };
-    checkSession();
-  }, [navigate, setIsLoggedIn]);
+    // Only initialize GSI if not already logged in and auth loading is complete
+    if (!authLoading && !isLoggedIn) {
+      initGsi();
+      // try again shortly if script loads slower
+      const t = setTimeout(() => initGsi(), 1500);
+      return () => clearTimeout(t);
+    }
+  }, [authLoading, isLoggedIn]);
 
   // email/password login
   const validateForm = () => {
@@ -216,9 +206,18 @@ const postIdToken = async (id_token) => {
       const json = await res.json();
       console.log("/api/user/login response:", res.status, json);
       if (res.ok && json.userData) {
-        setIsLoggedIn?.(true);
-        localStorage.setItem("app_is_logged_in", "1");
-        Swal.fire({ icon: "success", title: "Signed in", toast: true, position: "top-end", timer: 1400, showConfirmButton: false });
+        // ONLY call setIsLoggedIn - let AuthContext handle localStorage
+        if (setIsLoggedIn) {
+          setIsLoggedIn(true);
+        }
+        Swal.fire({ 
+          icon: "success", 
+          title: "Signed in", 
+          toast: true, 
+          position: "top-end", 
+          timer: 1400, 
+          showConfirmButton: false 
+        });
         navigate("/", { replace: true });
       } else {
         setErrors({ general: json.message || "Login failed" });
@@ -230,6 +229,30 @@ const postIdToken = async (id_token) => {
       setIsSubmitting(false);
     }
   };
+
+  // Show loading while checking authentication
+  if (authLoading) {
+    return (
+      <div className="responsive-container">
+        <Header />
+        <div style={{
+          minHeight: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          backgroundColor: "#f4f6fb",
+        }}>
+          <div>Loading...</div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  // If already logged in, don't show the form (redirect will happen via useEffect)
+  if (isLoggedIn) {
+    return null;
+  }
 
   return (
     <div className="responsive-container">
@@ -254,7 +277,7 @@ const postIdToken = async (id_token) => {
         }}>
           <h2 style={{ margin: 0, marginBottom: 12 }}>Sign in to your account</h2>
           <div style={{ fontSize: 13, color: "#6b7280", marginBottom: 18 }}>
-            Don’t have an account?{" "}
+            Don't have an account?{" "}
             <button onClick={() => navigate("/signup")} style={{ background: "transparent", border: "none", color: "#2563eb", cursor: "pointer" }}>
               Sign up
             </button>

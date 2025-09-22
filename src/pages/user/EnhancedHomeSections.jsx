@@ -38,7 +38,8 @@ const EnhancedHomeSections = () => {
           visibleSections['blog-section'] ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
         }`}
       >
-        <div className="relative z-10 container mx-auto px-8">
+        {/* Match header's container structure */}
+        <div className="relative z-10 max-w-[1100px] mx-auto px-4 sm:px-6 lg:px-8">
           {/* Section Header */}
           <div className="text-center mb-16">
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 border border-blue-200 rounded-full text-blue-700 text-sm font-medium mb-6">
@@ -52,7 +53,7 @@ const EnhancedHomeSections = () => {
           </div>
 
           {/* Cards Grid */}
-          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 max-w-5xl mx-auto">
+          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12">
             
             {/* Business Cards Card */}
             <div 
@@ -79,9 +80,9 @@ const EnhancedHomeSections = () => {
                 </div>
 
                 {/* Content */}
-                <div className="p-8">
+                <div className="p-6 lg:p-8">
                   <div className="flex items-start justify-between mb-4">
-                    <h3 className="text-2xl font-bold text-gray-900 leading-tight">
+                    <h3 className="text-xl lg:text-2xl font-bold text-gray-900 leading-tight">
                       10 Business Card Design Examples
                     </h3>
                     <FileText className="w-6 h-6 text-blue-500 flex-shrink-0 mt-1" />
@@ -136,9 +137,9 @@ const EnhancedHomeSections = () => {
                 </div>
 
                 {/* Content */}
-                <div className="p-8">
+                <div className="p-6 lg:p-8">
                   <div className="flex items-start justify-between mb-4">
-                    <h3 className="text-2xl font-bold text-gray-900 leading-tight">
+                    <h3 className="text-xl lg:text-2xl font-bold text-gray-900 leading-tight">
                       Invites They Won't Ignore
                     </h3>
                     <Heart className="w-6 h-6 text-blue-500 flex-shrink-0 mt-1" />
@@ -179,12 +180,13 @@ const EnhancedHomeSections = () => {
           visibleSections['flyers-section'] ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
         }`}
       >
-        <div className="relative z-10 container mx-auto px-8">
-          <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center max-w-6xl mx-auto">
+        {/* Match header's container structure */}
+        <div className="relative z-10 max-w-[1100px] mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
             
             {/* Image Side */}
-            <div className="relative group order-2 lg:order-1 mx-4 lg:mx-8">
-              <div className="relative bg-white p-6 rounded-3xl border-2 border-blue-200">
+            <div className="relative group order-2 lg:order-1">
+              <div className="relative bg-white p-4 lg:p-6 rounded-3xl border-2 border-blue-200 max-w-lg mx-auto lg:mx-0">
                 <img
                   src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQd19vInA8bUX20OregUR32xvV6CbNZ_kMhDQ&s"
                   alt="Flyers & Leaflets"
@@ -192,16 +194,16 @@ const EnhancedHomeSections = () => {
                 />
                 
                 {/* Floating Elements */}
-                <div className="absolute -top-6 -right-6 bg-white rounded-2xl p-4 border-2 border-blue-200">
+                <div className="absolute -top-4 -right-4 bg-white rounded-2xl p-3 lg:p-4 border-2 border-blue-200">
                   <div className="text-center">
-                    <div className="text-xl font-black text-blue-600">Fast</div>
+                    <div className="text-lg lg:text-xl font-black text-blue-600">Fast</div>
                     <div className="text-xs text-gray-600">Delivery</div>
                   </div>
                 </div>
                 
-                <div className="absolute -bottom-6 -left-6 bg-blue-600 text-white rounded-2xl p-4">
+                <div className="absolute -bottom-4 -left-4 bg-blue-600 text-white rounded-2xl p-3 lg:p-4">
                   <div className="text-center">
-                    <div className="text-xl font-black">HD</div>
+                    <div className="text-lg lg:text-xl font-black">HD</div>
                     <div className="text-xs">Quality</div>
                   </div>
                 </div>
@@ -209,21 +211,21 @@ const EnhancedHomeSections = () => {
             </div>
 
             {/* Content Side */}
-            <div className="space-y-8 order-1 lg:order-2 mx-4 lg:mx-8">
+            <div className="space-y-8 order-1 lg:order-2">
               <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 border border-blue-200 rounded-full text-blue-700 text-sm font-medium">
                 <FileText className="w-4 h-4" />
                 Marketing Materials
               </div>
 
               <div className="space-y-6">
-                <h2 className="text-4xl lg:text-5xl font-black text-gray-900 leading-tight">
+                <h2 className="text-3xl lg:text-4xl xl:text-5xl font-black text-gray-900 leading-tight">
                   Flyers & Leaflets.
                   <span className="block text-blue-600">Spread the word.</span>
                 </h2>
                 <div className="w-24 h-1 bg-blue-600 rounded-full" />
               </div>
 
-              <p className="text-xl text-gray-700 leading-relaxed">
+              <p className="text-lg lg:text-xl text-gray-700 leading-relaxed">
                 Make your message loud and clear with professional, high-impact flyers and leaflets – 
                 perfect for <span className="text-blue-600 font-semibold">promotions</span>, 
                 <span className="text-blue-600 font-semibold"> menus</span>, and so much more.
@@ -246,11 +248,11 @@ const EnhancedHomeSections = () => {
 
               {/* CTA */}
               <div className="flex flex-col sm:flex-row gap-4">
-                <button className="group flex items-center justify-center gap-2 px-8 py-4 bg-blue-600 text-white font-bold rounded-2xl transform transition-all duration-300 hover:scale-105">
+                <button className="group flex items-center justify-center gap-2 px-6 lg:px-8 py-4 bg-blue-600 text-white font-bold rounded-2xl transform transition-all duration-300 hover:scale-105">
                   Shop Flyers & Leaflets
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </button>
-                <button className="px-8 py-4 border-2 border-blue-400 text-blue-600 font-semibold rounded-2xl bg-white hover:bg-blue-50 transition-all duration-300">
+                <button className="px-6 lg:px-8 py-4 border-2 border-blue-400 text-blue-600 font-semibold rounded-2xl bg-white hover:bg-blue-50 transition-all duration-300">
                   View Samples
                 </button>
               </div>
@@ -267,25 +269,26 @@ const EnhancedHomeSections = () => {
           visibleSections['gifts-section'] ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
         }`}
       >
-        <div className="relative z-10 container mx-auto px-8">
-          <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center max-w-6xl mx-auto">
+        {/* Match header's container structure */}
+        <div className="relative z-10 max-w-[1100px] mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
             
             {/* Content Side */}
-            <div className="space-y-8 mx-4 lg:mx-8">
+            <div className="space-y-8">
               <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 border border-blue-200 rounded-full text-blue-700 text-sm font-medium">
                 <Gift className="w-4 h-4" />
                 Custom Products
               </div>
 
               <div className="space-y-6">
-                <h2 className="text-4xl lg:text-5xl font-black text-gray-900 leading-tight">
+                <h2 className="text-3xl lg:text-4xl xl:text-5xl font-black text-gray-900 leading-tight">
                   Personalized Gifts.
                   <span className="block text-blue-600">Make it special.</span>
                 </h2>
                 <div className="w-24 h-1 bg-blue-600 rounded-full" />
               </div>
 
-              <p className="text-xl text-gray-700 leading-relaxed">
+              <p className="text-lg lg:text-xl text-gray-700 leading-relaxed">
                 Add a personal touch with custom gifts perfect for any occasion – from 
                 <span className="text-blue-600 font-semibold"> birthdays</span> to 
                 <span className="text-blue-600 font-semibold"> business branding</span> and everything in between.
@@ -308,19 +311,19 @@ const EnhancedHomeSections = () => {
 
               {/* CTA */}
               <div className="flex flex-col sm:flex-row gap-4">
-                <button className="group flex items-center justify-center gap-2 px-8 py-4 bg-blue-600 text-white font-bold rounded-2xl transform transition-all duration-300 hover:scale-105">
+                <button className="group flex items-center justify-center gap-2 px-6 lg:px-8 py-4 bg-blue-600 text-white font-bold rounded-2xl transform transition-all duration-300 hover:scale-105">
                   Shop Personalized Gifts
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </button>
-                <button className="px-8 py-4 border-2 border-blue-400 text-blue-600 font-semibold rounded-2xl bg-white hover:bg-blue-50 transition-all duration-300">
+                <button className="px-6 lg:px-8 py-4 border-2 border-blue-400 text-blue-600 font-semibold rounded-2xl bg-white hover:bg-blue-50 transition-all duration-300">
                   Browse Gallery
                 </button>
               </div>
             </div>
 
             {/* Image Side */}
-            <div className="relative group mx-4 lg:mx-8">
-              <div className="relative bg-white p-6 rounded-3xl border-2 border-blue-200">
+            <div className="relative group">
+              <div className="relative bg-white p-4 lg:p-6 rounded-3xl border-2 border-blue-200 max-w-lg mx-auto lg:mx-0">
                 <img
                   src="https://thesignaturebox.com/cdn/shop/articles/personalised-gifts-5-things-to-consider-before-choosing-personalized-gifts-294055.jpg?v=1706979689&width=1280"
                   alt="Personalized Gift"
@@ -328,16 +331,16 @@ const EnhancedHomeSections = () => {
                 />
                 
                 {/* Floating Elements */}
-                <div className="absolute -top-6 -left-6 bg-white rounded-2xl p-4 border-2 border-blue-200">
+                <div className="absolute -top-4 -left-4 bg-white rounded-2xl p-3 lg:p-4 border-2 border-blue-200">
                   <div className="text-center">
-                    <div className="text-xl font-black text-blue-600">100%</div>
+                    <div className="text-lg lg:text-xl font-black text-blue-600">100%</div>
                     <div className="text-xs text-gray-600">Custom</div>
                   </div>
                 </div>
                 
-                <div className="absolute -bottom-6 -right-6 bg-blue-600 text-white rounded-2xl p-4">
+                <div className="absolute -bottom-4 -right-4 bg-blue-600 text-white rounded-2xl p-3 lg:p-4">
                   <div className="text-center">
-                    <div className="text-xl font-black">🎁</div>
+                    <div className="text-lg lg:text-xl font-black">🎁</div>
                     <div className="text-xs">Special</div>
                   </div>
                 </div>

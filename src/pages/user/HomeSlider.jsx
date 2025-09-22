@@ -170,8 +170,8 @@ export default function HomeSlider() {
             position: "absolute",
             bottom: "0",
             width: "100%",
-            background:
-              "linear-gradient(to bottom, rgba(255,255,255,0) 0%, rgba(248,213,148,0.95) 70%, rgba(248,213,148,1) 100%)",
+            // background:
+            //   "linear-gradient(to bottom, rgba(255,255,255,0) 0%, rgba(248,213,148,0.95) 70%, rgba(248,213,148,1) 100%)",
             padding: "10px 30px 20px",
             boxSizing: "border-box",
            textAlign: "center",
@@ -207,7 +207,7 @@ export default function HomeSlider() {
           )}
 
           {/* Card Links (Desktop Only) */}
-          {!isMobile && slide.cardLinks && (
+          {/* {!isMobile && slide.cardLinks && (
             <div
               style={{
                 display: "flex",
@@ -242,7 +242,7 @@ export default function HomeSlider() {
                 </a>
               ))}
             </div>
-          )}
+          )} */}
         </div>
       </section>
 

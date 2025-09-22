@@ -16,18 +16,18 @@ const FlyerSection = () => {
   ];
 
   const handleGetStarted = () => {
-    // Navigate to sign-in page - replace with your navigation logic
     console.log('Navigate to sign-in page');
   };
 
   return (
     <section className="relative bg-blue-50 overflow-hidden py-20 lg:py-32">
       
-      <div className="relative z-10 container mx-auto px-8">
-        <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center max-w-6xl mx-auto">
+      {/* Match header's container structure - max-width 1100px with auto margins */}
+      <div className="relative z-10 max-w-[1050px] mx-auto px-4 sm:px-1 lg:px-2">
+        <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
           
           {/* Content Side */}
-          <div className={`space-y-8 transform transition-all duration-1000 mx-4 lg:mx-8 ${isVisible ? 'translate-x-0 opacity-100' : '-translate-x-20 opacity-0'}`}>
+          <div className={`space-y-8 transform transition-all duration-1000 ${isVisible ? 'translate-x-0 opacity-100' : '-translate-x-20 opacity-0'}`}>
             
             {/* Badge */}
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 border border-blue-200 rounded-full text-blue-700 text-sm font-medium">
@@ -37,7 +37,7 @@ const FlyerSection = () => {
 
             {/* Main Heading */}
             <div className="space-y-4">
-              <h1 className="text-5xl lg:text-7xl font-black text-gray-900 leading-tight">
+              <h1 className="text-4xl lg:text-6xl xl:text-7xl font-black text-gray-900 leading-tight">
                 Flyers &
                 <span className="block text-blue-600">
                   Leaflets
@@ -47,7 +47,7 @@ const FlyerSection = () => {
             </div>
 
             {/* Description */}
-            <p className="text-xl lg:text-2xl text-gray-700 leading-relaxed max-w-lg">
+            <p className="text-lg lg:text-xl text-gray-700 leading-relaxed">
               Elevate your marketing with stunning flyer designs. 
               <span className="text-blue-600 font-semibold"> Premium papers</span> meet 
               <span className="text-blue-600 font-semibold"> exquisite finishes</span> for 
@@ -83,16 +83,16 @@ const FlyerSection = () => {
             </div>
           </div>
 
-          {/* Visual Side */}
-          <div className={`relative transform transition-all duration-1000 delay-300 mx-4 lg:mx-8 ${isVisible ? 'translate-x-0 opacity-100' : 'translate-x-20 opacity-0'}`}>
+          {/* Visual Side - Constrained to header layout boundaries */}
+          <div className={`relative transform transition-all duration-1000 delay-300 ${isVisible ? 'translate-x-0 opacity-100' : 'translate-x-20 opacity-0'}`}>
             
-            {/* Main Image Container */}
-            <div className="relative group">
+            {/* Main Image Container - Adjusted sizing to respect header boundaries */}
+            <div className="relative group max-w-lg mx-auto lg:mx-0">
               
               {/* Image Frame */}
-              <div className="relative bg-white p-6 rounded-3xl border-2 border-blue-200">
+              <div className="relative bg-white p-4 lg:p-6 rounded-3xl border-2 border-blue-200">
                 <div
-                  className="w-full h-80 lg:h-96 rounded-2xl bg-cover bg-center transform group-hover:scale-105 transition-transform duration-500"
+                  className="w-full h-64 sm:h-80 lg:h-96 rounded-2xl bg-cover bg-center transform group-hover:scale-105 transition-transform duration-500"
                   style={{
                     backgroundImage: "url('/homeimages/flyer.jpeg')",
                     backgroundSize: 'cover',
@@ -100,7 +100,7 @@ const FlyerSection = () => {
                   }}
                 >
                   {/* Overlay Content */}
-                  <div className="absolute inset-0 rounded-2xl flex items-end p-6 transition-all duration-300">
+                  <div className="absolute inset-0 rounded-2xl flex items-end p-4 lg:p-6 transition-all duration-300">
                     <div className="text-white">
                       <div className="flex items-center gap-2 mb-2">
                         {[...Array(5)].map((_, i) => (
@@ -112,17 +112,17 @@ const FlyerSection = () => {
                   </div>
                 </div>
                 
-                {/* Floating Stats */}
-                <div className="absolute -top-4 -right-4 bg-white rounded-2xl p-4 border-2 border-blue-200">
+                {/* Floating Stats - Adjusted positioning */}
+                <div className="absolute -top-3 -right-3 lg:-top-4 lg:-right-4 bg-white rounded-2xl p-3 lg:p-4 border-2 border-blue-200">
                   <div className="text-center">
-                    <div className="text-2xl font-black text-blue-600">24h</div>
+                    <div className="text-xl lg:text-2xl font-black text-blue-600">24h</div>
                     <div className="text-xs text-gray-600 font-medium">Fast Delivery</div>
                   </div>
                 </div>
                 
-                <div className="absolute -bottom-4 -left-4 bg-blue-600 text-white rounded-2xl p-4">
+                <div className="absolute -bottom-3 -left-3 lg:-bottom-4 lg:-left-4 bg-blue-600 text-white rounded-2xl p-3 lg:p-4">
                   <div className="text-center">
-                    <div className="text-2xl font-black">99%</div>
+                    <div className="text-xl lg:text-2xl font-black">99%</div>
                     <div className="text-xs font-medium">Satisfaction</div>
                   </div>
                 </div>
@@ -131,8 +131,8 @@ const FlyerSection = () => {
           </div>
         </div>
 
-        {/* Bottom Stats Bar */}
-        <div className="mt-20 grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto px-4">
+        {/* Bottom Stats Bar - Also constrained within the same container */}
+        <div className="mt-16 lg:mt-20 grid grid-cols-2 md:grid-cols-4 gap-6 lg:gap-8">
           {[
             { number: "50K+", label: "Flyers Printed" },
             { number: "500+", label: "Happy Clients" },
@@ -140,10 +140,10 @@ const FlyerSection = () => {
             { number: "24/7", label: "Support" }
           ].map((stat, index) => (
             <div key={index} className="text-center group">
-              <div className="text-3xl lg:text-4xl font-black text-blue-600 mb-2 group-hover:scale-110 transition-transform duration-300">
+              <div className="text-2xl lg:text-3xl xl:text-4xl font-black text-blue-600 mb-2 group-hover:scale-110 transition-transform duration-300">
                 {stat.number}
               </div>
-              <div className="text-gray-600 font-medium">{stat.label}</div>
+              <div className="text-gray-600 font-medium text-sm lg:text-base">{stat.label}</div>
             </div>
           ))}
         </div>

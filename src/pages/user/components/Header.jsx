@@ -17,7 +17,8 @@ import { X, ChevronDown, ChevronUp, Menu } from "lucide-react";
 
 export default function Header() {
   const { t } = useTranslation();
-  const { isLoggedIn, setIsLoggedIn } = useContext(AuthContext);
+  const { isLoggedIn,  authLoading, logout } = useContext(AuthContext);
+
   const navigate = useNavigate();
 
   // --- menu cache keys and static endings ---
@@ -35,7 +36,7 @@ export default function Header() {
   const [showAccountDropdown, setShowAccountDropdown] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState([]);
-  const [loading, setLoading] = useState(false);
+  // const [authLoading, setAuthLoading] = useState(false);
 
   const accountTimeoutRef = useRef(null);
   const hoverTimeoutRef = useRef(null);
@@ -223,35 +224,40 @@ export default function Header() {
     accountTimeoutRef.current = setTimeout(() => setAccountDropdown(false), 200);
   };
 
-  const handleLogout = () => {
-    Swal.fire({
-      title: "Are you sure?",
-      text: "You will be logged out of your account.",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonText: "Yes, Logout",
-      cancelButtonText: "Cancel",
-    }).then(async (result) => {
-      if (result.isConfirmed) {
-        try {
-          await fetch(`${API_BASE_URL || ""}/user/logout`, {
-            method: "POST",
-            credentials: "include",
-          });
-        } catch (err) {
-          console.error("logout error", err);
-        }
-        if (isWindow) {
-          localStorage.removeItem("token");
-          localStorage.removeItem("user");
-        }
-        setIsLoggedIn(false);
-        Swal.fire({ icon: "success", title: "Logged Out", timer: 1200, showConfirmButton: false }).then(() => {
-          navigate("/sign-in");
+ // Updated handleLogout function in Header.jsx
+const handleLogout = () => {
+  Swal.fire({
+    title: "Are you sure?",
+    text: "You will be logged out of your account.",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonText: "Yes, Logout",
+    cancelButtonText: "Cancel",
+  }).then(async (result) => {
+    if (result.isConfirmed) {
+      try {
+        await fetch(`${API_BASE_URL || ""}/user/logout`, {
+          method: "POST",
+          credentials: "include",
         });
+      } catch (err) {
+        console.error("logout error", err);
       }
-    });
-  };
+      
+      // Use the context logout function which handles all localStorage cleanup
+      setIsLoggedIn(false); // This will now handle localStorage cleanup automatically
+      
+      Swal.fire({ 
+        icon: "success", 
+        title: "Logged Out", 
+        timer: 1200, 
+        showConfirmButton: false 
+      }).then(() => {
+        navigate("/sign-in");
+      });
+    }
+  });
+};
 
   // expand/collapse mobile submenu
   const toggleSubMenu = (key) => {
@@ -318,6 +324,10 @@ export default function Header() {
     setMenuOpen(prev => !prev);
   };
 
+
+  if (authLoading) return null; 
+
+
   return (
     <header style={styles.header}>
       {/* TOP BAR */}
@@ -330,66 +340,68 @@ export default function Header() {
         </div>
 
         {/* Desktop Navigation */}
-        {!isMobile && (
-          <div style={styles.topRightRow}>
-            <GoogleTranslateDropdown />
-            {isLoggedIn ? (
-              <div
-                style={styles.accountContainer}
-                onMouseEnter={handleAccountMouseEnter}
-                onMouseLeave={handleAccountMouseLeave}
-              >
-                <span style={styles.topLink}>{t("account") || "Account"}</span>
-                <AccountDropdown />
-              </div>
-            ) : (
-              <Link to="/sign-in" style={styles.topLink}>
-                {t("sign_in") || "Sign In"}
-              </Link>
-            )}
-
-            <Link to="/cart" style={styles.topLink} onClick={handleCartClick}>
-              <i className="fa-solid fa-cart-shopping" style={{ marginRight: 6 }} />
-              {t("cart") || "Cart"}
-            </Link>
-
-            <div style={styles.searchWrapper}>
-              <input
-                type="text"
-                placeholder={t("search") || "Search"}
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                style={styles.searchInput}
-              />
-              <span style={styles.searchIcon}>🔍</span>
-              <SearchDropdown
-                results={searchResults}
-                onSelect={(item) => {
-                  setSearchQuery(item.name);
-                  navigate(`/product/${item._id || item.id}`);
-                  setSearchResults([]);
-                }}
-              />
-            </div>
-          </div>
-        )}
-
-        {/* Mobile Hamburger */}
-        {isMobile && (
-          <button 
-            onClick={toggleMobileMenu}
-            style={styles.hamburger}
-            aria-label={menuOpen ? "Close menu" : "Open menu"}
-          >
-            {menuOpen ? (
-              <X size={24} color="#333" />
-            ) : (
-              <Menu size={24} color="#333" />
-            )}
-          </button>
-        )}
+       {!isMobile && (
+  <div style={styles.topRightRow}>
+    <GoogleTranslateDropdown />
+    
+    {authLoading ? (
+      <span style={styles.topLink}>Loading...</span>
+    ) : isLoggedIn ? (
+      <div
+        style={styles.accountContainer}
+        onMouseEnter={handleAccountMouseEnter}
+        onMouseLeave={handleAccountMouseLeave}
+      >
+        <span style={styles.topLink}>{t("account") || "Account"}</span>
+        <AccountDropdown />
       </div>
+    ) : (
+      <Link to="/sign-in" style={styles.topLink}>
+        {t("sign_in") || "Sign In"}
+      </Link>
+    )}
 
+    <Link to="/cart" style={styles.topLink} onClick={handleCartClick}>
+      <i className="fa-solid fa-cart-shopping" style={{ marginRight: 6 }} />
+      {t("cart") || "Cart"}
+    </Link>
+
+    <div style={styles.searchWrapper}>
+      <input
+        type="text"
+        placeholder={t("search") || "Search"}
+        value={searchQuery}
+        onChange={(e) => setSearchQuery(e.target.value)}
+        style={styles.searchInput}
+      />
+      <span style={styles.searchIcon}>🔍</span>
+      <SearchDropdown
+        results={searchResults}
+        onSelect={(item) => {
+          setSearchQuery(item.name);
+          navigate(`/product/${item._id || item.id}`);
+          setSearchResults([]);
+        }}
+      />
+    </div>
+  </div>
+)}
+
+{/* Mobile Hamburger */}
+{isMobile && (
+  <button 
+    onClick={toggleMobileMenu}
+    style={styles.hamburger}
+    aria-label={menuOpen ? "Close menu" : "Open menu"}
+  >
+    {menuOpen ? (
+      <X size={24} color="#333" />
+    ) : (
+      <Menu size={24} color="#333" />
+    )}
+  </button>
+)}
+</div>
       {/* DESKTOP NAV */}
       {!isMobile && (
         <nav style={styles.navBar}>

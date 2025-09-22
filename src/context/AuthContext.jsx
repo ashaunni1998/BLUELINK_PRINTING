@@ -8,59 +8,91 @@ export const AuthContext = createContext({
   isLoggedIn: false,
   setUser: () => {},
   setIsLoggedIn: () => {},
-  loading: true,
+  authLoading: true,
+  logout: () => {},
 });
 
 // provider component
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [authLoading, setAuthLoading] = useState(true);
+
+  // Custom setIsLoggedIn that also manages localStorage
+  const setIsLoggedInWithPersistence = (loggedIn) => {
+    setIsLoggedIn(loggedIn);
+    if (loggedIn) {
+      localStorage.setItem("app_is_logged_in", "1");
+    } else {
+      localStorage.removeItem("app_is_logged_in");
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+    }
+  };
 
   useEffect(() => {
     (async () => {
       try {
-        // Quick optimistic check: if we previously stored the flag, set logged-in immediately
-        const persisted = localStorage.getItem("app_is_logged_in");
-        if (persisted === "1") {
-          setIsLoggedIn(true);
-          // we don't set user yet — we'll populate it after /user/me returns
-        }
+        // Check multiple possible auth indicators
+        const persistedAuth = localStorage.getItem("app_is_logged_in");
+        const token = localStorage.getItem("token");
+        const storedUser = localStorage.getItem("user");
+        
+        // If any auth indicator exists, assume user might be logged in
+        if (persistedAuth === "1" || token || storedUser) {
+          // Verify with server
+          const res = await fetch(`${API_BASE_URL.replace(/\/$/, "")}/user/me`, {
+            credentials: "include",
+          });
 
-        // Then verify with backend (this will correct state if cookie/token invalid)
-        const res = await fetch(`${API_BASE_URL.replace(/\/$/, "")}/user/me`, {
-          credentials: "include",
-        });
-
-        if (res.ok) {
-          const json = await res.json();
-          const u = json.user || json.userData || null;
-          if (u) {
-            setUser(u);
-            setIsLoggedIn(true);
+          if (res.ok) {
+            const json = await res.json();
+            const u = json.user || json.userData || null;
+            if (u) {
+              setUser(u);
+              setIsLoggedInWithPersistence(true);
+            } else {
+              // Server says not authenticated, clear everything
+              setUser(null);
+              setIsLoggedInWithPersistence(false);
+            }
           } else {
-            // server did not return a user -> clear flag
+            // Server error or not authenticated, clear everything
             setUser(null);
-            setIsLoggedIn(false);
-            localStorage.removeItem("app_is_logged_in");
+            setIsLoggedInWithPersistence(false);
           }
         } else {
-          // not authenticated server-side
+          // No local auth indicators
           setUser(null);
           setIsLoggedIn(false);
-          localStorage.removeItem("app_is_logged_in");
         }
       } catch (err) {
-        // network error -> keep optimistic flag until we know more
         console.debug("Auth check error", err);
+        // On error, assume not logged in
+        setUser(null);
+        setIsLoggedInWithPersistence(false);
       } finally {
-        setLoading(false);
+        setAuthLoading(false);
       }
     })();
   }, []);
 
+  const logout = () => {
+    setUser(null);
+    setIsLoggedInWithPersistence(false);
+  };
+
   return (
-    <AuthContext.Provider value={{ user, setUser, isLoggedIn, setIsLoggedIn, loading }}>
+    <AuthContext.Provider
+      value={{ 
+        user, 
+        setUser, 
+        isLoggedIn, 
+        setIsLoggedIn: setIsLoggedInWithPersistence, // Use the version that manages persistence
+        authLoading, 
+        logout 
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

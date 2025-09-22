@@ -443,7 +443,7 @@ console.log(products);
               marginBottom: "6px",
             }}
           >
-            {product.name};
+            {product.name}
           </Link>
           <p style={{ fontSize: "14px", color: "#444", margin: 0 }}>
             ${product.price}
