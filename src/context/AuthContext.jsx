@@ -33,42 +33,39 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     (async () => {
       try {
-        // Check multiple possible auth indicators
         const persistedAuth = localStorage.getItem("app_is_logged_in");
-        const token = localStorage.getItem("token");
         const storedUser = localStorage.getItem("user");
-        
-        // If any auth indicator exists, assume user might be logged in
-        if (persistedAuth === "1" || token || storedUser) {
-          // Verify with server
+
+        if (persistedAuth === "1" || storedUser) {
+          // ✅ verify with server using cookie
           const res = await fetch(`${API_BASE_URL.replace(/\/$/, "")}/user/me`, {
-            credentials: "include",
+            method: "GET",
+            credentials: "include", // browser will send cookie automatically
           });
 
           if (res.ok) {
             const json = await res.json();
-            const u = json.user || json.userData || null;
+            console.log("[AuthContext] /user/me response:", json);
+
+            const u = json.user || json.userData || json || null;
+
             if (u) {
               setUser(u);
               setIsLoggedInWithPersistence(true);
             } else {
-              // Server says not authenticated, clear everything
               setUser(null);
               setIsLoggedInWithPersistence(false);
             }
           } else {
-            // Server error or not authenticated, clear everything
             setUser(null);
             setIsLoggedInWithPersistence(false);
           }
         } else {
-          // No local auth indicators
           setUser(null);
           setIsLoggedIn(false);
         }
       } catch (err) {
         console.debug("Auth check error", err);
-        // On error, assume not logged in
         setUser(null);
         setIsLoggedInWithPersistence(false);
       } finally {
@@ -84,13 +81,13 @@ export function AuthProvider({ children }) {
 
   return (
     <AuthContext.Provider
-      value={{ 
-        user, 
-        setUser, 
-        isLoggedIn, 
-        setIsLoggedIn: setIsLoggedInWithPersistence, // Use the version that manages persistence
-        authLoading, 
-        logout 
+      value={{
+        user,
+        setUser,
+        isLoggedIn,
+        setIsLoggedIn: setIsLoggedInWithPersistence,
+        authLoading,
+        logout,
       }}
     >
       {children}

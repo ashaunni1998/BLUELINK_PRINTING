@@ -17,8 +17,8 @@ import { X, ChevronDown, ChevronUp, Menu } from "lucide-react";
 
 export default function Header() {
   const { t } = useTranslation();
-  const { isLoggedIn,  authLoading, logout } = useContext(AuthContext);
-
+  const { isLoggedIn,  authLoading,logout} = useContext(AuthContext);
+  // const { logout } = useContext(AuthContext);
   const navigate = useNavigate();
 
   // --- menu cache keys and static endings ---
@@ -236,16 +236,16 @@ const handleLogout = () => {
   }).then(async (result) => {
     if (result.isConfirmed) {
       try {
-        await fetch(`${API_BASE_URL || ""}/user/logout`, {
+        await fetch(`${API_BASE_URL}/user/logout`, {
           method: "POST",
           credentials: "include",
         });
       } catch (err) {
         console.error("logout error", err);
       }
-      
+      logout();
       // Use the context logout function which handles all localStorage cleanup
-      setIsLoggedIn(false); // This will now handle localStorage cleanup automatically
+      // setIsLoggedIn(false); // This will now handle localStorage cleanup automatically
       
       Swal.fire({ 
         icon: "success", 

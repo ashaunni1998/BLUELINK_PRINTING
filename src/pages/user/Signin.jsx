@@ -20,7 +20,7 @@ const API = API_BASE_URL.replace(/\/$/, "");
 
 export default function SignIn() {
   const navigate = useNavigate();
-  const { setIsLoggedIn, isLoggedIn, authLoading } = useContext(AuthContext) || {};
+  const { setIsLoggedIn, setUser,isLoggedIn, authLoading } = useContext(AuthContext) || {};
 
   const googleBtnRef = useRef(null);
   const gsiInitializedRef = useRef(false);
@@ -111,6 +111,11 @@ export default function SignIn() {
     if (setIsLoggedIn) {
       setIsLoggedIn(true);
     }
+    if (setUser && result.body?.userData) {
+  setUser(result.body.userData);
+  localStorage.setItem("user", JSON.stringify(result.body.userData));
+}
+
     Swal.fire({ 
       icon: "success", 
       title: result.body?.message || "Signed in with Google", 
@@ -210,6 +215,11 @@ export default function SignIn() {
         if (setIsLoggedIn) {
           setIsLoggedIn(true);
         }
+        if (setUser && json.userData) {
+  setUser(json.userData); // save user details in context
+  localStorage.setItem("user", JSON.stringify(json.userData));
+}
+
         Swal.fire({ 
           icon: "success", 
           title: "Signed in", 
