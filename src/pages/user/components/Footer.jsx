@@ -8,7 +8,7 @@ import {
 } from "react-icons/fa";
 import GoogleTranslateDropdown from "../GoogleTranslateDropdown";
 import { Link } from "react-router-dom";
-import API_BASE_URL from "../../../config";
+import { API_BASE_URL } from "../../../config";
 
 const Footer = () => {
   const [isMobile, setIsMobile] = useState(false);

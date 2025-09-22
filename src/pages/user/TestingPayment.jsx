@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useStripe, useElements, CardElement } from "@stripe/react-stripe-js";
-import API_BASE_URL from "../../config";
+import { API_BASE_URL } from "../../config";
 const TestingPayment = ({ orderDetails, apiUrl }) => {
   const stripe = useStripe();
   const elements = useElements();

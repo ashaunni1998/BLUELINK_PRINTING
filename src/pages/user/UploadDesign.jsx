@@ -4,7 +4,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import Cropper from "react-easy-crop";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
-
+import { useLocation } from "react-router-dom";
 /**
  * UploadDesign.jsx
  * - Mobile-first, responsive upload + crop UI
@@ -39,6 +39,13 @@ export default function UploadDesign() {
   const fullInputRef = useRef(null);
 
   const MAX_FILE_SIZE = 6 * 1024 * 1024; // 6MB
+
+
+
+  const location = useLocation();
+const params = new URLSearchParams(location.search);
+const designType = params.get("designType") || "single";
+
 
   // Helper: file -> dataURL
   const fileToDataUrl = (file) =>
@@ -225,10 +232,13 @@ export default function UploadDesign() {
             </div>
           </header>
 
-          <section className="upload-grid">
-            {["front", "back", "full"].map((side) => {
-              const preview = side === "front" ? frontPreview : side === "back" ? backPreview : fullPreview;
-              const meta = fileMeta[side];
+         <section className="upload-grid">
+  {(designType === "single" ? ["front"] 
+    : designType === "double" ? ["front", "back"] 
+    : ["full"]
+  ).map((side) => {
+    const preview = side === "front" ? frontPreview : side === "back" ? backPreview : fullPreview;
+    const meta = fileMeta[side];
               return (
                 <div key={side} className="upload-card">
                   <div className="upload-card-top">

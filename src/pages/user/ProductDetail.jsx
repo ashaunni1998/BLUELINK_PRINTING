@@ -7,7 +7,7 @@ import Review from "./Review";
 import Cropper from "react-easy-crop"; // make sure you installed: npm install react-easy-crop
 // import CropImage from "./CropImage";
 // import CustomRequirement from "./CustomerRequirement";
-import API_BASE_URL from "../../config";
+import { API_BASE_URL } from "../../config";
 import { FaWhatsapp, FaFacebookMessenger, FaPhoneAlt } from "react-icons/fa";
 import { FaPaperPlane } from "react-icons/fa";
 export default function ProductDetail() {
@@ -80,6 +80,9 @@ const IMGBB_API_KEY = "0dc969770aaafeeba77f84c1534e4fad"; // your imgbb API key
 // const FRAME_URL = "https://i.ibb.co/3y63T95k/imageedit-1-7441844514.png";   // <- REPLACE with direct image URL from ibb (right-click image → Copy image address)
 const [uploadedUrl, setUploadedUrl] = useState(null);     // stores the final uploaded imgbb URL
 
+
+
+
 const frameOverlays = {
   rhomboid: "https://i.ibb.co/k2xR06Fq/Bamboo-Photo-Frame-Printing-Rhomboid-Shape-Magnetic.png",
   rectangular: "https://i.ibb.co/d4cKP6j7/Bamboo-Rectangular-Shape-Photo-Frame.png",
@@ -94,6 +97,10 @@ const frameOverlays = {
 };
 const [selectedFrame, setSelectedFrame] = useState(""); // default
 const FRAME_URL = frameOverlays[selectedFrame];
+
+const [selectedTier, setSelectedTier] = useState(null);
+const [selectedDesignType, setSelectedDesignType] = useState("single");
+
 
 
 // ✅ add this hook at the top of your file
@@ -935,7 +942,6 @@ const isPersonalisedGift = normalize(categoryName) === "personalized gifts";
   <p style={{ fontSize: "15px", color: "#555", lineHeight: "1.6", marginBottom: "16px" }}>
     {product.description}
   </p> */}
-
   {/* Sizes */}
 {/* Sizes */}
 {product.size?.length > 0 && (
@@ -1346,6 +1352,120 @@ const isPersonalisedGift = normalize(categoryName) === "personalized gifts";
     🛒 Add to Cart
   </button>
   )} */}
+
+<div style={{ 
+  marginBottom: "30px",
+  padding: "25px",
+  border: "1px solid #e5e7eb",
+  borderRadius: "16px",
+  background: "linear-gradient(135deg,#f9fafb,#f3f4f6)",
+  boxShadow: "0 4px 14px rgba(0,0,0,0.06)"
+}}>
+  <h3 style={{ 
+    fontSize: "20px", 
+    fontWeight: "700", 
+    marginBottom: "20px",
+    color: "#1f2937",
+    textAlign: "center"
+  }}>
+    🎨 Select Your Design Type
+  </h3>
+
+  <div style={{ 
+    display: "flex", 
+    justifyContent: "center", 
+    gap: "24px", 
+    flexWrap: "wrap" 
+  }}>
+    {[
+      { value: "single", label: "Single Side", emoji: "🖼️" },
+      { value: "double", label: "Double Side", emoji: "📖" },
+    
+    ].map((opt) => (
+      <label 
+        key={opt.value}
+        onClick={() => setSelectedDesignType(opt.value)}
+        style={{
+          cursor: "pointer",
+          padding: "20px",
+          minWidth: "160px",
+          borderRadius: "14px",
+          border: selectedDesignType === opt.value 
+            ? "2px solid #2563EB" 
+            : "1px solid #d1d5db",
+          background: selectedDesignType === opt.value 
+            ? "linear-gradient(135deg,#3b82f6,#2563eb)" 
+            : "#fff",
+          color: selectedDesignType === opt.value ? "#fff" : "#111",
+          boxShadow: selectedDesignType === opt.value 
+            ? "0 6px 16px rgba(37,99,235,0.4)" 
+            : "0 2px 6px rgba(0,0,0,0.08)",
+          fontWeight: "600",
+          fontSize: "15px",
+          textAlign: "center",
+          transition: "all 0.25s ease-in-out",
+          transform: selectedDesignType === opt.value ? "scale(1.05)" : "scale(1)",
+        }}
+      >
+        <div style={{ fontSize: "32px", marginBottom: "8px" }}>{opt.emoji}</div>
+        {opt.label}
+        <input
+          type="radio"
+          name="designType"
+          value={opt.value}
+          checked={selectedDesignType === opt.value}
+          onChange={(e) => setSelectedDesignType(e.target.value)}
+          style={{ display: "none" }}
+        />
+      </label>
+    ))}
+  </div>
+</div>
+{/* ===== Quantity + Price Selector ===== */}
+{product.priceTiers && product.priceTiers.length > 0 && (
+  <div style={{ marginTop: "30px" }}>
+    <h2 style={{ fontSize: "20px", fontWeight: "600", marginBottom: "10px" }}>
+      Quantity & Price Options
+    </h2>
+    <table style={{ width: "100%", borderCollapse: "collapse" }}>
+      <thead>
+        <tr style={{ backgroundColor: "#f3f4f6", textAlign: "left" }}>
+          <th style={{ padding: "10px", border: "1px solid #ddd" }}>Quantity</th>
+          <th style={{ padding: "10px", border: "1px solid #ddd" }}>Single Side ($)</th>
+          <th style={{ padding: "10px", border: "1px solid #ddd" }}>Double Side ($)</th>
+        </tr>
+      </thead>
+      <tbody>
+        {product.priceTiers.map((tier, idx) => (
+          <tr
+            key={idx}
+            style={{
+              borderBottom: "1px solid #ddd",
+              cursor: "pointer",
+              backgroundColor: selectedTier?.qty === tier.qty ? "#e0f2fe" : "white",
+            }}
+            onClick={() => setSelectedTier(tier)}
+          >
+            <td style={{ padding: "10px", border: "1px solid #ddd" }}>{tier.qty}</td>
+            <td style={{ padding: "10px", border: "1px solid #ddd" }}>
+              ${tier.priceSingle}
+            </td>
+            <td style={{ padding: "10px", border: "1px solid #ddd" }}>
+              ${tier.priceDouble}
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+
+    {selectedTier && (
+      <div style={{ marginTop: "15px", padding: "12px", background: "#f9fafb", borderRadius: "6px" }}>
+        <strong>Selected:</strong> {selectedTier.qty} pcs — Single: ${selectedTier.priceSingle}, Double: ${selectedTier.priceDouble}
+      </div>
+    )}
+  </div>
+)}
+
 </div>
 
 
@@ -1694,7 +1814,15 @@ const isPersonalisedGift = normalize(categoryName) === "personalized gifts";
   </>
 )}
 
-        </div>
+  
+</div>      
+
+
+
+
+
+
+
 
 <div style={{ marginTop: "10px" }}>
 {/* Customer Needs */}
@@ -1722,7 +1850,7 @@ const isPersonalisedGift = normalize(categoryName) === "personalized gifts";
   }}>
     {/* Upload Your Design */}
     <div
-      onClick={() => navigate(`/upload-design/${id}`)}
+      onClick={() => navigate(`/upload-design/${product._id}?designType=${selectedDesignType}`)}
       style={{
         border: selectedOption === "upload" ? "2px solid #2563EB" : "1px solid #ddd",
         borderRadius: "14px",

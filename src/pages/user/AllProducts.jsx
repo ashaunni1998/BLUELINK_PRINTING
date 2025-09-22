@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
-import API_BASE_URL from "../../config";
+import { API_BASE_URL } from "../../config";
 import BusinessCardOptions from "./BusinessCardOptions";
 
 export default function AllProducts() {

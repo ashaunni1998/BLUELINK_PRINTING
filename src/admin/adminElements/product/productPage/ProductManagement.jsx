@@ -1,546 +1,571 @@
-import { useEffect, useState } from 'react';
-import { Upload, X, ImageIcon, Package, DollarSign, Tag, Archive, Building, Edit } from 'lucide-react';
-import { TAKE_PRODUCT_CATEGORY, SUBMIT_NEW_PRODUCT, UPDATE_PRODUCT_DATA } from '../../../apiServices/productApi';
-import { toast } from 'react-toastify';
-import EditImage from '../newProductHandle/EditImageModal';
-import CropImage from '../newProductHandle/CropImage'
+// src/admin/adminElements/product/productPage/ProductManagement.jsx
+import React, { useEffect, useRef, useState } from "react";
+import {
+  Upload,
+  X,
+  Image as ImageIcon,
+  Package,
+  DollarSign,
+  Tag,
+  Archive,
+  Building,
+  Plus,
+  ChevronUp,
+  ChevronDown,
+} from "lucide-react";
+import { toast } from "react-toastify";
 
-import { validateForm } from '../newProductHandle/productDataValidation'
-import ProductSpecificationModal from '../newProductHandle/ProductSpecificationModal';
+import {
+  TAKE_PRODUCT_CATEGORY,
+  SUBMIT_NEW_PRODUCT,
+  UPDATE_PRODUCT_DATA,
+} from "../../../apiServices/productApi";
 
-function ProductManagement({ purpose = 'add', productData, setPurpose, setProductData, setChange }) {
-    const isEdit = purpose === 'edit';
+import EditImage from "../newProductHandle/EditImageModal";
+import CropImage from "../newProductHandle/CropImage";
+import ProductSpecificationModal from "../newProductHandle/ProductSpecificationModal";
+import { validateForm } from "../newProductHandle/productDataValidation";
 
-    const [formData, setFormData] = useState({
-        name: '',
-        description: '',
-        price: '',
-        subtitle: '',
-        stock: '',
-        category: null,
-        images: []
-    });
+/**
+ * ProductManagement.jsx
+ * - Clean, professional minimal layout
+ * - Clear labels, placeholders, helper text
+ * - Price tiers only on this page (qty / single / double / weight g / shipping)
+ * - Image upload dropzone + thumbnails + reorder + crop hook
+ *
+ * Replace your file with this. Keep CropImage/EditImage/SpecificationModal as-is.
+ */
 
-    const [imageFiles, setImageFiles] = useState([]);
-    const [imagePreviews, setImagePreviews] = useState([]);
-    const [allCategory, setAllCategory] = useState([]);
-    const [errors, setErrors] = useState({});
-    const [loading, setLoading] = useState(false)
-    const [showModal, setShowModal] = useState(false);
-    const [cropFile, setCropFile] = useState(null)
-    const [showCropModal, setShowCropModal] = useState(false)
-    const [cropIndex, setCropIndex] = useState(null);
-    const [productOptions, setProductOptions] = useState({
+// --- Small subcomponents to keep markup clean ---
+function FieldLabel({ children, required = false }) {
+  return (
+    <label className="block text-sm font-semibold text-gray-800">
+      {children} {required && <span className="text-red-600 ml-1">*</span>}
+    </label>
+  );
+}
+
+function SmallHelper({ children }) {
+  return <p className="text-xs text-gray-500 mt-1">{children}</p>;
+}
+
+function ImageThumb({ preview, idx, onRemove, onCrop, onMoveUp, onMoveDown, canMoveUp, canMoveDown }) {
+  return (
+    <div className="relative rounded-lg overflow-hidden border bg-white shadow-sm">
+      <img src={preview.url} alt={`preview-${idx}`} className="w-full h-36 object-cover" />
+      <div className="absolute top-2 right-2 flex gap-2">
+        <button type="button" onClick={() => onRemove(idx)} className="bg-red-600 text-white p-1 rounded-md shadow">
+          <X className="w-3 h-3" />
+        </button>
+      </div>
+
+      <div className="absolute left-2 bottom-2 flex gap-2">
+        {!preview.isExisting && (
+          <button onClick={() => onCrop(idx)} className="bg-white/90 px-2 py-1 rounded text-xs shadow">
+            Crop
+          </button>
+        )}
+        <div className="bg-white/90 px-2 py-1 rounded text-xs">{idx === 0 ? "Main" : "Image"}</div>
+      </div>
+
+      <div className="absolute right-2 bottom-2 flex flex-col gap-1">
+        <button onClick={() => onMoveUp(idx)} disabled={!canMoveUp} className={`p-1 rounded ${canMoveUp ? "bg-white/90" : "bg-gray-100 cursor-not-allowed"}`}>
+          <ChevronUp className="w-4 h-4" />
+        </button>
+        <button onClick={() => onMoveDown(idx)} disabled={!canMoveDown} className={`p-1 rounded ${canMoveDown ? "bg-white/90" : "bg-gray-100 cursor-not-allowed"}`}>
+          <ChevronDown className="w-4 h-4" />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// --- Main component ---
+export default function ProductManagement({ purpose = "add", productData = {}, setPurpose, setProductData, setChange }) {
+  const isEdit = purpose === "edit";
+
+  // Form state
+  const [formData, setFormData] = useState({
+    name: "",
+    subtitle: "",
+    description: "",
+    price: "",
+    stock: "",
+    category: "",
+  });
+
+  // Images
+  const [imagePreviews, setImagePreviews] = useState([]); // { url, file?, isExisting? }
+  const [imageFiles, setImageFiles] = useState([]);
+
+  // Categories
+  const [categories, setCategories] = useState([]);
+
+  // Product specification options (size/paper/finish/corner)
+  const [productOptions, setProductOptions] = useState({
+    size: productData?.size || [],
+    paper: productData?.paper || [],
+    finish: productData?.finish || [],
+    corner: productData?.corner || [],
+  });
+
+  // Price tiers (only on this page)
+  const [priceTiers, setPriceTiers] = useState(
+    Array.isArray(productData?.priceTiers)
+      ? productData.priceTiers.map((pt) => ({
+          qty: pt.qty ?? "",
+          priceSingle: pt.priceSingle ?? "",
+          priceDouble: pt.priceDouble ?? "",
+          weightGrams: pt.weightGrams ?? "",
+          shippingCharge: pt.shippingCharge ?? "",
+        }))
+      : []
+  );
+
+  // UI
+  const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState({});
+
+  // Modals & crop
+  const [openSpecModal, setOpenSpecModal] = useState(false);
+  const [showEditImages, setShowEditImages] = useState(false);
+  const [cropFile, setCropFile] = useState(null);
+  const [cropIndex, setCropIndex] = useState(null);
+  const [showCropModal, setShowCropModal] = useState(false);
+
+  // Drag & drop refs
+  const fileRef = useRef(null);
+  const dropRef = useRef(null);
+
+  // Sync product data on edit
+  useEffect(() => {
+    if (isEdit && productData) {
+      setFormData({
+        name: productData.name || "",
+        subtitle: productData.subtitle || "",
+        description: productData.description || "",
+        price: productData.price ?? "",
+        stock: productData.stock ?? "",
+        category: productData.category?._id ?? productData.category ?? "",
+      });
+
+      if (Array.isArray(productData.images)) {
+        setImagePreviews(productData.images.map((u) => ({ url: u, isExisting: true })));
+      }
+
+      setProductOptions({
         size: productData?.size || [],
         paper: productData?.paper || [],
         finish: productData?.finish || [],
-        corner: productData?.corner || []
-    });
-    const [openOptions, setOpenOptions] = useState(false)
+        corner: productData?.corner || [],
+      });
 
-    useEffect(() => {
-        if (isEdit && productData) {
-            setFormData({
-                name: productData.name || '',
-                description: productData.description || '',
-                price: productData.price || '',
-                subtitle: productData.subtitle || '',
-                stock: productData.stock || '',
-                category: productData.category || null,
-                images: productData.images || []
-            });
-
-            // For edit mode, show existing images as previews
-            if (productData.images && productData.images.length > 0) {
-                setImagePreviews(productData.images.map(url => ({ url, isExisting: true })));
-            }
-        }
-    }, [isEdit, productData]);
-
-    useEffect(() => {
-        const takeCategory = async () => {
-            try {
-                const res = await TAKE_PRODUCT_CATEGORY()
-                // console.log(2222, res.categoryData);
-                setAllCategory(res.categoryData)
-
-            } catch (error) {
-                console.log(4444, error);
-
-            }
-        }
-
-        takeCategory()
-    }, [])
-    
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setErrors({})
-        if (name === 'stock') {
-            if (value === '' || /^[0-9]+$/.test(value)) {
-                setFormData((prev) => ({ ...prev, [name]: value }));
-            }
-        } else {
-            setFormData((prev) => ({ ...prev, [name]: value }));
-        }
-    };
-
-    const handleImageUpload = (e) => {
-        const files = Array.from(e.target.files);
-
-        files.forEach(file => {
-            if (file.type.startsWith('image/')) {
-                const reader = new FileReader();
-                reader.onload = (event) => {
-                    const newPreview = {
-                        url: event.target.result,
-                        file: file,
-                        isExisting: false
-                    };
-
-                    setImagePreviews(prev => [...prev, newPreview]);
-                    setImageFiles(prev => [...prev, file]);
-                };
-                reader.readAsDataURL(file);
-            }
-        });
-    };
-
-    const removeImage = (index) => {
-        setImagePreviews(prev => prev.filter((_, i) => i !== index));
-        setImageFiles(prev => prev.filter((_, i) => i !== index));
-    };
-
-
-
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        if (!validateForm(formData, setErrors, isEdit, imagePreviews)) return;
-
-
-        if (isEdit) {
-            let takeCategoryId;
-            if (typeof formData.category === 'object') {
-                takeCategoryId = formData.category._id;
-            } else {
-                takeCategoryId = formData.category;
-            }
-
-            const submitData = {
-                name: formData.name,
-                description: formData.description,
-                price: formData.price,
-                category: takeCategoryId,
-                subtitle: formData.subtitle,
-                stock: formData.stock,
-                productId: productData._id
-            };
-            setLoading(true)
-            try {
-                await UPDATE_PRODUCT_DATA(submitData)
-                setPurpose('display')
-                toast.success(`Product "${formData.name}" updated successfully!`);
-            } catch (error) {
-                toast.error(error.response.data.message)
-                // console.log(error);
-
-            } finally {
-                setLoading(false)
-            }
-            // Make PUT request with FormData for file upload
-        } else {
-
-            const fd = new FormData();
-
-            // Append simple fields
-            fd.append('name', formData.name);
-            fd.append('description', formData.description);
-            fd.append('price', formData.price);
-            fd.append('subtitle', formData.subtitle);
-            fd.append('stock', formData.stock);
-
-            // Append category (string ID)
-            if (typeof formData.category === 'object') {
-                fd.append('category', formData.category._id);
-            } else {
-                fd.append('category', formData.category);
-            }
-
-            imageFiles.forEach((file) => {
-                fd.append('images', file); // backend should handle array of files
-            });
-
-            console.log(productOptions);
-            Object.entries(productOptions).forEach(([key, value]) => {
-                value.forEach(val => fd.append(`${key}[]`, JSON.stringify(val ? val : null)));
-            });
-
-            setLoading(true)
-
-            try {
-                await SUBMIT_NEW_PRODUCT(fd)
-                setChange((priv) => (!priv))
-                setPurpose('display')
-                toast.success(`Product "${formData.name}" added successfully!`);
-            } catch (error) {
-                console.log(error);
-
-                toast.error(error.response.data.message)
-                if (error.response.data.message == 'Product name already exists. Please choose a different name.') {
-                    setErrors((priv) => ({ ...priv, name: error.response.data.message }))
-                }
-            } finally {
-                setLoading(false)
-            }
-            // console.log('Add New Product:');
-        }
-    };
-
-    function displayOption(allCategory) {
-
-        if (!productData?.category?._id) {
-            return allCategory.map((cat) => (
-                <option key={cat._id} value={cat._id}>
-                    {cat.name}
-                </option>
-            ));
-        };
-
-        let filterCategory;
-
-        filterCategory = allCategory.filter(
-            (cat) => cat._id !== productData.category._id
+      if (Array.isArray(productData.priceTiers)) {
+        setPriceTiers(
+          productData.priceTiers.map((pt) => ({
+            qty: pt.qty ?? "",
+            priceSingle: pt.priceSingle ?? "",
+            priceDouble: pt.priceDouble ?? "",
+            weightGrams: pt.weightGrams ?? "",
+            shippingCharge: pt.shippingCharge ?? "",
+          }))
         );
-        return filterCategory.map((cat) => (
-            <option key={cat._id} value={cat._id}>
-                {cat.name}
-            </option>
-        ));
+      }
     }
-    const handleCropComplete = (croppedImageFile) => {
-        // console.log('New cropped image:', croppedImageFile);
-        setImagePreviews(prev =>
-            prev.map((img, idx) =>
-                idx === cropIndex
-                    ? { ...img, url: croppedImageFile.url, file: croppedImageFile.file }
-                    : img
-            )
-        );
-        setImageFiles(prev =>
-            prev.map((file, idx) =>
-                idx === cropIndex
-                    ? croppedImageFile.file
-                    : file
-            )
-        );
-        setCropFile(null);
-        setShowCropModal(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [productData, isEdit]);
+
+  // Load categories
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await TAKE_PRODUCT_CATEGORY();
+        setCategories(res.categoryData || []);
+      } catch (err) {
+        console.error("Category load failed", err);
+      }
+    })();
+  }, []);
+
+  // Drag & drop handlers
+  useEffect(() => {
+    const el = dropRef.current;
+    if (!el) return;
+    const onDrop = (e) => {
+      e.preventDefault();
+      const files = Array.from(e.dataTransfer.files || []);
+      handleIncomingFiles(files);
     };
-
-
-    const imageCropIng = (index) => {
-        const preview = imagePreviews[index];
-        // If you store the File object in preview.file, use it; otherwise, fallback to preview.url
-        const fileOrUrl = preview.file || preview.url;
-        setCropIndex(index);
-        setShowCropModal(true);
-        setCropFile(fileOrUrl);
+    const onDragOver = (e) => e.preventDefault();
+    el.addEventListener("drop", onDrop);
+    el.addEventListener("dragover", onDragOver);
+    return () => {
+      el.removeEventListener("drop", onDrop);
+      el.removeEventListener("dragover", onDragOver);
     };
+  }, []);
 
-    return (
-        <div className="min-h-screen bg-gray-100 py-8 ">
-            <ProductSpecificationModal isEdited={isEdit} setCardOptions={setProductOptions} productId={productData?._id}
-                openOptions={openOptions} setOpenOptions={setOpenOptions} productOptions={productOptions} />
-            <CropImage
-                key={cropFile?.url || cropFile?.file?.name || Math.random()} // force remount
-                imageFile={cropFile}
-                isOpen={showCropModal}
-                setIsOpen={setShowCropModal}
-                onCropComplete={handleCropComplete}
-            />
-            <div className=" m-6 ">
-                <EditImage
-                    isOpen={showModal}
-                    onClose={() => setShowModal(false)}
-                    product={productData}
-                    setProduct={setProductData}
-                    onCropComplete={handleCropComplete}
-                />
-                {/* Header */}
-                <div className="left-center mb-8 ml-4">
-                    <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                        {isEdit ? 'Edit Product' : 'Add New Product'}
-                    </h1>
-                    <p className="text-gray-600">
-                        {isEdit ? 'Update your product information' : 'Create a new product listing'}
-                    </p>
-                </div>
+  // Handle files (drag/drop or input)
+  function handleIncomingFiles(files) {
+    const imgFiles = files.filter((f) => f.type && f.type.startsWith("image/"));
+    imgFiles.forEach((f) => {
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        setImagePreviews((p) => [...p, { url: ev.target.result, file: f, isExisting: false }]);
+        setImageFiles((p) => [...p, f]);
+      };
+      reader.readAsDataURL(f);
+    });
+  }
+  function onFileInputChange(e) {
+    const files = Array.from(e.target.files || []);
+    handleIncomingFiles(files);
+    e.target.value = null; // allow same file again
+  }
 
-                {/* Form Container */}
-                <div className="bg-white  shadow-xl overflow-hidden">
-                    <div className="bg-blue-600 p-6">
-                        <h2 className="text-xl font-semibold text-white flex items-center">
-                            <Package className="w-5 h-5 mr-2" />
-                            Product Details
-                        </h2>
-                    </div>
+  function removeImage(idx) {
+    setImagePreviews((p) => p.filter((_, i) => i !== idx));
+    setImageFiles((p) => p.filter((_, i) => i !== idx));
+  }
+  function moveUp(idx) {
+    if (idx <= 0) return;
+    setImagePreviews((p) => {
+      const arr = [...p];
+      [arr[idx - 1], arr[idx]] = [arr[idx], arr[idx - 1]];
+      return arr;
+    });
+    setImageFiles((p) => {
+      const arr = [...p];
+      if (arr.length > idx) [arr[idx - 1], arr[idx]] = [arr[idx], arr[idx - 1]];
+      return arr;
+    });
+  }
+  function moveDown(idx) {
+    setImagePreviews((p) => {
+      const arr = [...p];
+      if (idx >= arr.length - 1) return arr;
+      [arr[idx + 1], arr[idx]] = [arr[idx], arr[idx + 1]];
+      return arr;
+    });
+    setImageFiles((p) => {
+      const arr = [...p];
+      if (idx >= arr.length - 1) return arr;
+      if (arr.length > idx) [arr[idx + 1], arr[idx]] = [arr[idx], arr[idx + 1]];
+      return arr;
+    });
+  }
 
-                    <form onSubmit={handleSubmit} className="p-6 sm:p-8">
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                            {/* Left Column */}
-                            <div className="space-y-6">
-                                {/* Product Name */}
-                                <div className="group">
-                                    <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
-                                        <Tag className="w-4 h-4 mr-2 text-blue-900" />
-                                        Product Name
-                                    </label>
-                                    <input
-                                        type="text"
-                                        name="name"
-                                        placeholder="Enter product name"
-                                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-blue-900 focus:ring-2 focus:ring-blue-100 transition-all duration-200 outline-none"
-                                        value={formData.name}
-                                        onChange={handleChange}
-                                        required
-                                    />
-                                    {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
-                                </div>
+  // Crop open
+  function openCrop(idx) {
+    const preview = imagePreviews[idx];
+    if (!preview) return;
+    setCropIndex(idx);
+    setCropFile(preview.file || preview.url);
+    setShowCropModal(true);
+  }
 
-                                {/* subtitle */}
-                                <div className="group">
-                                    <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
-                                        <Building className="w-4 h-4 mr-2 text-red-600" />
-                                        Subtitle
-                                    </label>
-                                    <input
-                                        type="text"
-                                        name="subtitle"
-                                        placeholder="Enter subtitle name"
-                                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-red-600 focus:ring-2 focus:ring-red-100 transition-all duration-200 outline-none"
-                                        value={formData.subtitle}
-                                        onChange={handleChange}
-                                        required
-                                    />
-                                    {errors.subtitle && <p className="text-red-500 text-xs mt-1">{errors.subtitle}</p>}
-                                </div>
+  function onCropComplete(cropped) {
+    // cropped -> { url, file }
+    if (typeof cropIndex === "number") {
+      setImagePreviews((p) => p.map((it, i) => (i === cropIndex ? { url: cropped.url, file: cropped.file, isExisting: false } : it)));
+      setImageFiles((p) => p.map((f, i) => (i === cropIndex ? cropped.file : f)));
+    }
+    setCropIndex(null);
+    setCropFile(null);
+    setShowCropModal(false);
+  }
 
-                                {/* Price and Stock */}
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                    <div className="group">
-                                        <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
-                                            <DollarSign className="w-4 h-4 mr-2 text-blue-900" />
-                                            Price
-                                        </label>
-                                        <input
-                                            type="number"
-                                            name="price"
-                                            placeholder="0.00"
-                                            step="0.01"
-                                            min="0"
-                                            className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-blue-900 focus:ring-2 focus:ring-blue-100 transition-all duration-200 outline-none"
-                                            value={formData.price}
-                                            onChange={handleChange}
-                                            required
-                                        />
-                                        {errors.price && <p className="text-red-500 text-xs mt-1">{errors.price}</p>}
-                                    </div>
-                                    <div className="group">
-                                        <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
-                                            <Archive className="w-4 h-4 mr-2 text-red-600" />
-                                            Stock
-                                        </label>
-                                        <input
-                                            type="number"
-                                            name="stock"
-                                            placeholder="0"
-                                            min="0"
-                                            step="1"
-                                            className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-red-600 focus:ring-2 focus:ring-red-100 transition-all duration-200 outline-none"
-                                            value={formData.stock}
-                                            onChange={handleChange}
-                                            required
-                                        />
-                                        {errors.stock && <p className="text-red-500 text-xs mt-1">{errors.stock}</p>}
-                                    </div>
-                                </div>
+  // Price tiers helpers
+  function addTier() {
+    setPriceTiers((p) => [...p, { qty: "", priceSingle: "", priceDouble: "", weightGrams: "", shippingCharge: "" }]);
+  }
+  function updateTier(idx, key, val) {
+    setPriceTiers((p) => p.map((r, i) => (i === idx ? { ...r, [key]: val } : r)));
+  }
+  function removeTier(idx) {
+    setPriceTiers((p) => p.filter((_, i) => i !== idx));
+  }
 
-                                {/* Category */}
-                                <div className="group">
-                                    <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
-                                        <Tag className="w-4 h-4 mr-2 text-blue-900" />
-                                        Category
-                                    </label>
-                                    <select
-                                        name="category"
-                                        value={formData.category?.name}
-                                        onChange={handleChange}
-                                        required
-                                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-blue-900 focus:ring-2 focus:ring-blue-100 transition-all duration-200 outline-none"
-                                    >
-                                        {!isEdit ? <option value="">Select a category</option> :
-                                            <option value={productData.category}>{productData.category?.name}</option>}
-                                        {displayOption(allCategory)}
+  const totalWeight = priceTiers.reduce((s, t) => s + Number(t.weightGrams || 0), 0);
 
-                                    </select>
-                                    {errors.category && <p className="text-red-500 text-xs mt-1">{errors.category}</p>}
-                                </div>
+  // Form change
+  function onFormChange(e) {
+    const { name, value } = e.target;
+    setFormData((p) => ({ ...p, [name]: value }));
+    setErrors((errs) => ({ ...errs, [name]: undefined }));
+  }
 
+  // Submit
+  async function handleSubmit(e) {
+    e.preventDefault();
 
+    if (!validateForm(formData, setErrors, isEdit, imagePreviews)) {
+      return;
+    }
 
-                            </div>
+    if (isEdit) {
+      // update basic fields
+      const submit = {
+        name: formData.name,
+        subtitle: formData.subtitle,
+        description: formData.description,
+        price: formData.price,
+        stock: formData.stock,
+        category: typeof formData.category === "object" ? formData.category._id : formData.category,
+        productId: productData._id,
+        priceTiers,
+      };
+      setLoading(true);
+      try {
+        await UPDATE_PRODUCT_DATA(submit);
+        toast.success("Product updated successfully");
+        setPurpose?.("display");
+        setChange?.((p) => !p);
+      } catch (err) {
+        console.error(err);
+        toast.error(err?.response?.data?.message || "Update failed");
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
 
-                            {/* Right Column */}
-                            <div className="space-y-6">
-                                {/* Description */}
-                                <div className="group">
-                                    <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
-                                        <Package className="w-4 h-4 mr-2 text-red-600" />
-                                        Description
-                                    </label>
-                                    <textarea
-                                        name="description"
-                                        placeholder="Enter product description"
-                                        rows="4"
-                                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-red-600 focus:ring-2 focus:ring-red-100 transition-all duration-200 outline-none resize-none"
-                                        value={formData.description}
-                                        onChange={handleChange}
-                                        required
-                                    />
-                                    {errors.description && <p className="text-red-500 text-xs mt-1">{errors.description}</p>}
-                                </div>
+    // add new product (FormData)
+    const fd = new FormData();
+    fd.append("name", formData.name);
+    fd.append("subtitle", formData.subtitle);
+    fd.append("description", formData.description);
+    fd.append("price", formData.price);
+    fd.append("stock", formData.stock);
+    fd.append("category", typeof formData.category === "object" ? formData.category._id : formData.category);
 
-                                {/* Image Upload */}
-                                <div className="group">
-                                    <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
-                                        <ImageIcon className="w-4 h-4 mr-2 text-blue-900" />
-                                        Product Images
-                                    </label>
+    imageFiles.forEach((f) => fd.append("images", f));
 
-                                    {/* Upload Area */}
-                                    {!isEdit ? (<div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-900 transition-colors duration-200">
-                                        <input
-                                            type="file"
-                                            multiple
-                                            accept="image/*"
-                                            onChange={handleImageUpload}
-                                            className="hidden"
-                                            id="image-upload"
-                                        />
-                                        <label
-                                            htmlFor="image-upload"
-                                            className="cursor-pointer flex flex-col items-center"
-                                        >
-                                            <Upload className="w-8 h-8 text-gray-400 mb-2" />
-                                            <span className="text-sm text-gray-600">
-                                                Click to upload images or drag and drop
-                                            </span>
-                                            <span className="text-xs text-gray-400 mt-1">
-                                                PNG, JPG, GIF up to 10MB
-                                            </span>
-                                        </label>
-                                    </div>) : (
-                                        <button
-                                            type="button"
-                                            className="my-3 inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-lg shadow hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 "
-                                            onClick={(e) => {
-                                                e.preventDefault()
-                                                setShowModal(true)
-                                            }}
-                                        >
-                                            <ImageIcon className="w-5 h-5 mr-2" />
-                                            Manage Images
-                                        </button>
-                                    )}
-                                    {errors.images && <p className="text-red-500 text-xs mt-1">{errors.images}</p>}
-                                    {/* Image Previews */}
-                                    {imagePreviews.length > 0 && (
-                                        <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-3">
-                                            {imagePreviews.map((preview, index) => (
-                                                <div key={index}>
-                                                    <div key={index} className="relative group">
-                                                        <img
-                                                            src={preview.url}
-                                                            alt={`Preview ${index + 1}`}
-                                                            className="w-44 h-44 object-cover rounded-lg border-2 border-gray-200"
-                                                        />
-                                                        {isEdit || <button
-                                                            type="button"
-                                                            onClick={() => removeImage(index)}
-                                                            className="absolute -top-2 -right-2 w-6 h-6 bg-red-600 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-red-700"
-                                                        >
-                                                            <X className="w-3 h-3" />
-                                                        </button>}
+    // product options arrays (JSON)
+    Object.entries(productOptions || {}).forEach(([key, arr]) => {
+      if (Array.isArray(arr)) {
+        arr.forEach((v) => fd.append(`${key}[]`, JSON.stringify(v)));
+      }
+    });
 
-                                                        {preview.isExisting && (
-                                                            <div className="absolute bottom-1 left-1 bg-blue-900 text-white text-xs px-1 py-0.5 rounded">
-                                                                {index == 0 ? 'main' : 'Current'}
-                                                            </div>
+    fd.append("priceTiers", JSON.stringify(priceTiers));
 
-                                                        )}
-                                                    </div>
-                                                    {!isEdit && (<>
-                                                        <button
-                                                            className="mt-2 mb-2 inline-flex items-center px-4 py-2 cursor-pointer bg-gradient-to-r from-green-500 to-blue-500 text-white text-xs font-semibold rounded shadow hover:from-green-600 hover:to-blue-600 transition-all duration-200"
-                                                            onClick={(e) => {
-                                                                e.preventDefault()
-                                                                imageCropIng(index)
-                                                            }}
-                                                        >
-                                                            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                                                                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18V6a2 2 0 012-2h12M6 6L18 18M6 18h12a2 2 0 002-2V6" />
-                                                            </svg>
-                                                            Crop Image
-                                                        </button>
-                                                    </>)}
+    setLoading(true);
+    try {
+      await SUBMIT_NEW_PRODUCT(fd);
+      toast.success("Product added successfully");
+      setPurpose?.("display");
+      setChange?.((p) => !p);
+    } catch (err) {
+      console.error(err);
+      const msg = err?.response?.data?.message || "Add failed";
+      toast.error(msg);
+      if (msg && msg.includes("Product name already exists")) {
+        setErrors((prev) => ({ ...prev, name: msg }));
+      }
+    } finally {
+      setLoading(false);
+    }
+  }
 
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
+  // Render categories options
+  function categoryOptions() {
+    return categories.map((c) => (
+      <option key={c._id} value={c._id}>
+        {c.name}
+      </option>
+    ));
+  }
 
-                        </div>
+  // ---------- Render ----------
+  return (
+    <div className="min-h-screen bg-gray-50 py-6">
+      {/* Specification modal */}
+      <ProductSpecificationModal
+        isEdited={isEdit}
+        productId={productData?._id}
+        openOptions={openSpecModal}
+        setOpenOptions={setOpenSpecModal}
+        productOptions={productOptions}
+        setCardOptions={(opts) =>
+          setProductOptions({
+            size: opts?.size ?? productOptions.size,
+            paper: opts?.paper ?? productOptions.paper,
+            finish: opts?.finish ?? productOptions.finish,
+            corner: opts?.corner ?? productOptions.corner,
+          })
+        }
+      />
 
-                        <div className="w-full flex items-center justify-center pt-8">
-                            <button
-                                type="button"
-                                onClick={() => { setOpenOptions(true) }}
-                                className="bg-blue-700 hover:bg-blue-800 cursor-pointer text-white font-medium py-3 px-16 rounded-lg transition duration-300"
-                            >
-                                {isEdit ? 'Edit' : 'Add'} Product Specifications
-                            </button>
-                        </div>
+      {/* Crop & Edit modals */}
+      <CropImage imageFile={cropFile} isOpen={showCropModal} setIsOpen={setShowCropModal} onCropComplete={onCropComplete} />
+      <EditImage isOpen={showEditImages} onClose={() => setShowEditImages(false)} product={productData} setProduct={setProductData} onCropComplete={onCropComplete} />
 
-                        {/* Submit Button */}
-                        <div className="mt-8 pt-6 border-t border-gray-200">
-                            <button
-                                type="submit"
-                                disabled={loading}
-                                className="w-full sm:w-auto px-8 py-4 bg-red-500  text-white font-semibold rounded-lg hover:from-blue-800 hover:to-red-500 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl"
-                                onClick={() => {
-                                    setPurpose('display');
-                                    // setProductData(null)
-                                }}
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                disabled={loading}
-                                type="submit"
-                                className={`w-full sm:ml-8 mt-4 md:mt-0 sm:w-auto px-8 py-4 bg-blue-700  text-white font-semibold rounded-lg hover:from-blue-800 hover:to-red-500 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl
-                                ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
-                            >
-                                {loading ? 'Loading...' : (<>{isEdit ? 'Update Product' : 'Add Product'}</>)}
-                            </button>
-                        </div>
-                    </form>
-
-                </div>
-            </div>
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="mb-6">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{isEdit ? "Edit product" : "Add new product"}</h1>
+          <p className="mt-1 text-sm text-gray-600">Fill required fields. Price tiers appear on product detail and used for shipping/weight logic.</p>
         </div>
-    );
-}
 
-export default ProductManagement;
+        <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow p-6 space-y-6">
+          {/* Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* LEFT: main fields */}
+            <div className="space-y-4">
+              <div>
+                <FieldLabel required>Product name</FieldLabel>
+                <input aria-label="Product name" name="name" value={formData.name} onChange={onFormChange}
+                       placeholder="e.g. Business Cards - Standard" className="mt-1 block w-full rounded-md border-gray-300 p-3 focus:border-indigo-600" />
+                <SmallHelper>Give a clear product name (min 3 chars).</SmallHelper>
+                {errors.name && <p className="text-xs text-red-600 mt-1">{errors.name}</p>}
+              </div>
+
+              <div>
+                <FieldLabel>Subtitle</FieldLabel>
+                <input name="subtitle" value={formData.subtitle} onChange={onFormChange} placeholder="Short subtitle (optional)" className="mt-1 block w-full rounded-md border-gray-300 p-3" />
+                <SmallHelper>Shown under the product name.</SmallHelper>
+              </div>
+
+              <div>
+                <FieldLabel required>Category</FieldLabel>
+                <select name="category" value={formData.category || ""} onChange={onFormChange} className="mt-1 block w-full rounded-md border-gray-300 p-3">
+                  <option value="">{isEdit ? "Keep current or choose another" : "Select category"}</option>
+                  {isEdit && productData?.category?._id && <option value={productData.category._id}>{productData.category.name} (current)</option>}
+                  {categoryOptions()}
+                </select>
+                <SmallHelper>Select the most appropriate category.</SmallHelper>
+                {errors.category && <p className="text-xs text-red-600 mt-1">{errors.category}</p>}
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <FieldLabel required>Base price ($)</FieldLabel>
+                  <input name="price" type="number" value={formData.price} onChange={onFormChange} step="0.01" min="0" placeholder="0.00" className="mt-1 block w-full rounded-md border-gray-300 p-3" />
+                  <SmallHelper>Primary product price (used if no tiers apply).</SmallHelper>
+                </div>
+                <div>
+                  <FieldLabel required>Stock</FieldLabel>
+                  <input name="stock" type="number" value={formData.stock} onChange={onFormChange} min="0" placeholder="0" className="mt-1 block w-full rounded-md border-gray-300 p-3" />
+                  <SmallHelper>Number of items available in inventory.</SmallHelper>
+                </div>
+              </div>
+            </div>
+
+            {/* RIGHT: description + images */}
+            <div className="space-y-4">
+              <div>
+                <FieldLabel required>Description</FieldLabel>
+                <textarea name="description" rows="6" value={formData.description} onChange={onFormChange} placeholder="Write a clear description for customers." className="mt-1 block w-full rounded-md border-gray-300 p-3" />
+                <SmallHelper>Explain key details: paper, finish, turnaround time, etc.</SmallHelper>
+              </div>
+
+              <div>
+                <FieldLabel>Product images</FieldLabel>
+                <div ref={dropRef} className="mt-2 border-2 border-dashed rounded-lg p-6 text-center bg-white cursor-pointer">
+                  <input ref={fileRef} id="imageUpload" type="file" accept="image/*" multiple onChange={onFileInputChange} className="hidden" />
+                  <label htmlFor="imageUpload" className="flex items-center justify-center gap-3 cursor-pointer">
+                    <Upload className="w-6 h-6 text-gray-500" />
+                    <div className="text-sm text-gray-700">Click to upload or drag & drop images (PNG/JPG/GIF). Max 10MB each.</div>
+                  </label>
+                </div>
+                <SmallHelper>Tip: first image will be the main thumbnail shown to customers.</SmallHelper>
+
+                {imagePreviews.length > 0 && (
+                  <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                    {imagePreviews.map((p, i) => (
+                      <ImageThumb
+                        key={i}
+                        preview={p}
+                        idx={i}
+                        onRemove={removeImage}
+                        onCrop={openCrop}
+                        onMoveUp={moveUp}
+                        onMoveDown={moveDown}
+                        canMoveUp={i > 0}
+                        canMoveDown={i < imagePreviews.length - 1}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Price Tiers area */}
+          <div className="bg-white border rounded-lg shadow-sm p-4">
+            <div className="flex items-start justify-between">
+              <div>
+                <h3 className="text-lg font-semibold text-gray-800">Price Tiers</h3>
+                <p className="text-sm text-gray-500">Define quantity-based pricing. Shown on product detail and used for checkout weight/shipping.</p>
+              </div>
+              <div>
+                <button type="button" onClick={addTier} className="inline-flex items-center gap-2 px-3 py-1 rounded bg-green-600 text-white">
+                  <Plus className="w-4 h-4" /> Add tier
+                </button>
+              </div>
+            </div>
+
+            <div className="mt-4 border rounded overflow-hidden">
+              <div className="grid grid-cols-5 bg-gray-100 text-xs font-semibold text-gray-700 p-3">
+                <div className="pl-2">Qty</div>
+                <div>Single-side ($)</div>
+                <div>Double-side ($)</div>
+                <div>Weight (g)</div>
+                <div>Shipping ($)</div>
+              </div>
+
+              <div className="p-3 space-y-3">
+                {priceTiers.length === 0 ? (
+                  <div className="text-sm italic text-gray-500">No tiers defined. Click Add tier to create rows (e.g. 100 → Single $35 / Double $45 / Weight 200g / Shipping $20).</div>
+                ) : (
+                  priceTiers.map((t, idx) => (
+                    <div key={idx} className="grid grid-cols-5 gap-3 items-end bg-white p-2 rounded border">
+                      <div>
+                        <input type="number" value={t.qty} onChange={(e) => updateTier(idx, "qty", e.target.value)} className="w-full p-2 border rounded" placeholder="100" />
+                      </div>
+                      <div>
+                        <input type="number" step="0.01" value={t.priceSingle} onChange={(e) => updateTier(idx, "priceSingle", e.target.value)} className="w-full p-2 border rounded" placeholder="35.00" />
+                      </div>
+                      <div>
+                        <input type="number" step="0.01" value={t.priceDouble} onChange={(e) => updateTier(idx, "priceDouble", e.target.value)} className="w-full p-2 border rounded" placeholder="45.00" />
+                      </div>
+                      <div>
+                        <input type="number" value={t.weightGrams} onChange={(e) => updateTier(idx, "weightGrams", e.target.value)} className="w-full p-2 border rounded" placeholder="200" />
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <input type="number" step="0.01" value={t.shippingCharge} onChange={(e) => updateTier(idx, "shippingCharge", e.target.value)} className="flex-1 p-2 border rounded" placeholder="20.00" />
+                        <button type="button" onClick={() => removeTier(idx)} className="p-2 bg-red-600 text-white rounded">
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+
+            <div className="mt-2 text-sm text-gray-600">Total weight for tiers: <strong>{totalWeight} g</strong></div>
+          </div>
+
+          {/* Product specs trigger and action buttons */}
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div className="w-full sm:w-auto">
+              <button type="button" onClick={() => setOpenSpecModal(true)} className="w-full sm:w-auto px-6 py-2 rounded bg-blue-700 text-white">
+                {isEdit ? "Edit product specifications" : "Add product specifications"}
+              </button>
+            </div>
+
+            <div className="flex gap-3 w-full sm:w-auto">
+              <button type="button" onClick={() => setPurpose?.("display")} disabled={loading} className="px-6 py-2 rounded bg-gray-200 text-gray-800 w-full sm:w-auto">
+                Cancel
+              </button>
+              <button type="submit" disabled={loading} className="px-6 py-2 rounded bg-indigo-600 text-white w-full sm:w-auto">
+                {loading ? "Saving..." : isEdit ? "Update product" : "Add product"}
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}

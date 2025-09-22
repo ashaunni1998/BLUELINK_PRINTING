@@ -3,7 +3,7 @@ import { Star } from 'lucide-react';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import { useParams } from 'react-router-dom';
-import API_BASE_URL from '../../config'; // <-- your API base url file
+import { API_BASE_URL } from '../../config'; // <-- your API base url file
 import './Home.css';
 
 const BusinessCardDetails = () => {

@@ -5,7 +5,7 @@ import Footer from './components/Footer';
 import Swal from 'sweetalert2';
 import { useContext } from 'react';
 import { AuthContext } from '../../context/AuthContext';
-import API_BASE_URL from "../../config";
+import { API_BASE_URL } from "../../config";
 const EmailVerificationPage = () => {
   const [otp, setOtp] = useState('');
   const [error, setError] = useState('');
@@ -58,7 +58,7 @@ const { setIsLoggedIn } = useContext(AuthContext);
     }
 
     try {
-      const response = await fetch('${API_BASE_URL}/user/verifyOtp', {
+      const response = await fetch(`${API_BASE_URL}/user/verifyOtp`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

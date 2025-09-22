@@ -1,254 +1,327 @@
+// src/pages/user/SignIn.jsx
+import React, { useEffect, useState, useContext, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
-import { jwtDecode } from "jwt-decode";
-// import GoogleLogin from "./GoogleLogin";
-import './Home.css';
-import { useContext, useState, useEffect } from "react";
-import { AuthContext } from "../../context/AuthContext"; 
-import Swal from "sweetalert2";
+import "./Home.css";
+import { API_BASE_URL, REACT_APP_GOOGLE_CLIENT_ID } from "../../config";
+import { AuthContext } from "../../context/AuthContext";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
-import API_BASE_URL from "../../config";
+import Swal from "sweetalert2";
+const API = API_BASE_URL.replace(/\/$/, "");
 
 
-const SignIn = () => {
-  const [hasAccount, setHasAccount] = useState(true);
+/**
+ * SignIn.jsx
+ * - Renders Google's official GSI button and handles id_token flow.
+ * - Posts id_token to backend at `${API_BASE_URL}/api/auth/google/token`.
+ * - Supports email/password login via `${API_BASE_URL}/api/user/login`.
+ * - Checks session on mount via `${API_BASE_URL}/api/user/me`.
+ */
+
+export default function SignIn() {
+  const navigate = useNavigate();
+  const { setIsLoggedIn } = useContext(AuthContext) || {};
+
+  const googleBtnRef = useRef(null);
+  const gsiInitializedRef = useRef(false);
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { setIsLoggedIn } = useContext(AuthContext);
-  const navigate = useNavigate();
+
+  // helper to load external script once
+  const loadScript = (src) =>
+    new Promise((resolve, reject) => {
+      if (typeof window === "undefined") return reject(new Error("no window"));
+      if (window.google && window.google.accounts) return resolve();
+      const existing = document.querySelector(`script[src="${src}"]`);
+      if (existing) {
+        if (existing.getAttribute("data-loaded") === "true") return resolve();
+        existing.addEventListener("load", () => resolve());
+        existing.addEventListener("error", (e) => reject(e));
+        return;
+      }
+      const s = document.createElement("script");
+      s.src = src;
+      s.async = true;
+      s.defer = true;
+      s.onload = () => {
+        s.setAttribute("data-loaded", "true");
+        resolve();
+      };
+      s.onerror = (e) => reject(new Error("Failed to load script: " + (e?.message || e)));
+      document.head.appendChild(s);
+    });
+
+const postIdToken = async (id_token) => {
+  if (!id_token) return { ok: false, error: "no id_token" };
+  const endpoint = `${API}/auth/google/token`; // <-- updated
+  try {
+    console.log("[SignIn] POST id_token ->", endpoint);
+    const res = await fetch(endpoint, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id_token }),
+      credentials: "include", // important to receive HttpOnly cookie
+    });
+    const text = await res.text();
+    let body;
+    try { body = JSON.parse(text); } catch { body = text; }
+    console.log("[SignIn] POST response:", res.status, body);
+    if (!res.ok) return { ok: false, status: res.status, body };
+    return { ok: true, status: res.status, body };
+  } catch (err) {
+    console.error("[SignIn] network error posting id_token:", err);
+    return { ok: false, error: err.message || String(err) };
+  }
+};
+
+  // callback from Google's GSI when user signs in
+  const handleCredentialResponse = async (response) => {
+    console.log("GSI credential response:", response);
+    const id_token = response?.credential;
+    if (!id_token) {
+      Swal.fire({ icon: "error", title: "Google did not return a credential." });
+      return;
+    }
+
+    const result = await postIdToken(id_token);
+    if (!result.ok) {
+      // helpful messages
+      const message =
+        result.body && typeof result.body === "object"
+          ? result.body.message || JSON.stringify(result.body)
+          : result.error || result.body || "Login failed";
+      console.error("Google login failed:", result);
+      Swal.fire({ icon: "error", title: "Google login failed", text: String(message) });
+      return;
+    }
+
+    // success: backend should have set cookie; update UI
+    try { setIsLoggedIn?.(true); } catch (e) {}
+    localStorage.setItem("app_is_logged_in", "1");
+    Swal.fire({ icon: "success", title: result.body?.message || "Signed in with Google", toast: true, position: "top-end", timer: 1400, showConfirmButton: false });
+    navigate("/", { replace: true });
+  };
+
+  // initialize GSI and render button
+  const initGsi = async () => {
+    const clientId = REACT_APP_GOOGLE_CLIENT_ID || (window && window.__REACT_APP_GOOGLE_CLIENT_ID);
+    console.log("initGsi clientId:", clientId);
+    if (!clientId) {
+      console.warn("Google Client ID missing. Set REACT_APP_GOOGLE_CLIENT_ID in config.");
+      return;
+    }
+
+    try {
+      await loadScript("https://accounts.google.com/gsi/client");
+    } catch (err) {
+      console.error("Failed to load GSI script:", err);
+      return;
+    }
+
+    if (!window.google || !window.google.accounts) {
+      console.warn("window.google.accounts not available after script load.");
+      return;
+    }
+
+    if (gsiInitializedRef.current) return;
+
+    try {
+      window.google.accounts.id.initialize({
+        client_id: clientId,
+        callback: handleCredentialResponse,
+        auto_select: false,
+        cancel_on_tap_outside: true,
+      });
+      gsiInitializedRef.current = true;
+      if (googleBtnRef.current) {
+        window.google.accounts.id.renderButton(googleBtnRef.current, {
+          theme: "outline",
+          size: "large",
+          width: "100%",
+          text: "signin_with",
+        });
+      }
+      console.log("GSI initialized & button rendered");
+    } catch (err) {
+      console.error("Error initializing GSI:", err);
+    }
+  };
 
   useEffect(() => {
-    // Handle Google Login callback
-  //   window.handleGoogleResponse = (response) => {
-  //     const userObject = jwtDecode(response.credential);
-  //     console.log("Google User:", userObject);
-  //     // Cookies are set in backend; just update logged-in state
-  //      setIsLoggedIn(true);
-  //     navigate("/dashboard");
-  //   };
-  
+    initGsi();
+    // try again shortly if script loads slower
+    const t = setTimeout(() => initGsi(), 1500);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // check session on mount (backend cookie-based)
+  useEffect(() => {
+    const checkSession = async () => {
+      try {
+        const res = await fetch(`${API}/user/me`, { credentials: "include" });
+
+        if (res.ok) {
+          const json = await res.json();
+          if (json && (json.user || json.userData)) {
+            setIsLoggedIn?.(true);
+            navigate("/", { replace: true });
+          } else {
+            // server didn't return user -> clear optimistic flag
+            localStorage.removeItem("app_is_logged_in");
+            setIsLoggedIn?.(false);
+          }
+        } else {
+          localStorage.removeItem("app_is_logged_in");
+          setIsLoggedIn?.(false);
+        }
+      } catch (err) {
+        console.debug("checkSession error:", err);
+      }
+    };
+    checkSession();
   }, [navigate, setIsLoggedIn]);
+
+  // email/password login
+  const validateForm = () => {
+    const newErrors = {};
+    if (!email.trim()) newErrors.email = "Email is required";
+    else if (!/\S+@\S+\.\S+/.test(email)) newErrors.email = "Email is invalid";
+    if (!password) newErrors.password = "Password is required";
+    return newErrors;
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
+    const validationErrors = validateForm();
+    if (Object.keys(validationErrors).length) {
+      setErrors(validationErrors);
+      return;
+    }
+    setErrors({});
     setIsSubmitting(true);
 
     try {
-      const response = await fetch(
-        `${API_BASE_URL}/user/login`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, password }),
-          credentials: "include", // 👈 important for cookies
-        }
-      );
-
-      const data = await response.json();
-
-      if (response.ok && data.userData) {
-        // Token is in HttpOnly cookie, no need for localStorage
-        setIsLoggedIn(true);
-
-        Swal.fire({
-          icon: "success",
-          title: "Login Successful",
-          text: "Welcome back!",
-          timer: 1500,
-          toast: true,
-          position: "top-end",
-          showConfirmButton: false
-        }).then(() => {
-          navigate("/", { replace: true });
-        });
+      const res = await fetch(`${API}/user/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim(), password }),
+        credentials: "include",
+      });
+      const json = await res.json();
+      console.log("/api/user/login response:", res.status, json);
+      if (res.ok && json.userData) {
+        setIsLoggedIn?.(true);
+        localStorage.setItem("app_is_logged_in", "1");
+        Swal.fire({ icon: "success", title: "Signed in", toast: true, position: "top-end", timer: 1400, showConfirmButton: false });
+        navigate("/", { replace: true });
       } else {
-        setError(data.message || "Login failed. Please check your credentials.");
+        setErrors({ general: json.message || "Login failed" });
       }
-
     } catch (err) {
-      console.error("Login error:", err);
-      setError("Something went wrong. Please try again later.");
+      console.error("SignIn error:", err);
+      setErrors({ general: "Something went wrong. Please try again." });
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // Update logged-in state if cookie changes
-  useEffect(() => {
-    const handleAuthChange = () => {
-      // We cannot read HttpOnly cookie from JS, so rely on backend response
-      setIsLoggedIn(true); // assume user is logged in if backend call succeeds
-    };
-
-    window.addEventListener("authChange", handleAuthChange);
-    return () => {
-      window.removeEventListener("authChange", handleAuthChange);
-    };
-  }, [setIsLoggedIn]);
-
-  useEffect(() => {
-  if (hasAccount) {
-    navigate("/sign-in", { replace: true });
-  } else {
-    navigate("/signup", { replace: true});
-  }
-}, [hasAccount, navigate]);
-
-
   return (
     <div className="responsive-container">
       <Header />
-      <div style={styles.container}>
-        <div style={styles.formContainer}>
-          <h2 style={styles.heading}>Sign in</h2>
 
-          <form style={styles.form} onSubmit={handleSubmit}>
-            <div style={styles.radioGroup}>
-              <label>
-                <input
-                  type="radio"
-                  name="account"
-                  checked={hasAccount}
-                   onChange={() => setHasAccount(true)}
-                />
-                <span style={styles.radioLabel}>I have an account</span>
-              </label>
-              <br />
-              <label>
-                <input
-                  type="radio"
-                  name="account"
-                  checked={!hasAccount}
-                  onChange={() => setHasAccount(false)}
-                />
-                <span style={styles.radioLabel}>I don't have an account</span>
-              </label>
+      <div style={{
+        minHeight: "100vh",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        backgroundColor: "#f4f6fb",
+        fontFamily: "Inter, Roboto, Arial, sans-serif",
+        padding: "20px",
+      }}>
+        <div style={{
+          maxWidth: "480px",
+          width: "100%",
+          padding: "32px",
+          borderRadius: "12px",
+          background: "#ffffff",
+          boxShadow: "0 8px 24px rgba(16,24,40,0.08)"
+        }}>
+          <h2 style={{ margin: 0, marginBottom: 12 }}>Sign in to your account</h2>
+          <div style={{ fontSize: 13, color: "#6b7280", marginBottom: 18 }}>
+            Don’t have an account?{" "}
+            <button onClick={() => navigate("/signup")} style={{ background: "transparent", border: "none", color: "#2563eb", cursor: "pointer" }}>
+              Sign up
+            </button>
+          </div>
+
+          {errors.general && <div style={{ color: "#b91c1c", marginBottom: 12 }}>{errors.general}</div>}
+
+          <form onSubmit={handleSubmit}>
+            <div style={{ marginBottom: 12 }}>
+              <label style={{ fontSize: 13, fontWeight: 600 }}>Email address</label>
+              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" style={inputStyle} />
+              {errors.email && <div style={errorStyle}>{errors.email}</div>}
             </div>
 
-            {error && <div style={{ color: "red", marginBottom: "10px" }}>{error}</div>}
-
-            <div style={styles.inputGroup}>
-              <label>Email address</label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                style={styles.input}
-                required
-              />
+            <div style={{ marginBottom: 12 }}>
+              <label style={{ fontSize: 13, fontWeight: 600 }}>Password</label>
+              <div style={{ position: "relative" }}>
+                <input type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Enter your password" style={{ ...inputStyle, paddingRight: 40 }} />
+                <span onClick={() => setShowPassword(!showPassword)} style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", cursor: "pointer", color: "#6b7280" }}>
+                  {showPassword ? <FaEyeSlash /> : <FaEye />}
+                </span>
+              </div>
+              {errors.password && <div style={errorStyle}>{errors.password}</div>}
             </div>
-          {/* 👇 Password with toggle (fixed inside input box) */}
-<div style={styles.inputGroup}>
-  <label>Password</label>
-  <div style={styles.passwordWrapper}>
-    <input
-      type={showPassword ? "text" : "password"}
-      value={password}
-      onChange={(e) => setPassword(e.target.value)}
-      style={styles.passwordInput}
-      required
-    />
-    <span
-      onClick={() => setShowPassword(!showPassword)}
-      style={styles.eyeIcon}
-    >
-      {showPassword ? <FaEyeSlash /> : <FaEye />}
-    </span>
-  </div>
-</div>
 
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+              <a href="/forgotpassword" style={{ fontSize: 13, color: "#2563eb" }}>Forgotten your password?</a>
+            </div>
 
-            <a href="/forgotpassword" style={styles.forgotPassword}>
-              Forgotten your password?
-            </a>
-{/* 
-            <GoogleLogin /> */}
-
-            <button type="submit" disabled={isSubmitting} style={styles.button}>
+            <button type="submit" disabled={isSubmitting} style={{ ...primaryButtonStyle, width: "100%" }}>
               {isSubmitting ? "Signing in..." : "Sign in"}
             </button>
-
-            <p style={styles.disclaimer}>
-              This site is protected by reCAPTCHA and the Google{" "}
-              <a href="#">Privacy Policy</a> and{" "}
-              <a href="#">Terms of Service</a> apply.
-            </p>
           </form>
+
+          <div style={{ textAlign: "center", marginTop: 14, marginBottom: 14, color: "#6b7280" }}>or</div>
+
+          {/* Google button placeholder - official Google button will be rendered here */}
+          <div ref={googleBtnRef} style={{ marginBottom: 12 }} />
+
+          <div style={{ marginTop: 14, fontSize: 12, color: "#9ca3af" }}>
+            This site is protected by reCAPTCHA and the Google <span style={{ color: "#2563eb" }}>Privacy Policy</span> and <span style={{ color: "#2563eb" }}>Terms of Service</span> apply.
+          </div>
         </div>
       </div>
+
       <Footer />
     </div>
   );
+}
+
+/* Styles */
+const inputStyle = {
+  width: "100%",
+  padding: "10px",
+  borderRadius: 8,
+  border: "1px solid #e6e9ef",
+  boxSizing: "border-box",
+  marginTop: 6,
+  fontSize: 14,
 };
-
-const styles = {
-  container: {
-    display: "flex",
-    flexDirection: "row",
-    padding: "40px",
-    justifyContent: "center",
-    alignItems: "flex-start",
-    gap: "40px",
-    flexWrap: "wrap",
-  },
-  formContainer: {
-    border: "1px solid #ddd",
-    padding: "30px",
-    width: "420px",
-    borderRadius: "5px",
-  },
-  heading: { marginBottom: "20px" },
-  form: { display: "flex", flexDirection: "column" },
-  radioGroup: { marginBottom: "20px" },
-  radioLabel: { marginLeft: "8px" },
-  // inputGroup: { marginBottom: "15px" },
-  input: {
-    width: "100%",
-    padding: "10px",
-    fontSize: "14px",
-    borderRadius: "4px",
-    border: "1px solid #ccc",
-    marginTop: "5px",
-  },
-  forgotPassword: { fontSize: "13px", color: "blue", textDecoration: "none", marginBottom: "20px" },
-  button: {
-    backgroundColor: "#007bff",
-    color: "white",
-    padding: "10px 20px",
-    border: "none",
-    borderRadius: "4px",
-    cursor: "pointer",
-    marginTop: "10px",
-    marginBottom: "20px",
-  },
-  disclaimer: { fontSize: "12px", color: "#555" },
-    inputGroup: { marginBottom: "15px" },
-
-  passwordWrapper: {
-    position: "relative",
-    display: "flex",
-    alignItems: "center",
-  },
-  passwordInput: {
-    width: "100%",
-    padding: "10px 40px 10px 10px", // 👈 add right padding so text doesn't overlap with icon
-    fontSize: "14px",
-    borderRadius: "4px",
-    border: "1px solid #ccc",
-    marginTop: "5px",
-  },
-  eyeIcon: {
-    position: "absolute",
-    right: "10px",
-    cursor: "pointer",
-    color: "#555",
-    fontSize: "18px",
-  },
+const errorStyle = { color: "#b91c1c", fontSize: 13, marginTop: 6 };
+const primaryButtonStyle = {
+  background: "#2563eb",
+  color: "white",
+  padding: "12px 16px",
+  borderRadius: 8,
+  border: "none",
+  cursor: "pointer",
+  fontWeight: 600,
 };
-
-export default SignIn;

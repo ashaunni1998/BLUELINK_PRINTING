@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useLocation,useNavigate } from "react-router-dom";
-import API_BASE_URL from "../../config";
+import { API_BASE_URL } from "../../config";
 import Swal from "sweetalert2";
 import Header from "./components/Header";
 import Footer from "./components/Footer";

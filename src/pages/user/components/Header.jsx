@@ -4,9 +4,9 @@ import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import GoogleTranslateDropdown from "../GoogleTranslateDropdown.jsx";
 import { AuthContext } from "../../../context/AuthContext.jsx";
-import API_BASE_URL from "../../../config.js";
+import { API_BASE_URL } from "../../../config.js";
 import Swal from "sweetalert2";
-import { X, ChevronDown, ChevronUp } from "lucide-react";
+import { X, ChevronDown, ChevronUp, Menu } from "lucide-react";
 
 /**
  * Header component
@@ -20,12 +20,12 @@ export default function Header() {
   const { isLoggedIn, setIsLoggedIn } = useContext(AuthContext);
   const navigate = useNavigate();
 
-
-    // --- menu cache keys and static endings ---
-const STATIC_END_ITEMS = [
-  { _id: "__help_faq__", name: "Help & Faq", path: "/help-faq", products: [] },
-  { _id: "__the_blog__", name: "The Blog", path: "/blog", products: [] },
-];
+  // --- menu cache keys and static endings ---
+  const STATIC_END_ITEMS = [
+    { _id: "__help_faq__", name: "Help & Faq", path: "/help-faq", products: [] },
+    { _id: "__the_blog__", name: "The Blog", path: "/blog", products: [] },
+  ];
+  
   // UI state
   const [menuItems, setMenuItems] = useState([]);
   const [hoveredMenuKey, setHoveredMenuKey] = useState(null);
@@ -42,10 +42,6 @@ const STATIC_END_ITEMS = [
   const isWindow = typeof window !== "undefined";
   const [isMobile, setIsMobile] = useState(isWindow ? window.innerWidth < 1024 : false);
 
-
-
-
-
   useEffect(() => {
     if (!isWindow) return;
     const onResize = () => setIsMobile(window.innerWidth < 1024);
@@ -56,7 +52,6 @@ const STATIC_END_ITEMS = [
   // --- menu cache keys and static endings ---
   const MENU_CACHE_KEY = "kdp_menu_cache_v1";
   const MENU_CACHE_TTL = 1000 * 60 * 10; // 10 min
- 
 
   // stable key generator
   const itemKey = (item, idx) => item._id || item.id || item.name || `menu-${idx}`;
@@ -319,16 +314,22 @@ const STATIC_END_ITEMS = [
     }
   };
 
+  const toggleMobileMenu = () => {
+    setMenuOpen(prev => !prev);
+  };
+
   return (
     <header style={styles.header}>
       {/* TOP BAR */}
       <div style={styles.topBar}>
-        <div style={{ ...styles.logoWrapper, marginLeft: isMobile ? "8px" : "20px" }}>
+        {/* Logo */}
+        <div style={styles.logoWrapper}>
           <a href="/">
             <img src="/assets/logo/logo2.jpg" alt="Logo" style={styles.logo} />
           </a>
         </div>
 
+        {/* Desktop Navigation */}
         {!isMobile && (
           <div style={styles.topRightRow}>
             <GoogleTranslateDropdown />
@@ -373,10 +374,19 @@ const STATIC_END_ITEMS = [
           </div>
         )}
 
+        {/* Mobile Hamburger */}
         {isMobile && (
-          <div onClick={() => setMenuOpen(!menuOpen)} style={styles.hamburger}>
-            ☰
-          </div>
+          <button 
+            onClick={toggleMobileMenu}
+            style={styles.hamburger}
+            aria-label={menuOpen ? "Close menu" : "Open menu"}
+          >
+            {menuOpen ? (
+              <X size={24} color="#333" />
+            ) : (
+              <Menu size={24} color="#333" />
+            )}
+          </button>
         )}
       </div>
 
@@ -419,7 +429,6 @@ const STATIC_END_ITEMS = [
 >
   {item.name}
 </Link>
-
 
                   {hasProducts && (
                     <div
@@ -467,139 +476,147 @@ const STATIC_END_ITEMS = [
         </nav>
       )}
 
-      {/* MOBILE MENU */}
+      {/* MOBILE MENU OVERLAY */}
       {isMobile && menuOpen && (
-        <>
-          <div style={styles.overlay} onClick={() => setMenuOpen(false)} />
-          <div style={styles.mobileMenu}>
-            <div style={styles.mobileHeader}>
-              <div style={styles.mobileSearchWrapper}>
-                <input
-                  type="text"
-                  placeholder="Search"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  style={styles.mobileSearchInput}
-                />
-                <span style={styles.mobileSearchIcon}>🔍</span>
-                <SearchDropdown
-                  results={searchResults}
-                  onSelect={(item) => {
-                    setSearchQuery(item.name);
-                    navigate(`/product/${item._id || item.id}`);
-                    setSearchResults([]);
-                    setMenuOpen(false);
-                  }}
-                  isMobile
-                />
-              </div>
-              <X onClick={() => setMenuOpen(false)} size={26} style={styles.closeIcon} />
-            </div>
+        <div style={styles.overlay} onClick={() => setMenuOpen(false)} />
+      )}
 
-            <div style={styles.mobileContent}>
-              {menuItems.map((item, idx) => {
-                const key = makeKey(item, idx);
-                const hasProducts = Array.isArray(item.products) && item.products.length > 0;
-                return (
-                  <div key={key} style={styles.mobileMenuItem}>
-                    <div
-                      style={styles.mobileMenuHeader}
-                      onClick={() => (hasProducts ? toggleSubMenu(key) : setMenuOpen(false))}
-                    >
-                      <Link
-  to={item.path || `/allProducts/${item._id || item.id || key}`}
-  style={styles.mobileMenuLink}
-  onClick={(e) => {
-    if (hasProducts) {
-      e.preventDefault();
-    } else {
-      setMenuOpen(false);
-    }
-  }}
+      {/* MOBILE MENU */}
+      {isMobile && (
+        <div style={{
+          ...styles.mobileMenu,
+          transform: menuOpen ? 'translateX(0)' : 'translateX(100%)',
+          visibility: menuOpen ? 'visible' : 'hidden',
+        }}>
+          <div style={styles.mobileHeader}>
+            <div style={styles.mobileSearchWrapper}>
+              <input
+                type="text"
+                placeholder="Search"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                style={styles.mobileSearchInput}
+              />
+              <span style={styles.mobileSearchIcon}>🔍</span>
+              <SearchDropdown
+                results={searchResults}
+                onSelect={(item) => {
+                  setSearchQuery(item.name);
+                  navigate(`/product/${item._id || item.id}`);
+                  setSearchResults([]);
+                  setMenuOpen(false);
+                }}
+                isMobile
+              />
+            </div>
+            <button 
+              onClick={() => setMenuOpen(false)} 
+              style={styles.closeIcon}
+              aria-label="Close menu"
+            >
+              <X size={26} color="#6c757d" />
+            </button>
+          </div>
+
+          <div style={styles.mobileContent}>
+            {menuItems.map((item, idx) => {
+              const key = makeKey(item, idx);
+              const hasProducts = Array.isArray(item.products) && item.products.length > 0;
+              return (
+                <div key={key} style={styles.mobileMenuItem}>
+                  <div
+                    style={styles.mobileMenuHeader}
+                    onClick={() => (hasProducts ? toggleSubMenu(key) : setMenuOpen(false))}
+                  >
+                    <Link
+to={item.path || `/allProducts/${item._id || item.id || key}`}
+style={styles.mobileMenuLink}
+onClick={(e) => {
+  if (hasProducts) {
+    e.preventDefault();
+  } else {
+    setMenuOpen(false);
+  }
+}}
 >
-  {item.name}
+{item.name}
 </Link>
 
-
-                      {hasProducts && (
-                        <div style={styles.arrowContainer}>
-                          {expandedMenus[key] ? <ChevronUp size={18} color="#666" /> : <ChevronDown size={18} color="#666" />}
-                        </div>
-                      )}
-                    </div>
-
-                    {hasProducts && expandedMenus[key] && (
-                      <div style={styles.mobileDropdownContent}>
-                        <Link
-                          to={`/allProducts/${item._id || item.id || key}`}
-                          style={styles.mobileDropdownLink}
-                          onClick={() => setMenuOpen(false)}
-                        >
-                          All {item.name}
-                        </Link>
-                        {item.products.map((product) => (
-                          <Link
-                            key={product._id || product.id || `${key}-prod-${product.name}`}
-                            to={`/product/${product._id || product.id}`}
-                            style={styles.mobileDropdownLink}
-                            onClick={() => setMenuOpen(false)}
-                          >
-                            {product.name}
-                          </Link>
-                        ))}
+                    {hasProducts && (
+                      <div style={styles.arrowContainer}>
+                        {expandedMenus[key] ? <ChevronUp size={18} color="#666" /> : <ChevronDown size={18} color="#666" />}
                       </div>
                     )}
                   </div>
-                );
-              })}
-            </div>
 
-            <div style={styles.mobileFooter}>
-              {isLoggedIn ? (
-                <div style={styles.mobileAccountSection}>
-                  <div onClick={() => setShowAccountDropdown((s) => !s)} style={styles.mobileAccountToggle}>
-                    Account
-                    {showAccountDropdown ? <ChevronUp size={18} color="#fff" /> : <ChevronDown size={18} color="#fff" />}
-                  </div>
-                  {showAccountDropdown && (
-                    <div style={styles.mobileAccountDropdown}>
-                      {["Overview", "Order History", "Address Details"].map((label, i) => (
-                        <Link key={i} to={`/account?tab=${["overview", "orders", "address"][i]}`} style={styles.mobileAccountLink}>
-                          {label}
+                  {hasProducts && expandedMenus[key] && (
+                    <div style={styles.mobileDropdownContent}>
+                      <Link
+                        to={`/allProducts/${item._id || item.id || key}`}
+                        style={styles.mobileDropdownLink}
+                        onClick={() => setMenuOpen(false)}
+                      >
+                        All {item.name}
+                      </Link>
+                      {item.products.map((product) => (
+                        <Link
+                          key={product._id || product.id || `${key}-prod-${product.name}`}
+                          to={`/product/${product._id || product.id}`}
+                          style={styles.mobileDropdownLink}
+                          onClick={() => setMenuOpen(false)}
+                        >
+                          {product.name}
                         </Link>
                       ))}
-                      <button onClick={handleLogout} style={styles.mobileLogoutBtn}>Logout</button>
                     </div>
                   )}
                 </div>
-              ) : (
-                <div style={styles.mobileSignIn}>
-                  <Link to="/sign-in" style={styles.mobileSignInLink}>Sign In</Link>
-                </div>
-              )}
+              );
+            })}
+          </div>
 
-              <div style={styles.mobileCart}>
-                <Link to="/cart" style={styles.mobileCartLink} onClick={handleCartClick}>
-                  <i className="fas fa-shopping-cart" style={{ marginRight: 8 }} />
-                  Cart
-                </Link>
+          <div style={styles.mobileFooter}>
+            {isLoggedIn ? (
+              <div style={styles.mobileAccountSection}>
+                <div onClick={() => setShowAccountDropdown((s) => !s)} style={styles.mobileAccountToggle}>
+                  Account
+                  {showAccountDropdown ? <ChevronUp size={18} color="#fff" /> : <ChevronDown size={18} color="#fff" />}
+                </div>
+                {showAccountDropdown && (
+                  <div style={styles.mobileAccountDropdown}>
+                    {["Overview", "Order History", "Address Details"].map((label, i) => (
+                      <Link key={i} to={`/account?tab=${["overview", "orders", "address"][i]}`} style={styles.mobileAccountLink}>
+                        {label}
+                      </Link>
+                    ))}
+                    <button onClick={handleLogout} style={styles.mobileLogoutBtn}>Logout</button>
+                  </div>
+                )}
               </div>
+            ) : (
+              <div style={styles.mobileSignIn}>
+                <Link to="/sign-in" style={styles.mobileSignInLink}>Sign In</Link>
+              </div>
+            )}
+
+            <div style={styles.mobileCart}>
+              <Link to="/cart" style={styles.mobileCartLink} onClick={handleCartClick}>
+                <i className="fas fa-shopping-cart" style={{ marginRight: 8 }} />
+                Cart
+              </Link>
             </div>
           </div>
-        </>
+        </div>
       )}
 
       {/* Offer bar */}
       <div style={styles.offerBar}>
         🎉 New members get <strong>$5</strong> off their first order! <a href="/sign-in" style={{ color: "white" }}>Sign up now.</a>
       </div>
-
-      <style>{styles.responsive}</style>
     </header>
   );
 }
 
-/* ---------- styles ---------- */
 /* ---------- styles ---------- */
 const styles = {
   header: {
@@ -616,12 +633,11 @@ const styles = {
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
-    padding: "6px 0px",
+    padding: "8px 15px",
     maxWidth: "1100px",
     margin: "0 auto",
     width: "100%",
-    position: "relative", // Add position relative
-    zIndex: 5000, // Higher z-index for top bar
+    minHeight: "60px",
   },
   overlay: {
     position: "fixed",
@@ -632,24 +648,56 @@ const styles = {
     backgroundColor: "rgba(0,0,0,0.5)",
     zIndex: 998,
   },
-  logoWrapper: { display: "flex", alignItems: "center", zIndex: 5001 }, // Higher z-index
-  logo: { height: "50px", objectFit: "contain", width: "115px" },
+  logoWrapper: { 
+    display: "flex", 
+    alignItems: "center",
+    flexShrink: 0,
+  },
+  logo: { 
+    height: "45px", 
+    width: "auto",
+    maxWidth: "120px",
+    objectFit: "contain",
+  },
   topRightRow: { 
     display: "flex", 
     alignItems: "center", 
     gap: "18px", 
     marginLeft: "auto", 
-    marginRight: "80px", 
-    flex: "0 0 auto", 
-    justifyContent: "flex-end",
-    position: "relative", // Add position relative
-    zIndex: 5001, // Higher z-index
+    marginRight: "60px", 
   },
-  topLink: { cursor: "pointer", color: "#333", fontSize: "14px", textDecoration: "none" },
-  accountContainer: { position: "relative", display: "inline-block", zIndex: 4000 }, // Higher z-index
-  searchWrapper: { position: "relative", width: "160px", zIndex: 4000 }, // Higher z-index
-  searchInput: { width: "100%", padding: "8px 36px 8px 12px", border: "1px solid #ccc", borderRadius: "6px" },
-  searchIcon: { position: "absolute", right: "10px", top: "50%", transform: "translateY(-50%)", fontSize: "16px", color: "#333", pointerEvents: "none" },
+  topLink: { 
+    cursor: "pointer", 
+    color: "#333", 
+    fontSize: "14px", 
+    textDecoration: "none",
+    whiteSpace: "nowrap",
+  },
+  accountContainer: { 
+    position: "relative", 
+    display: "inline-block", 
+    zIndex: 4000 
+  },
+  searchWrapper: { 
+    position: "relative", 
+    width: "160px", 
+    zIndex: 4000 
+  },
+  searchInput: { 
+    width: "100%", 
+    padding: "8px 36px 8px 12px", 
+    border: "1px solid #ccc", 
+    borderRadius: "6px" 
+  },
+  searchIcon: { 
+    position: "absolute", 
+    right: "10px", 
+    top: "50%", 
+    transform: "translateY(-50%)", 
+    fontSize: "16px", 
+    color: "#333", 
+    pointerEvents: "none" 
+  },
 
   searchDropdown: { 
     position: "absolute", 
@@ -658,35 +706,55 @@ const styles = {
     right: 0, 
     backgroundColor: "#fff", 
     border: "1px solid #ccc", 
-    zIndex: 5002, // Higher z-index for search dropdown
+    zIndex: 5002,
     maxHeight: "250px", 
     overflowY: "auto", 
     borderRadius: "6px",
-    boxShadow: "0 4px 12px rgba(0,0,0,0.15)", // Add shadow for better visibility
+    boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
   },
-  searchItem: { padding: "10px", borderBottom: "1px solid #eee", cursor: "pointer", color: "#333" },
+  searchItem: { 
+    padding: "10px", 
+    borderBottom: "1px solid #eee", 
+    cursor: "pointer", 
+    color: "#333" 
+  },
 
-  hamburger: { fontSize: "24px", cursor: "pointer", marginRight: "10px" },
+  hamburger: { 
+    background: "none",
+    border: "none",
+    cursor: "pointer", 
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: "8px",
+    borderRadius: "4px",
+    transition: "background-color 0.2s ease",
+    flexShrink: 0,
+  },
   navBar: { 
-    position: "relative", 
-    zIndex: 3000, // Lower than top bar elements
-    backgroundColor: "white", // Ensure solid background
+    backgroundColor: "white",
   },
   navLinks: { 
     display: "flex", 
     gap: "12px", 
     flexWrap: "nowrap", 
     whiteSpace: "nowrap", 
-    position: "relative", 
-    zIndex: 3001,  
     maxWidth: "1100px", 
     margin: "0 auto", 
     padding: "0 20px", 
     width: "100%",
-    backgroundColor: "white", // Ensure solid background
   },
-  navItem: { position: "relative" },
-  navLink: { fontSize: "14px", color: "#111", fontWeight: "500", textDecoration: "none", padding: "12px 6px", display: "inline-block" },
+  navItem: { 
+    position: "relative" 
+  },
+  navLink: { 
+    fontSize: "14px", 
+    color: "#111", 
+    fontWeight: "500", 
+    textDecoration: "none", 
+    padding: "12px 6px", 
+    display: "inline-block" 
+  },
 
   dropdown: {
     position: "absolute",
@@ -696,7 +764,7 @@ const styles = {
     border: "1px solid #e0e6ed",
     borderRadius: "8px",
     boxShadow: "0 6px 20px rgba(0,0,0,0.08)",
-    zIndex: 3500, // Lower than top bar, higher than nav
+    zIndex: 3500,
     minWidth: "240px",
     padding: "0",
     overflow: "hidden",
@@ -736,49 +804,232 @@ const styles = {
     alignItems: "stretch", 
     minWidth: "180px", 
     padding: "10px 0", 
-    zIndex: 5002, // Higher z-index for account dropdown
+    zIndex: 5002,
   },
-  accountLink: { padding: "10px 15px", textDecoration: "none", color: "#0073e6", fontSize: "14px", fontWeight: "500" },
-  divider: { borderTop: "1px solid #eee", marginTop: "8px" },
-  logoutBtn: { margin: "10px auto 0 auto", padding: "8px 16px", backgroundColor: "#0073e6", color: "#fff", border: "none", borderRadius: "6px", cursor: "pointer", fontSize: "14px", fontWeight: "500" },
+  accountLink: { 
+    padding: "10px 15px", 
+    textDecoration: "none", 
+    color: "#0073e6", 
+    fontSize: "14px", 
+    fontWeight: "500" 
+  },
+  divider: { 
+    borderTop: "1px solid #eee", 
+    marginTop: "8px" 
+  },
+  logoutBtn: { 
+    margin: "10px auto 0 auto", 
+    padding: "8px 16px", 
+    backgroundColor: "#0073e6", 
+    color: "#fff", 
+    border: "none", 
+    borderRadius: "6px", 
+    cursor: "pointer", 
+    fontSize: "14px", 
+    fontWeight: "500" 
+  },
 
-  // mobile (unchanged)
-  mobileMenu: { position: "fixed", top: 0, right: 0, bottom: 0, maxHeight: "100vh", width: "85%", backgroundColor: "#f8f9fa", zIndex: 999, boxShadow: "-2px 0 8px rgba(0,0,0,0.2)", overflowY: "auto", display: "flex", flexDirection: "column" },
-  mobileHeader: { display: "flex", justifyContent: "space-between", alignItems: "center", padding: "15px 16px", borderBottom: "1px solid #dee2e6", backgroundColor: "#fff", position: "sticky", top: 0, zIndex: 1000 },
-  mobileSearchWrapper: { position: "relative", flex: 1, marginRight: "12px" },
-  mobileSearchInput: { width: "100%", padding: "10px 40px 10px 15px", fontSize: "16px", border: "1px solid #ced4da", borderRadius: "8px", backgroundColor: "#fff" },
-  mobileSearchIcon: { position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", fontSize: "16px", color: "#6c757d" },
-  mobileSearchDropdown: { position: "absolute", top: "48px", left: 0, right: 0, backgroundColor: "#fff", border: "1px solid #ced4da", borderRadius: "8px", zIndex: 2000, maxHeight: "200px", overflowY: "auto", boxShadow: "0 4px 6px rgba(0,0,0,0.1)" },
-  closeIcon: { fontSize: "22px", cursor: "pointer", color: "#6c757d", marginLeft: "12px" },
-  mobileContent: { flex: 1, overflowY: "auto", padding: "0" },
-  mobileMenuItem: { borderBottom: "1px solid #e9ecef", backgroundColor: "#fff" },
-  mobileMenuHeader: { display: "flex", justifyContent: "space-between", alignItems: "center", padding: "16px 20px", cursor: "pointer", transition: "background-color 0.2s ease" },
-  mobileMenuLink: { textDecoration: "none", color: "#212529", fontSize: "16px", fontWeight: "500", flex: 1, display: "block" },
-  arrowContainer: { marginLeft: "12px", display: "flex", alignItems: "center", padding: "2px" },
-  mobileDropdownContent: { backgroundColor: "#f8f9fa", borderTop: "1px solid #e9ecef", paddingLeft: "20px" },
-  mobileDropdownLink: { display: "block", padding: "12px 20px", textDecoration: "none", color: "#495057", fontSize: "15px", borderBottom: "1px solid #e9ecef", transition: "background-color 0.2s ease" },
+  // Mobile menu styles
+  mobileMenu: { 
+    position: "fixed", 
+    top: 0, 
+    right: 0, 
+    bottom: 0, 
+    width: "85%", 
+    maxWidth: "300px",
+    backgroundColor: "#f8f9fa", 
+    zIndex: 999, 
+    boxShadow: "-2px 0 8px rgba(0,0,0,0.2)", 
+    overflowY: "auto", 
+    display: "flex", 
+    flexDirection: "column",
+    transition: "transform 0.3s ease, visibility 0.3s ease",
+  },
+  mobileHeader: { 
+    display: "flex", 
+    justifyContent: "space-between", 
+    alignItems: "center", 
+    padding: "15px 16px", 
+    borderBottom: "1px solid #dee2e6", 
+    backgroundColor: "#fff", 
+    position: "sticky", 
+    top: 0, 
+    zIndex: 1000 
+  },
+  mobileSearchWrapper: { 
+    position: "relative", 
+    flex: 1, 
+    marginRight: "12px" 
+  },
+  mobileSearchInput: { 
+    width: "100%", 
+    padding: "10px 40px 10px 15px", 
+    fontSize: "16px", 
+    border: "1px solid #ced4da", 
+    borderRadius: "8px", 
+    backgroundColor: "#fff" 
+  },
+  mobileSearchIcon: { 
+    position: "absolute", 
+    right: "12px", 
+    top: "50%", 
+    transform: "translateY(-50%)", 
+    fontSize: "16px", 
+    color: "#6c757d" 
+  },
+  mobileSearchDropdown: { 
+    position: "absolute", 
+    top: "48px", 
+    left: 0, 
+    right: 0, 
+    backgroundColor: "#fff", 
+    border: "1px solid #ced4da", 
+    borderRadius: "8px", 
+    zIndex: 2000, 
+    maxHeight: "200px", 
+    overflowY: "auto", 
+    boxShadow: "0 4px 6px rgba(0,0,0,0.1)" 
+  },
+  closeIcon: { 
+    background: "none",
+    border: "none",
+    cursor: "pointer", 
+    color: "#6c757d", 
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: "4px",
+  },
+  mobileContent: { 
+    flex: 1, 
+    overflowY: "auto", 
+    padding: "0" 
+  },
+  mobileMenuItem: { 
+    borderBottom: "1px solid #e9ecef", 
+    backgroundColor: "#fff" 
+  },
+  mobileMenuHeader: { 
+    display: "flex", 
+    justifyContent: "space-between", 
+    alignItems: "center", 
+    padding: "16px 20px", 
+    cursor: "pointer", 
+    transition: "background-color 0.2s ease" 
+  },
+  mobileMenuLink: { 
+    textDecoration: "none", 
+    color: "#212529", 
+    fontSize: "16px", 
+    fontWeight: "500", 
+    flex: 1, 
+    display: "block" 
+  },
+  arrowContainer: { 
+    marginLeft: "12px", 
+    display: "flex", 
+    alignItems: "center", 
+    padding: "2px" 
+  },
+  mobileDropdownContent: { 
+    backgroundColor: "#f8f9fa", 
+    borderTop: "1px solid #e9ecef", 
+    paddingLeft: "20px" 
+  },
+  mobileDropdownLink: { 
+    display: "block", 
+    padding: "12px 20px", 
+    textDecoration: "none", 
+    color: "#495057", 
+    fontSize: "15px", 
+    borderBottom: "1px solid #e9ecef", 
+    transition: "background-color 0.2s ease" 
+  },
 
-  mobileFooter: { backgroundColor: "#343a40", color: "white", padding: "20px", borderTop: "1px solid #495057", marginTop: "auto" },
-  mobileAccountSection: { marginBottom: "15px" },
-  mobileAccountToggle: { display: "flex", justifyContent: "space-between", alignItems: "center", fontWeight: "600", fontSize: "16px", padding: "15px 20px", backgroundColor: "#495057", borderRadius: "8px", cursor: "pointer", transition: "background-color 0.2s ease" },
-  mobileAccountDropdown: { marginTop: "10px", backgroundColor: "#212529", borderRadius: "8px", padding: "10px 0", overflow: "hidden" },
-  mobileAccountLink: { padding: "12px 20px", fontSize: "15px", cursor: "pointer", textDecoration: "none", display: "block", color: "#f8f9fa" },
-  mobileLogoutBtn: { background: "none", border: "none", cursor: "pointer", color: "#f8f9fa", textAlign: "left", padding: "12px 20px", width: "100%", fontSize: "15px" },
-  mobileSignIn: { marginBottom: "15px", padding: "15px 20px", backgroundColor: "#495057", borderRadius: "8px", textAlign: "center" },
-  mobileSignInLink: { color: "#fff", textDecoration: "none", fontWeight: "600", fontSize: "16px" },
-  mobileCart: { padding: "15px 20px", backgroundColor: "#007bff", textAlign: "center", borderRadius: "8px", fontWeight: "600" },
-  mobileCartLink: { color: "white", textDecoration: "none", fontSize: "16px", display: "flex", alignItems: "center", justifyContent: "center" },
+  mobileFooter: { 
+    backgroundColor: "#343a40", 
+    color: "white", 
+    padding: "20px", 
+    borderTop: "1px solid #495057", 
+    marginTop: "auto" 
+  },
+  mobileAccountSection: { 
+    marginBottom: "15px" 
+  },
+  mobileAccountToggle: { 
+    display: "flex", 
+    justifyContent: "space-between", 
+    alignItems: "center", 
+    fontWeight: "600", 
+    fontSize: "16px", 
+    padding: "15px 20px", 
+    backgroundColor: "#495057", 
+    borderRadius: "8px", 
+    cursor: "pointer", 
+    transition: "background-color 0.2s ease" 
+  },
+  mobileAccountDropdown: { 
+    marginTop: "10px", 
+    backgroundColor: "#212529", 
+    borderRadius: "8px", 
+    padding: "10px 0", 
+    overflow: "hidden" 
+  },
+  mobileAccountLink: { 
+    padding: "12px 20px", 
+    fontSize: "15px", 
+    cursor: "pointer", 
+    textDecoration: "none", 
+    display: "block", 
+    color: "#f8f9fa" 
+  },
+  mobileLogoutBtn: { 
+    background: "none", 
+    border: "none", 
+    cursor: "pointer", 
+    color: "#f8f9fa", 
+    textAlign: "left", 
+    padding: "12px 20px", 
+    width: "100%", 
+    fontSize: "15px" 
+  },
+  mobileSignIn: { 
+    marginBottom: "15px", 
+    padding: "15px 20px", 
+    backgroundColor: "#495057", 
+    borderRadius: "8px", 
+    textAlign: "center" 
+  },
+  mobileSignInLink: { 
+    color: "#fff", 
+    textDecoration: "none", 
+    fontWeight: "600", 
+    fontSize: "16px" 
+  },
+  mobileCart: { 
+    padding: "15px 20px", 
+    backgroundColor: "#007bff", 
+    textAlign: "center", 
+    borderRadius: "8px", 
+    fontWeight: "600" 
+  },
+  mobileCartLink: { 
+    color: "white", 
+    textDecoration: "none", 
+    fontSize: "16px", 
+    display: "flex", 
+    alignItems: "center", 
+    justifyContent: "center" 
+  },
 
-  offerBar: { backgroundColor: "#007BFF", color: "#fff", textAlign: "center", padding: "10px 20px", fontSize: "14px", fontWeight: "500", lineHeight: "1.4", wordWrap: "break-word" },
-
-  responsive: `
-    @media (min-width: 768px) {
-      .top-bar { flex-direction: row !important; justify-content: space-between !important; padding: 10px 30px; align-items: center; }
-    }
-    @media (max-width: 768px) {
-      .top-bar { padding: 10px 16px !important; }
-      .search-wrapper { width: 100% !important; }
-      .search-wrapper input { width: 100% !important; }
-    }
-  `,
+  offerBar: { 
+    backgroundColor: "#007BFF", 
+    color: "#fff", 
+    textAlign: "center", 
+    padding: "10px 20px", 
+    fontSize: "14px", 
+    fontWeight: "500", 
+    lineHeight: "1.4", 
+    wordWrap: "break-word" 
+  },
 };

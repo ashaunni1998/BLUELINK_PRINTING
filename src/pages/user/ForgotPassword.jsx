@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
-import API_BASE_URL from "../../config";
+import { API_BASE_URL } from "../../config";
 const ForgotPassword = () => {
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");

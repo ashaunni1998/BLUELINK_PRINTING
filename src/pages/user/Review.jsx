@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Star, Trash2 } from "lucide-react"; 
-import API_BASE_URL from "../../config"; 
+import { API_BASE_URL } from "../../config"; 
 
 const Review = ({ productId }) => {
   const [rating, setRating] = useState(0);

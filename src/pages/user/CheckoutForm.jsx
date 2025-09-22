@@ -3,7 +3,7 @@ import {  Check, AlertCircle, Shield, Clock } from "lucide-react";
 import { useStripe, useElements, CardElement } from "@stripe/react-stripe-js";
 // import axios from "axios"; // Use fetch instead
 import { useLocation,useNavigate } from "react-router-dom";
-import API_BASE_URL from "../../config";
+import { API_BASE_URL } from "../../config";
 const CheckoutForm = () => {
     const location = useLocation();
     const navigate=useNavigate();
