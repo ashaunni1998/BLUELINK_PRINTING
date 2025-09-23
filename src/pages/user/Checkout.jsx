@@ -36,6 +36,8 @@ const [appliedCoupon, setAppliedCoupon] = useState(null);
     return 0;
   };
 
+
+  
   const deliveryCost = getDeliveryCost();
   
   const [newAddress, setNewAddress] = useState({
@@ -123,7 +125,7 @@ console.log("worked");
     // );
 
      const response = await axios.post(
-      '${API_BASE_URL}/address/add',
+      `${API_BASE_URL}/address/add`,
       addressData,
       { withCredentials: true }
     );

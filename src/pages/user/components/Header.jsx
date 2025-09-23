@@ -43,6 +43,37 @@ export default function Header() {
   const isWindow = typeof window !== "undefined";
   const [isMobile, setIsMobile] = useState(isWindow ? window.innerWidth < 1024 : false);
 
+
+
+  const [addresses, setAddresses] = useState([]);
+  const fetchAddresses = async () => {
+  try {
+    const res = await fetch(`${API_BASE_URL}/address/addresses`, {
+      method: "GET",
+      credentials: "include",
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    setAddresses(data.addresses || []);
+  } catch (err) {
+    console.error("❌ Error fetching addresses:", err);
+    Swal.fire("Error", "Failed to fetch addresses", "error");
+  }
+};
+useEffect(() => {
+  fetchAddresses();
+}, []);
+const accountLinks = [
+  { label: "Overview", tab: "overview" },
+  { label: "Order History", tab: "orders" },
+];
+if (addresses.length > 0) {
+  accountLinks.push({ label: "Address Details", tab: "address" });
+}
+
+
+
+
   useEffect(() => {
     if (!isWindow) return;
     const onResize = () => setIsMobile(window.innerWidth < 1024);
@@ -293,14 +324,21 @@ const handleLogout = () => {
   const AccountDropdown = () =>
     accountDropdown ? (
       <div style={styles.accountDropdown}>
-        <Link to="/account?tab=overview" style={styles.accountLink}>
-          Overview
-        </Link>
-        <div style={styles.divider} />
-        <button onClick={handleLogout} style={styles.logoutBtn}>
-          Logout
-        </button>
-      </div>
+  {accountLinks.map((item, i) => (
+    <React.Fragment key={i}>
+      <Link to={`/account?tab=${item.tab}`} style={styles.accountLink}>
+        {item.label}
+      </Link>
+      {i < accountLinks.length - 1 && <div style={styles.divider} />}
+    </React.Fragment>
+  ))}
+
+  <div style={styles.divider} />
+  <button onClick={handleLogout} style={styles.logoutBtn}>
+    Logout
+  </button>
+</div>
+
     ) : null;
 
   // protect cart if not logged
@@ -595,14 +633,21 @@ onClick={(e) => {
                   {showAccountDropdown ? <ChevronUp size={18} color="#fff" /> : <ChevronDown size={18} color="#fff" />}
                 </div>
                 {showAccountDropdown && (
-                  <div style={styles.mobileAccountDropdown}>
-                    {["Overview", "Order History", "Address Details"].map((label, i) => (
-                      <Link key={i} to={`/account?tab=${["overview", "orders", "address"][i]}`} style={styles.mobileAccountLink}>
-                        {label}
-                      </Link>
-                    ))}
-                    <button onClick={handleLogout} style={styles.mobileLogoutBtn}>Logout</button>
-                  </div>
+                 <div style={styles.mobileAccountDropdown}>
+  {accountLinks.map((item, i) => (
+    <Link
+      key={i}
+      to={`/account?tab=${item.tab}`}
+      style={styles.mobileAccountLink}
+    >
+      {item.label}
+    </Link>
+  ))}
+  <button onClick={handleLogout} style={styles.mobileLogoutBtn}>
+    Logout
+  </button>
+</div>
+
                 )}
               </div>
             ) : (
