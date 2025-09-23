@@ -748,24 +748,26 @@ const styles = {
   },
   navLinks: { 
     display: "flex", 
-    gap: "12px", 
+    gap: "1px", 
     flexWrap: "nowrap", 
     whiteSpace: "nowrap", 
-    maxWidth: "1100px", 
+   
+     maxWidth: "1113px", // Increased from 1100px to match topBar
     margin: "0 auto", 
-    padding: "0 20px", 
+    padding: "0 15px", // Changed from 20px to match topBar padding
     width: "100%",
+    alignItems: "flex-start", // Ensure alignment starts from the left
   },
   navItem: { 
     position: "relative" 
   },
   navLink: { 
-    fontSize: "14px", 
+    fontSize: "12px", 
     color: "#111", 
     fontWeight: "500", 
     textDecoration: "none", 
     padding: "12px 6px", 
-    display: "inline-block" 
+    display: "inline-block" ,
   },
 
   dropdown: {

@@ -77,7 +77,7 @@ const [submittedText, setSubmittedText] = useState(null);
 const [uploadedFile, setUploadedFile] = useState(null);
 const [preparedPreview, setPreparedPreview] = useState(null);
 const IMGBB_API_KEY = "0dc969770aaafeeba77f84c1534e4fad"; // your imgbb API key
-// const FRAME_URL = "https://i.ibb.co/3y63T95k/imageedit-1-7441844514.png";   // <- REPLACE with direct image URL from ibb (right-click image → Copy image address)
+// const FRAME_URL = "https://i.ibb.co/3y63T95k/imageedit-1-7441844514.png";   // <- REPLACE with direct image URL from ibb (right-click image â†' Copy image address)
 const [uploadedUrl, setUploadedUrl] = useState(null);     // stores the final uploaded imgbb URL
 
 
@@ -97,13 +97,30 @@ const frameOverlays = {
 };
 const [selectedFrame, setSelectedFrame] = useState(""); // default
 const FRAME_URL = frameOverlays[selectedFrame];
+// ✅ only run .find if product and priceTiers exist
+const [selectedTier, setSelectedTier] = useState(() => {
+  if (product?.priceTiers) {
+    return product.priceTiers.find((tier) => tier.qty === 200) || null;
+  }
+  return null;
+});
 
-const [selectedTier, setSelectedTier] = useState(null);
+// ✅ in case product loads later, auto-select 200 once it's available
+useEffect(() => {
+  if (product?.priceTiers && !selectedTier) {
+    const defaultTier = product.priceTiers.find((tier) => tier.qty === 200);
+    if (defaultTier) setSelectedTier(defaultTier);
+  }
+}, [product, selectedTier]);
+
+
 const [selectedDesignType, setSelectedDesignType] = useState("single");
 
+ const getPrice = (tier) =>
+    selectedDesignType === "single" ? tier.priceSingle : tier.priceDouble;
 
 
-// ✅ add this hook at the top of your file
+// âœ… add this hook at the top of your file
 function useMediaQuery(query) {
   const [matches, setMatches] = useState(window.matchMedia(query).matches);
   useEffect(() => {
@@ -137,7 +154,7 @@ const isMobile = useMediaQuery("(max-width: 768px)");
         let workingEndpoint;
 
         for (const endpoint of endpoints) {
-          try {
+         try {
             console.log("🔍 Trying endpoint:", endpoint);
             res = await fetch(endpoint, {
               headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' }
@@ -206,7 +223,7 @@ const isMobile = useMediaQuery("(max-width: 768px)");
     setCurrentIndex(prev => (prev === (product?.images?.length || 1) - 1 ? 0 : prev + 1));
   };
 
-  // ✅ fixed: Add to cart using cookies (no localStorage token)
+  // âœ… fixed: Add to cart using cookies (no localStorage token)
   const handleAddToCart = async () => {
     try {
       if (!product?._id) {
@@ -217,7 +234,7 @@ const isMobile = useMediaQuery("(max-width: 768px)");
       const res = await fetch(`${API_BASE_URL}/addToCart`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        credentials: "include", // 👈 send login cookie
+        credentials: "include", // ðŸ'ˆ send login cookie
         body: JSON.stringify({
           productId: product._id,
           quantity: selectedQty,
@@ -229,11 +246,11 @@ const isMobile = useMediaQuery("(max-width: 768px)");
 
       const data = await res.json();
       if (res.ok) {
-        alert("✅ Product added to cart!");
+        alert("âœ… Product added to cart!");
         // window.location.href = "/getCart";
         navigate("/cart");
       } else if (res.status === 401) {
-        alert("⚠️ Session expired. Please login again.");
+        alert("âš ï¸ Session expired. Please login again.");
         // window.location.href = "/signin";
         navigate("/signin");
       } else {
@@ -273,7 +290,7 @@ const handleFileChange = (e, side) => {
   const reader = new FileReader();
   reader.onloadend = () => {
     const dataUrl = reader.result;
-    setOriginalImage(dataUrl);   // ✅ save original
+    setOriginalImage(dataUrl);   // âœ… save original
     setCroppingImage(dataUrl);   // show in cropper
     setCrop({ x: 0, y: 0 });
     setZoom(1);
@@ -344,7 +361,7 @@ const handleRevertToOriginal = () => {
   setCrop({ x: 0, y: 0 });
   setZoom(1);
   setCroppedAreaPixels(null);
-  // do NOT auto-save — user must press Save Crop
+  // do NOT auto-save â€" user must press Save Crop
 };
 // Save crop: produce base64 and store into frontPreview/backPreview (depending on croppingSide)
 const handleSaveCrop = async () => {
@@ -377,7 +394,7 @@ const handleSaveCrop = async () => {
     setCroppingSide(null);
   } catch (err) {
     console.error("Crop save error:", err);
-    alert("Error saving crop — check console.");
+    alert("Error saving crop  check console.");
   }
 };
 // const handleCropComplete = (croppedDataUrl) => {
@@ -401,7 +418,7 @@ const handleSubmit = () => {
   console.log("Submitted cropped image:", croppedImage);
   alert("Image submitted successfully!");
 
-  // 🚀 Later, replace with API upload
+  // ðŸš€ Later, replace with API upload
   // const formData = new FormData();
   // formData.append("image", croppedImage.file);
   // await fetch("/api/upload", { method: "POST", body: formData });
@@ -490,7 +507,7 @@ const preparePreviewLocal = async (uploadedUrl) => {
     ctx.drawImage(photo, dx, dy, drawW, drawH);
 
     // load frame image (must be same size or will be scaled)
-    // using crossOrigin for remote frame (imgbb/ibb) — keep it so we can access pixel data
+    // using crossOrigin for remote frame (imgbb/ibb) â€" keep it so we can access pixel data
     const frameImg = await loadImg(FRAME_URL, true);
 
     // draw frame into offscreen canvas to edit pixels
@@ -543,7 +560,7 @@ const handlePersonalisedUpload = (e) => {
   const objectUrl = URL.createObjectURL(file);
   setUploadedImage(objectUrl);
 
-  // build prepared preview immediately (composite) — this will set preparedPreview
+  // build prepared preview immediately (composite) â€" this will set preparedPreview
   // (do NOT await here to avoid blocking UI; but can await if desired)
   preparePreviewLocal(objectUrl);
 
@@ -665,16 +682,16 @@ const handlePrepareAndUpload = async () => {
     }
 
     setUploadedUrl(uploadJson.data.url);
-    alert("✅ Prepared image uploaded successfully!");
+    alert("âœ… Prepared image uploaded successfully!");
   } catch (err) {
     console.error(err);
-    alert("❌ Error preparing or uploading image: " + (err.message || err));
+    alert("âŒ Error preparing or uploading image: " + (err.message || err));
   }
 };
 
 
 
-  // ✅ handle submit
+  // âœ… handle submit
   const handletextSubmit = () => {
     if (!customText.trim()) {
       alert("Please enter some text before submitting!");
@@ -688,7 +705,25 @@ const handlePrepareAndUpload = async () => {
     setCustomText(""); // clear input
   };
 
+  // Handle Upload Your Design button click
+  const handleUploadYourDesign = () => {
+    if (!selectedTier) {
+      alert("Please select a quantity tier first.");
+      return;
+    }
 
+    // Navigate to UploadDesign page with parameters
+    const params = new URLSearchParams({
+      designType: selectedDesignType,
+      quantity: selectedTier.qty,
+      ...(selectedSize?.name && { size: selectedSize.name }),
+      ...(selectedPaper?.name && { paper: selectedPaper.name }),
+      ...(selectedFinish?.name && { finish: selectedFinish.name }),
+      ...(selectedCorner?.name && { corner: selectedCorner.name }),
+    });
+
+    navigate(`/upload-design/${id}?${params.toString()}`);
+  };
 
  
 
@@ -800,12 +835,12 @@ const fileLabelStyle = {
 console.log(id);
 
 
- // ✅ prevent crash if product not yet loaded
+ // âœ… prevent crash if product not yet loaded
   if (!product) {
     return <div>Loading product...</div>;
   }
 
-  // ✅ safely extract category name
+  // âœ… safely extract category name
   const rawCategory = product?.category;
 
 const categoryName = Array.isArray(rawCategory)
@@ -1246,117 +1281,7 @@ const isPersonalisedGift = normalize(categoryName) === "personalized gifts";
   </div>
 )}
 
-{/* <div
-  style={{
-    marginBottom: "28px",
-    padding: "20px",
-    background: "linear-gradient(135deg, #f9fafb, #eef2f7)",
-    borderRadius: "14px",
-    boxShadow: "0 6px 18px rgba(0,0,0,0.06)",
-    border: "1px solid #e5e7eb",
-  }}
->
-  <label
-    htmlFor="quantity"
-    style={{
-      display: "block",
-      fontWeight: "700",
-      fontSize: "16px",
-      marginBottom: "12px",
-      color: "#374151",
-    }}
-  >
-    Select Quantity
-  </label>
-
-  <div
-    style={{
-      display: "flex",
-      alignItems: "center",
-      gap: "18px",
-      flexWrap: "wrap",
-    }}
-  >
-    <select
-      id="quantity"
-      value={selectedQty}
-      onChange={(e) => {
-        const qty = Number(e.target.value);
-        setSelectedQty(qty);
-        const matched = priceOptions.find((p) => p.qty === qty);
-        setDisplayPrice(matched ? matched.price : priceOptions[0].price);
-      }}
-      style={{
-        flex: "1",
-        padding: "12px 16px",
-        borderRadius: "10px",
-        border: "1px solid #d1d5db",
-        fontSize: "15px",
-        fontWeight: "500",
-        cursor: "pointer",
-        background: "#fff",
-        boxShadow: "0 4px 10px rgba(0,0,0,0.05)",
-        transition: "all 0.2s ease",
-      }}
-      onMouseOver={(e) =>
-        (e.currentTarget.style.border = "1px solid #2563eb")
-      }
-      onMouseOut={(e) =>
-        (e.currentTarget.style.border = "1px solid #d1d5db")
-      }
-    >
-      {priceOptions.map((opt) => (
-        <option key={opt.qty} value={opt.qty}>
-          {opt.qty} pcs — ${opt.price}
-        </option>
-      ))}
-    </select>
- 
-     <span
-      style={{
-        padding: "10px 20px",
-        borderRadius: "12px",
-        background: "linear-gradient(135deg, #2563eb)",
-        color: "#fff",
-        fontWeight: "700",
-        fontSize: "18px",
-        boxShadow: "0 6px 16px rgba(79,70,229,0.3)",
-        whiteSpace: "nowrap",
-      }}
-    >
-      ${displayPrice}
-    </span> 
-  </div>
-</div> */}
-
-
-
-
-
-  {/* Add to Cart */}
- {/* {!(isPersonalisedGift && normalize(product.name).includes("photo frame")) && (
-  <button
-    onClick={handleAddToCart}
-    style={{
-      backgroundColor: "#007bff",
-      color: "#fff",
-      padding: "12px 24px",
-      borderRadius: "6px",
-      border: "none",
-      fontSize: "16px",
-      fontWeight: "500",
-      cursor: "pointer",
-      marginTop: "20px",
-      display:"block",
-      marginLeft:"auto",
-      marginRight:"auto"
-    }}
-  >
-    🛒 Add to Cart
-  </button>
-  )} */}
-
-<div style={{ 
+{/* <div style={{ 
   marginBottom: "30px",
   padding: "25px",
   border: "1px solid #e5e7eb",
@@ -1423,54 +1348,207 @@ const isPersonalisedGift = normalize(categoryName) === "personalized gifts";
       </label>
     ))}
   </div>
-</div>
+</div> */}
 {/* ===== Quantity + Price Selector ===== */}
-{product.priceTiers && product.priceTiers.length > 0 && (
-  <div style={{ marginTop: "30px" }}>
-    <h2 style={{ fontSize: "20px", fontWeight: "600", marginBottom: "10px" }}>
-      Quantity & Price Options
-    </h2>
-    <table style={{ width: "100%", borderCollapse: "collapse" }}>
-      <thead>
-        <tr style={{ backgroundColor: "#f3f4f6", textAlign: "left" }}>
-          <th style={{ padding: "10px", border: "1px solid #ddd" }}>Quantity</th>
-          <th style={{ padding: "10px", border: "1px solid #ddd" }}>Single Side ($)</th>
-          <th style={{ padding: "10px", border: "1px solid #ddd" }}>Double Side ($)</th>
-        </tr>
-      </thead>
-      <tbody>
-        {product.priceTiers.map((tier, idx) => (
-          <tr
-            key={idx}
-            style={{
-              borderBottom: "1px solid #ddd",
-              cursor: "pointer",
-              backgroundColor: selectedTier?.qty === tier.qty ? "#e0f2fe" : "white",
-            }}
-            onClick={() => setSelectedTier(tier)}
-          >
-            <td style={{ padding: "10px", border: "1px solid #ddd" }}>{tier.qty}</td>
-            <td style={{ padding: "10px", border: "1px solid #ddd" }}>
-              ${tier.priceSingle}
-            </td>
-            <td style={{ padding: "10px", border: "1px solid #ddd" }}>
-              ${tier.priceDouble}
-            </td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
+{/* Replace the existing quantity/price selector section in your ProductDetail.jsx with this enhanced version */}
 
-    {selectedTier && (
-      <div style={{ marginTop: "15px", padding: "12px", background: "#f9fafb", borderRadius: "6px" }}>
-        <strong>Selected:</strong> {selectedTier.qty} pcs — Single: ${selectedTier.priceSingle}, Double: ${selectedTier.priceDouble}
-      </div>
+{/* ===== Enhanced Quantity + Price Selector ===== */}
+ <div style={{ marginTop: "40px" }}>
+      <h2 style={{ fontSize: "24px", fontWeight: "600", marginBottom: "20px" }}>
+        Choose your quantity
+      </h2>
+
+{/* Design type selection */}
+<div
+  style={{
+    display: "flex",
+    gap: "16px",
+    marginBottom: "24px",
+    justifyContent: "center",
+  }}
+>
+  {[
+    { value: "single", label: "Single Side", icon: "🖼️" },
+    { value: "double", label: "Double Side", icon: "📖" },
+  ].map((option) => {
+    const isActive = selectedDesignType === option.value;
+    return (
+      <button
+        key={option.value}
+        type="button"
+        onClick={() => setSelectedDesignType(option.value)}
+        style={{
+          flex: 1,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: "8px",
+          padding: "14px 20px",
+          borderRadius: "9999px", // pill style
+          border: isActive ? "2px solid #2563eb" : "1px solid #d1d5db",
+          backgroundColor: isActive ? "#eff6ff" : "#fff",
+          color: isActive ? "#2563eb" : "#374151",
+          fontWeight: "600",
+          fontSize: "15px",
+          cursor: "pointer",
+          transition: "all 0.2s ease",
+          boxShadow: isActive
+            ? "0 2px 6px rgba(37,99,235,0.2)"
+            : "0 1px 3px rgba(0,0,0,0.05)",
+        }}
+      >
+        <span style={{ fontSize: "18px" }}>{option.icon}</span>
+        {option.label}
+      </button>
+    );
+  })}
+</div>
+
+
+
+      {/* Pricing table */}
+   <table
+  style={{
+    width: "100%",
+    borderCollapse: "collapse",
+    fontSize: "16px",
+  }}
+>
+  <thead>
+    <tr style={{ textAlign: "left", borderBottom: "2px solid #ddd" }}>
+      <th style={{ padding: "12px" }}>Quantity</th>
+      <th style={{ padding: "12px" }}>Price per card</th>
+      <th style={{ padding: "12px" }}>Pack price</th>
+    </tr>
+  </thead>
+  <tbody>
+    {product?.priceTiers?.map((tier, idx) => {
+      const isSelected = selectedTier?.qty === tier.qty;
+      const currentPrice = getPrice(tier);
+
+      return (
+        <tr
+          key={idx}
+          onClick={() => setSelectedTier(tier)}
+          style={{
+            cursor: "pointer",
+            background: isSelected ? "#f0f9ff" : "transparent",
+            borderBottom: "1px solid #eee",
+            border: isSelected ? "2px solid #22c55e" : "1px solid #eee", // ✅ green border like Moo.com
+          }}
+        >
+          <td style={{ padding: "12px", fontWeight: isSelected ? "600" : "400" }}>
+            {tier.qty}
+          </td>
+          <td style={{ padding: "12px" }}>
+            ${(currentPrice / tier.qty).toFixed(2)}
+          </td>
+          <td style={{ padding: "12px", fontWeight: "600" }}>
+            ${currentPrice}
+            {tier.originalPrice && (
+              <span
+                style={{
+                  marginLeft: "8px",
+                  color: "#999",
+                  textDecoration: "line-through",
+                  fontWeight: "400",
+                }}
+              >
+                ${tier.originalPrice}
+              </span>
+            )}
+          </td>
+        </tr>
+      );
+    })}
+  </tbody>
+</table>
+
+{/* Selection summary */}
+{selectedTier && (
+  <div
+    style={{
+      marginTop: "20px",
+      padding: "16px",
+      border: "1px solid #ddd",
+      borderRadius: "8px",
+      background: "#fafafa",
+    }}
+  >
+    <strong>{selectedTier.qty}</strong> cards selected (
+    {selectedDesignType} side) — Total:{" "}
+    <strong>${getPrice(selectedTier)}</strong> (
+    {(getPrice(selectedTier) / selectedTier.qty).toFixed(2)} each)
+  </div>
+)}
+    </div>
+
+{/* Upload Your Design Button - Added after quantity selector */}
+{!(isPersonalisedGift && normalize(product.name).includes("photo frame")) && (
+  <div style={{ 
+    marginTop: "30px", 
+    textAlign: "center",
+    padding: "20px",
+    border: "1px solid #e5e7eb",
+    borderRadius: "12px",
+    background: "linear-gradient(135deg, #ffffff, #f8fafc)"
+  }}>
+    <button
+      onClick={handleUploadYourDesign}
+      disabled={!selectedTier}
+      style={{
+        padding: "15px 30px",
+        fontSize: "18px",
+        fontWeight: "700",
+        color: "#fff",
+        background: selectedTier 
+          ? "linear-gradient(135deg, #2563eb, #1d4ed8)" 
+          : "#9ca3af",
+        border: "none",
+        borderRadius: "12px",
+        cursor: selectedTier ? "pointer" : "not-allowed",
+        boxShadow: selectedTier 
+          ? "0 8px 20px rgba(37,99,235,0.3)" 
+          : "none",
+        transition: "all 0.3s ease",
+        transform: selectedTier ? "scale(1)" : "scale(0.95)",
+        opacity: selectedTier ? 1 : 0.6,
+        display: "flex",
+        alignItems: "center",
+        gap: "12px",
+        margin: "0 auto"
+      }}
+      onMouseOver={(e) => {
+        if (selectedTier) {
+          e.currentTarget.style.transform = "scale(1.05)";
+          e.currentTarget.style.boxShadow = "0 12px 30px rgba(37,99,235,0.4)";
+        }
+      }}
+      onMouseOut={(e) => {
+        if (selectedTier) {
+          e.currentTarget.style.transform = "scale(1)";
+          e.currentTarget.style.boxShadow = "0 8px 20px rgba(37,99,235,0.3)";
+        }
+      }}
+    >
+      <span style={{ fontSize: "20px" }}>🎨</span>
+      Upload Your Design
+    </button>
+    
+    {!selectedTier && (
+      <p style={{ 
+        marginTop: "12px", 
+        color: "#6b7280", 
+        fontSize: "14px",
+        fontStyle: "italic"
+      }}>
+        Please select a quantity tier first
+      </p>
     )}
   </div>
 )}
 
 </div>
-
 
 
 
@@ -1671,9 +1749,7 @@ const isPersonalisedGift = normalize(categoryName) === "personalized gifts";
     />
   )}
 
-  {/* ✂️ Re-Crop Button (only if image exists) */}
-{/* 🔄 Revert to Original */}
-{/* ✂️ Re-Crop Button (only if image exists) */}
+  {/* Re-Crop Button (only if image exists) */}
 {(uploadedImage || preparedPreview || originalImage) && (
   <button
     onClick={() => {
@@ -1700,7 +1776,7 @@ const isPersonalisedGift = normalize(categoryName) === "personalized gifts";
       zIndex: 3,
     }}
   >
-    ✂️ Re-Crop
+    Re-Crop
   </button>
 )}
 
@@ -1802,7 +1878,7 @@ const isPersonalisedGift = normalize(categoryName) === "personalized gifts";
       fontWeight: 600,
     }}
   >
-    🛍️ Buy Now
+    Buy Now
   </button>
 </div>
 
@@ -1820,18 +1896,9 @@ const isPersonalisedGift = normalize(categoryName) === "personalized gifts";
   
 </div>      
 
-
-
-
-
-
-
-
 <div style={{ marginTop: "10px" }}>
-{/* Customer Needs */}
 
-{/* Design Options */}
-{/* Design Options */}
+{/* Design Options - Only Contact Us and Design From Scratch remain */}
 {!(isPersonalisedGift && normalize(product.name).includes("photo frame")) && (
 <div style={{ marginTop: "40px", textAlign: "center" }}>
   <h2 style={{
@@ -1840,49 +1907,17 @@ const isPersonalisedGift = normalize(categoryName) === "personalized gifts";
     marginBottom: "30px",
     color: "#222"
   }}>
-    How would you like to design your cards?
+    Need Help with Your Design?
   </h2>
 
-  {/* Options Grid */}
+  {/* Options Grid - Only 2 options now */}
   <div style={{
     display: "grid",
-    gridTemplateColumns: isMobile ? "1fr" : "repeat(3, 1fr)",
+    gridTemplateColumns: isMobile ? "1fr" : "repeat(2, 1fr)",
     gap: "25px",
-    maxWidth: "1000px",
+    maxWidth: "800px",
     margin: "0 auto"
   }}>
-    {/* Upload Your Design */}
-    <div
-      onClick={() => navigate(`/upload-design/${product._id}?designType=${selectedDesignType}`)}
-      style={{
-        border: selectedOption === "upload" ? "2px solid #2563EB" : "1px solid #ddd",
-        borderRadius: "14px",
-        padding: "25px 20px",
-        backgroundColor: "white",
-        cursor: "pointer",
-        boxShadow: "0 4px 10px rgba(0,0,0,0.08)",
-        transition: "0.3s",
-        textAlign: "center"
-      }}
-    >
-      <div style={{ fontSize: "42px", marginBottom: "15px" }}>📂</div>
-      <h3 style={{ margin: "0 0 15px 0", fontSize: "18px", fontWeight: "600" }}>
-        Upload Your Design
-      </h3>
-      <ul style={{
-        fontSize: "14px",
-        color: "#555",
-        listStyle: "disc",
-        paddingLeft: "18px",
-        textAlign: "left",
-        lineHeight: "1.6"
-      }}>
-        <li>Upload your own files</li>
-        <li>Supports multiple sides</li>
-        <li>Crop before submit</li>
-      </ul>
-    </div>
-
     {/* Contact Us */}
     <div
       onClick={() => setShowContactModal(true)}
@@ -1943,7 +1978,7 @@ const isPersonalisedGift = normalize(categoryName) === "personalized gifts";
       }}>
         <li>Custom form</li>
         <li>Share requirements</li>
-        <li>We’ll design for you</li>
+        <li>We'll design for you</li>
       </ul>
     </div>
   </div>
@@ -2098,15 +2133,6 @@ const isPersonalisedGift = normalize(categoryName) === "personalized gifts";
     </div>
   </div>
 )}
-
-
-
-
-
-
-
-
-</div>
 
 {/* Scratch Design Modal */}
 {showScratchModal && (
@@ -2280,131 +2306,9 @@ const isPersonalisedGift = normalize(categoryName) === "personalized gifts";
 )}
 
 </div>
-)}
-        {/* Reviews */}
-        {/* <div style={styles.reviewsSection}>
-          <h3>Leave a Review</h3>
-          {[1,2,3,4,5].map(s => (
-            <Star key={s} size={24} onClick={() => setRating(s)}
-            fill={rating >= s ? '#facc15' : 'none'} stroke="#facc15" style={{ cursor: 'pointer' }} />
-            ))}
-            <textarea value={reviewText} onChange={e => setReviewText(e.target.value)} placeholder="Write review..."/>
-            <button onClick={handleSubmitReview}>Submit Review</button>
-            </div> */}
-{/* ---- Download Design Guideline ---- */}
-{/* ---- Floating Download Guideline ---- */}
-<div
-  style={{
-    position: "fixed",
-    bottom: "25px",
-    right: "25px",
-   zIndex: isMobile ? 50 : 1000, // Lower z-index on mobile
-    display: isMobile && showGuideline ? "none" : "block", // Hide on mobile when guideline panel is open
-  }}
->
-  {/* Floating Button */}
- <button
-  onClick={() => setShowGuideline((prev) => !prev)}
-  style={{
-    background: "linear-gradient(90deg,#2563EB,#9333EA)",
-    color: "#fff",
-    border: "none",
-    borderRadius: "50px",
-    padding: "12px 22px",
-    fontSize: "15px",
-    fontWeight: "600",
-    cursor: "pointer",
-    display: "flex",
-    alignItems: "center",
-    gap: "10px",
-    boxShadow: "0 10px 25px rgba(79,70,229,0.4)",
-    transition: "all 0.3s ease",
-  }}
-  onMouseOver={(e) => (e.currentTarget.style.transform = "scale(1.05)")}
-  onMouseOut={(e) => (e.currentTarget.style.transform = "scale(1)")}
->
-  📘 <span>Design Guidelines</span>
-</button>
 
-
-  {/* Popover */}
-  {showGuideline && (
-    <div
-      style={{
-        position: "absolute",
-        bottom: "75px",
-        right: "0",
-        background: "rgba(255,255,255,0.95)",
-        backdropFilter: "blur(12px)",
-        borderRadius: "14px",
-        padding: "20px",
-        width: "220px",
-        boxShadow: "0 10px 25px rgba(0,0,0,0.15)",
-        animation: "fadeInUp 0.35s ease",
-      }}
-    >
-      <h3 style={{ fontSize: "16px", fontWeight: "700", marginBottom: "15px", textAlign: "center" }}>
-        Design Guideline
-      </h3>
-      <div style={{ display: "grid", gap: "12px" }}>
-        {[
-          { ext: "psd", label: "Photoshop", color: "#2563eb" },
-          { ext: "ai", label: "Illustrator", color: "#f97316" },
-          { ext: "indd", label: "InDesign", color: "#db2777" },
-          { ext: "jpg", label: "JPEG", color: "#059669" }
-        ].map((file) => (
-          <a
-            key={file.ext}
-            href={`/guidelines/business-card.${file.ext}`}
-            download
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "10px",
-              textDecoration: "none",
-              padding: "8px 10px",
-              borderRadius: "10px",
-              fontSize: "14px",
-              fontWeight: "600",
-              color: "#111",
-              background: "#f9fafb",
-              border: `1px solid ${file.color}33`,
-              transition: "all 0.2s ease",
-            }}
-            onMouseOver={(e) => {
-              e.currentTarget.style.background = file.color;
-              e.currentTarget.style.color = "#fff";
-            }}
-            onMouseOut={(e) => {
-              e.currentTarget.style.background = "#f9fafb";
-              e.currentTarget.style.color = "#111";
-            }}
-          >
-            <div
-              style={{
-                width: "28px",
-                height: "28px",
-                borderRadius: "50%",
-                background: file.color,
-                color: "#fff",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: "12px",
-                fontWeight: "700",
-                textTransform: "uppercase",
-              }}
-            >
-              {file.ext}
-            </div>
-            {file.label}
-          </a>
-        ))}
-      </div>
-    </div>
-  )}
 </div>
-
+)}
 
 {/* ---------- REPLACE CROP MODAL START ---------- */}
 {isCropOpen && croppingImage && (
@@ -2457,7 +2361,7 @@ const isPersonalisedGift = normalize(categoryName) === "personalized gifts";
               cursor: "pointer",
             }}
           >
-            🔄 Revert
+            Revert
           </button>
         )}
 

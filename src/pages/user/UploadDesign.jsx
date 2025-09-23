@@ -1,23 +1,42 @@
 // UploadDesign.jsx
-import React, { useState, useCallback, useRef } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import React, { useState, useCallback, useRef, useEffect } from "react";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import Cropper from "react-easy-crop";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
-import { useLocation } from "react-router-dom";
 /**
  * UploadDesign.jsx
  * - Mobile-first, responsive upload + crop UI
  * - Crop modal has only two action buttons: Cancel (back) and Save crop
  * - Re-crop / Revert / Clear available from each preview card (outside modal)
  * - Minimal, professional styles
+ *
+ * NOTE: This file keeps your UI & cropping behavior intact.
+ * It converts the cropped dataURLs to File objects and POSTs them
+ * as multipart/form-data to POST `${API_BASE_URL}/addToCartWithDesign`.
+ *
+ * Ensure backend route `/addToCartWithDesign` exists and accepts:
+ * - multer.array('images')
+ * - fields: productId, quantity, designType, size, finish, corner (as used)
  */
+
+// Try to reuse your project's config if available
+let API_BASE_URL = "https://api.bluelinkprinting.com/api";
+try {
+  // adjust if your project exports differently; this won't throw in most bundlers
+  // eslint-disable-next-line global-require
+  const cfg = require("../../config");
+  API_BASE_URL = cfg?.API_BASE_URL || "";
+} catch (e) {
+  API_BASE_URL = "https://api.bluelinkprinting.com/api";
+}
 
 export default function UploadDesign() {
   const { productId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
 
-  // previews and undo
+  // cropping & previews
   const [frontPreview, setFrontPreview] = useState(null);
   const [backPreview, setBackPreview] = useState(null);
   const [fullPreview, setFullPreview] = useState(null);
@@ -40,12 +59,17 @@ export default function UploadDesign() {
 
   const MAX_FILE_SIZE = 6 * 1024 * 1024; // 6MB
 
+  // read designType and optional qty from querystring (ProductDetail navigates like ?designType=double&qty=20)
+  const params = new URLSearchParams(location.search);
+  const designTypeFromQuery = params.get("designType") || "single";
+  const qtyFromQuery = parseInt(params.get("qty") || params.get("quantity") || "1", 10) || 1;
 
-
-  const location = useLocation();
-const params = new URLSearchParams(location.search);
-const designType = params.get("designType") || "single";
-
+  // option states (pre-filled from query if present)
+  const [designType, setDesignType] = useState(designTypeFromQuery);
+  const [quantity, setQuantity] = useState(qtyFromQuery);
+  const [size, setSize] = useState(params.get("size") || "");
+  const [finish, setFinish] = useState(params.get("finish") || "");
+  const [corner, setCorner] = useState(params.get("corner") || "");
 
   // Helper: file -> dataURL
   const fileToDataUrl = (file) =>
@@ -55,6 +79,14 @@ const designType = params.get("designType") || "single";
       reader.onerror = reject;
       reader.readAsDataURL(file);
     });
+
+  // helper: convert dataURL -> File (used to upload cropped previews)
+  const dataURLtoFile = async (dataURL, filename = "image.jpg") => {
+    // fetch the dataURL to get a Blob, then create File
+    const res = await fetch(dataURL);
+    const blob = await res.blob();
+    return new File([blob], filename, { type: blob.type || "image/jpeg" });
+  };
 
   // Open file for cropping
   const openFileForCrop = async (file, side) => {
@@ -102,7 +134,7 @@ const designType = params.get("designType") || "single";
     setCroppedAreaPixels(croppedAreaPixels_);
   }, []);
 
-  // create cropped image using canvas
+  // create cropped image using canvas (returns dataURL)
   const getCroppedImg = (imageSrc, cropPixels) =>
     new Promise((resolve, reject) => {
       const image = new Image();
@@ -192,15 +224,77 @@ const designType = params.get("designType") || "single";
     return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
   };
 
-  const handleSubmit = () => {
+  // ------------ FIXED handleSubmit: converts dataURLs to Files and sends FormData ------------
+  const handleSubmit = async () => {
+    // require at least one design according to designType
     if (!frontPreview && !backPreview && !fullPreview) {
       alert("Please upload at least one design.");
       return;
     }
-    // TODO: send to backend
-    alert("Design submitted successfully!");
-    navigate(`/product/${productId}`);
+    if (!productId) {
+      alert("Product ID missing.");
+      return;
+    }
+    if (quantity <= 0) {
+      alert("Invalid quantity.");
+      return;
+    }
+
+    try {
+      const formData = new FormData();
+
+      // Determine which sides exist based on designType and append present previews
+      // We'll name files using fileMeta if available or fallback names
+      const appendIf = async (previewDataUrl, metaName, fallbackName) => {
+        if (!previewDataUrl) return;
+        const filename = (metaName && metaName.name) || fallbackName || "design.jpg";
+        const fileObj = await dataURLtoFile(previewDataUrl, filename);
+        formData.append("images", fileObj); // multer.array('images') on backend
+      };
+
+      // Append front/back/full if present
+      await appendIf(frontPreview, fileMeta.front, `${productId}_front.jpg`);
+      await appendIf(backPreview, fileMeta.back, `${productId}_back.jpg`);
+      await appendIf(fullPreview, fileMeta.full, `${productId}_full.jpg`);
+
+      // Append metadata fields
+      formData.append("productId", productId);
+      formData.append("quantity", String(quantity));
+      formData.append("designType", designType);
+
+      // optional fields
+      if (size) formData.append("size", String(size));
+      if (finish) formData.append("finish", String(finish));
+      if (corner) formData.append("corner", String(corner));
+
+      // You can append other fields as required by your price calculation: e.g. selectedFinish, selectedCorner, selectedSize...
+      // formData.append("selectedFinish", selectedFinish);
+
+      // Submit to backend
+      const res = await fetch(`${API_BASE_URL || ""}/addToCartWithDesign`, {
+        method: "POST",
+        credentials: "include", // send cookie auth
+        body: formData,
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (res.ok) {
+        alert("✅ Design uploaded and product added to cart.");
+        navigate("/cart");
+      } else if (res.status === 401) {
+        alert("⚠️ Session expired. Please login again.");
+        navigate("/signin");
+      } else {
+        console.error("addToCartWithDesign error:", data);
+        alert(data.message || "Failed to add product to cart. Check console for details.");
+      }
+    } catch (err) {
+      console.error("Upload+Add-to-cart error:", err);
+      alert("Something went wrong while uploading designs and adding to cart.");
+    }
   };
+  // ---------------------------------------------------------------------------------------------
 
   // hidden file input component
   const InputFile = ({ side, inputRef }) => (
@@ -232,13 +326,10 @@ const designType = params.get("designType") || "single";
             </div>
           </header>
 
-         <section className="upload-grid">
-  {(designType === "single" ? ["front"] 
-    : designType === "double" ? ["front", "back"] 
-    : ["full"]
-  ).map((side) => {
-    const preview = side === "front" ? frontPreview : side === "back" ? backPreview : fullPreview;
-    const meta = fileMeta[side];
+          <section className="upload-grid">
+            {(designType === "single" ? ["front"] : designType === "double" ? ["front", "back"] : ["full"]).map((side) => {
+              const preview = side === "front" ? frontPreview : side === "back" ? backPreview : fullPreview;
+              const meta = fileMeta[side];
               return (
                 <div key={side} className="upload-card">
                   <div className="upload-card-top">
@@ -301,9 +392,7 @@ const designType = params.get("designType") || "single";
                     {side === "back" && <InputFile side="back" inputRef={backInputRef} />}
                     {side === "full" && <InputFile side="full" inputRef={fullInputRef} />}
 
-                    {preview ? (
-                      <img src={preview} alt={`${side} preview`} className="preview-img" />
-                    ) : (
+                    {preview ? <img src={preview} alt={`${side} preview`} className="preview-img" /> : (
                       <div className="dz-placeholder">
                         <div className="dz-title">Drop image or tap Choose</div>
                         <div className="dz-sub">PNG / JPG • max 6MB</div>
@@ -356,85 +445,61 @@ const designType = params.get("designType") || "single";
 
       {/* Crop modal (only top: Cancel + Save crop) */}
       {croppingImage && (
-  <div className="crop-overlay" role="dialog" aria-modal="true">
-    <div className="crop-panel">
-      <div className="crop-top">
-        <div className="crop-title">✂️ Crop {croppingSide?.toUpperCase()}</div>
-      </div>
+        <div className="crop-overlay" role="dialog" aria-modal="true">
+          <div className="crop-panel">
+            <div className="crop-top">
+              <div className="crop-title">✂️ Crop {croppingSide?.toUpperCase()}</div>
+            </div>
 
-      {/* Body */}
-      <div className="crop-body">
-        <div className="crop-area" aria-hidden>
-          <Cropper
-            image={croppingImage}
-            crop={crop}
-            zoom={zoom}
-            aspect={1}
-            onCropChange={setCrop}
-            onZoomChange={setZoom}
-            onCropComplete={handleCropComplete}
-            showGrid={false}
-          />
-        </div>
+            {/* Body */}
+            <div className="crop-body">
+              <div className="crop-area" aria-hidden>
+                <Cropper
+                  image={croppingImage}
+                  crop={crop}
+                  zoom={zoom}
+                  aspect={1}
+                  onCropChange={setCrop}
+                  onZoomChange={setZoom}
+                  onCropComplete={handleCropComplete}
+                  showGrid={false}
+                />
+              </div>
 
-        <aside className="crop-sidebar">
-          {/* ⬇️ Removed the second preview box */}
+              <aside className="crop-sidebar">
+                <div className="crop-inputs">
+                  <label className="range-label">Zoom</label>
+                  <input type="range" min={1} max={3} step={0.01} value={zoom} onChange={(e) => setZoom(Number(e.target.value))} />
 
-          <div className="crop-inputs">
-            <label className="range-label">Zoom</label>
-            <input
-              type="range"
-              min={1}
-              max={3}
-              step={0.01}
-              value={zoom}
-              onChange={(e) => setZoom(Number(e.target.value))}
-            />
+                  <label className="range-label">X position</label>
+                  <input type="range" min={-100} max={100} step={1} value={Math.round(crop.x)} onChange={(e) => setCrop((c) => ({ ...c, x: Number(e.target.value) }))} />
 
-            <label className="range-label">X position</label>
-            <input
-              type="range"
-              min={-100}
-              max={100}
-              step={1}
-              value={Math.round(crop.x)}
-              onChange={(e) => setCrop((c) => ({ ...c, x: Number(e.target.value) }))}
-            />
+                  <label className="range-label">Y position</label>
+                  <input type="range" min={-100} max={100} step={1} value={Math.round(crop.y)} onChange={(e) => setCrop((c) => ({ ...c, y: Number(e.target.value) }))} />
+                </div>
+              </aside>
+            </div>
 
-            <label className="range-label">Y position</label>
-            <input
-              type="range"
-              min={-100}
-              max={100}
-              step={1}
-              value={Math.round(crop.y)}
-              onChange={(e) => setCrop((c) => ({ ...c, y: Number(e.target.value) }))}
-            />
+            <div className="crop-footer">
+              <button
+                className="ud-ghost-btn"
+                onClick={() => {
+                  setCroppingImage(null);
+                  setCroppingSide(null);
+                  setCroppedAreaPixels(null);
+                  setCrop({ x: 0, y: 0 });
+                  setZoom(1);
+                }}
+              >
+                Cancel
+              </button>
+              <button className="ud-choose-btn" onClick={handleSaveCrop}>
+                Save Crop
+              </button>
+            </div>
           </div>
-        </aside>
-      </div>
-
-      {/* ✅ Buttons moved here */}
-      <div className="crop-footer">
-        <button
-          className="ud-ghost-btn"
-          onClick={() => {
-            setCroppingImage(null);
-            setCroppingSide(null);
-            setCroppedAreaPixels(null);
-            setCrop({ x: 0, y: 0 });
-            setZoom(1);
-          }}
-        >
-          Cancel
-        </button>
-        <button className="ud-choose-btn" onClick={handleSaveCrop}>
-          Save Crop
-        </button>
-      </div>
-    </div>
-  </div>
-)}
+        </div>
+      )}
 
       {/* Styles (mobile-first) */}
       <style>{`
@@ -595,14 +660,14 @@ const designType = params.get("designType") || "single";
 
         .range-label { font-size:13px; color:var(--muted); margin-bottom:6px; display:block; }
         .crop-footer {
-  display: flex;
-  gap: 10px;
-  justify-content: flex-end;
-  padding: 12px 16px;
-  border-top: 1px solid rgba(2,6,23,0.06);
-  background: #fff;
-  flex-wrap: wrap;
-}
+          display: flex;
+          gap: 10px;
+          justify-content: flex-end;
+          padding: 12px 16px;
+          border-top: 1px solid rgba(2,6,23,0.06);
+          background: #fff;
+          flex-wrap: wrap;
+        }
 
         /* Desktop layout for crop */
         @media (min-width:880px) {
