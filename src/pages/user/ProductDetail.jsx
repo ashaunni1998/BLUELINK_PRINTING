@@ -36,7 +36,8 @@ const [selectedPaper, setSelectedPaper] = useState(null);
 const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
 
-
+const [isPaperDropdownOpen, setIsPaperDropdownOpen] = useState(false);
+const [isFinishDropdownOpen, setIsFinishDropdownOpen] = useState(false);
 
 const [isCropOpen, setIsCropOpen] = useState(false);
 const [croppedImage, setCroppedImage] = useState(null);
@@ -852,41 +853,20 @@ console.log(id);
     return <div>Loading product...</div>;
   }
 
-  // âœ… safely extract category name
-  const rawCategory = product?.category;
 
+const rawCategory = product?.categories ?? product?.category;
 const categoryName = Array.isArray(rawCategory)
-
-  ? rawCategory[0]
-
-  : typeof rawCategory === "object"
-
-  ? rawCategory?.name
-
-  : rawCategory;
-
-
-
-// normalize spaces & case (remove NBSP etc) and compare
+  ? rawCategory[0]?.name
+  : (typeof rawCategory === "object" ? rawCategory?.name : rawCategory);
 
 const normalize = (str = "") =>
-
-  String(str)
-
-    .replace(/\u00A0/g, " ") // replace non-breaking spaces
-
-    .replace(/\s+/g, " ")    // collapse multiple spaces
-
+  String(str || "")
+    .replace(/\u00A0/g, " ")
+    .replace(/\s+/g, " ")
     .trim()
-
     .toLowerCase();
 
-
-
 const isPersonalisedGift = normalize(categoryName) === "personalized gifts";
-
-
-
 
   return (
     <div style={styles.container}>
@@ -960,10 +940,11 @@ const isPersonalisedGift = normalize(categoryName) === "personalized gifts";
   <div style={{ display: "flex", alignItems: "center", marginBottom: "20px" }}>
     <span style={{ color: "#007bff", fontSize: "20px", marginRight: "8px" }}>★★★★★</span>
     <span style={{ fontSize: "15px", color: "#555" }}>
-      {product.rating.count > 0
-        ? `${product.rating.count} reviews`
-        : "No reviews yet"}
-    </span>
+  {product?.rating?.count > 0
+    ? `${product.rating.count} reviews`
+    : "No reviews yet"}
+</span>
+
   </div>
 
 
@@ -994,7 +975,7 @@ const isPersonalisedGift = normalize(categoryName) === "personalized gifts";
   </p> */}
   {/* Sizes */}
 {/* Sizes */}
-{product.size?.length > 0 && (
+{product.sizes?.length > 0 && (
   <div style={{ marginBottom: "16px" }}>
     <h3 style={{ fontSize: "18px", fontWeight: "600", marginBottom: "12px" }}>
       Available Sizes
@@ -1007,7 +988,7 @@ const isPersonalisedGift = normalize(categoryName) === "personalized gifts";
         flexWrap: "wrap",
       }}
     >
-      {product.size.map((s, i) => {
+      {product.sizes.map((s, i) => {
         // Map size name to image
         const sizeImages = {
           standard:
@@ -1069,223 +1050,777 @@ const isPersonalisedGift = normalize(categoryName) === "personalized gifts";
 
 
 
-{/* Paper */}
-{product.paper?.length > 0 && (
-  <div style={{ marginBottom: "16px" }}>
-    <h3 style={{ fontSize: "18px", fontWeight: "600", marginBottom: "12px" }}>
-      Paper Options
-    </h3>
-
-    <div
-      style={{
-        display: "flex",
-        gap: "16px",
-        flexWrap: "wrap",
-      }}
-    >
-      {product.paper.map((p, i) => {
-        // Map paper name to image
-        const paperImages = {
-          original:
-            "https://www.moo.com/static-assets/product-images/b199bfe46c94ed9b044c2e52d18b9042f176b7f8/laminates/matte-526x251.jpg",
-          super:
-            "https://www.moo.com/static-assets/product-images/b199bfe46c94ed9b044c2e52d18b9042f176b7f8/laminates/gloss-526x251.jpg",
-          luxe:
-            "https://www.moo.com/static-assets/product-images/b199bfe46c94ed9b044c2e52d18b9042f176b7f8/laminates/matte-526x251.jpg",
-          specialfinish:
-            "https://www.moo.com/static-assets/product-images/b199bfe46c94ed9b044c2e52d18b9042f176b7f8/laminates/gloss-526x251.jpg",
-        };
-
-        const imgUrl = paperImages[p.name.toLowerCase()];
-
-        return (
-          <div
-            key={i}
-            onClick={() => setSelectedPaper(p)}
-            style={{
-              border:
-                selectedPaper?.name === p.name
-                  ? "2px solid #007bff"
-                  : "1px solid #ccc",
-              borderRadius: "8px",
-              padding: "10px",
-              cursor: "pointer",
-              textAlign: "center",
-              width: "180px",
-              transition: "all 0.2s ease-in-out",
-              boxShadow:
-                selectedPaper?.name === p.name
-                  ? "0px 4px 12px rgba(0,0,0,0.15)"
-                  : "none",
-            }}
-          >
-            {imgUrl && (
-              <img
-                src={imgUrl}
-                alt={p.name}
-                style={{
-                  width: "100%",
-                  height: "100px",
-                  objectFit: "cover",
-                  marginBottom: "8px",
-                  borderRadius: "6px",
-                }}
-              />
-            )}
-            <div style={{ fontSize: "14px", fontWeight: "500" }}>
-              {p.name}
+{/* Paper Options - Advanced Powerful Dropdown */}
+{product.papers?.length > 0 && (
+  <div style={{ marginBottom: "32px" }}>
+    <div style={{ 
+      display: "flex", 
+      alignItems: "center", 
+      justifyContent: "space-between",
+      marginBottom: "12px"
+    }}>
+      <div>
+        <h3 style={{ 
+          fontSize: "22px", 
+          fontWeight: "700", 
+          marginBottom: "4px",
+          color: "#0f172a",
+          fontFamily: "'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif",
+          letterSpacing: "-0.02em"
+        }}>
+          Paper Selection
+        </h3>
+        <p style={{
+          fontSize: "14px",
+          color: "#64748b",
+          fontFamily: "'SF Pro Text', -apple-system, BlinkMacSystemFont, sans-serif",
+          fontWeight: "500"
+        }}>
+          Choose premium paper quality • {product.papers.length} options available
+        </p>
+      </div>
+      <div style={{
+        padding: "8px 12px",
+        backgroundColor: selectedPaper ? "#007abf" : "#e2e8f0",
+        borderRadius: "20px",
+        fontSize: "12px",
+        fontWeight: "600",
+        color: selectedPaper ? "#ffffff" : "#007abf",
+        transition: "all 0.3s ease",
+        textTransform: "uppercase",
+        letterSpacing: "0.05em"
+      }}>
+        {selectedPaper ? "Selected" : "Choose"}
+      </div>
+    </div>
+    
+    <div style={{ position: "relative" }}>
+      <div
+        onClick={() => setIsPaperDropdownOpen(!isPaperDropdownOpen)}
+        style={{
+          backgroundColor: isPaperDropdownOpen ? "#007abf" : "#f8fafc",
+          border: `3px solid ${isPaperDropdownOpen ? "#007abf" : "#e2e8f0"}`,
+          borderRadius: "16px",
+          padding: "16px 20px",
+          cursor: "pointer",
+          transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
+          boxShadow: isPaperDropdownOpen 
+            ? "0 20px 40px -12px rgba(0, 122, 191, 0.3), 0 0 0 1px rgba(255,255,255,0.1)" 
+            : "0 4px 15px -3px rgba(0, 0, 0, 0.1), 0 2px 6px -2px rgba(0, 0, 0, 0.05)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          minHeight: "60px",
+          transform: isPaperDropdownOpen ? "translateY(-2px)" : "translateY(0)",
+          position: "relative",
+          overflow: "hidden"
+        }}
+      >
+        <div style={{ flex: 1, position: "relative", zIndex: 2 }}>
+          <div style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "12px",
+            marginBottom: selectedPaper ? "4px" : "0"
+          }}>
+            <div style={{
+              width: "32px",
+              height: "32px",
+              borderRadius: "12px",
+              backgroundColor: selectedPaper 
+                ? (isPaperDropdownOpen ? "rgba(255,255,255,0.2)" : "#007abf")
+                : "#007abf",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              transition: "all 0.3s ease"
+            }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={isPaperDropdownOpen ? "#ffffff" : "#ffffff"} strokeWidth="2.5">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14,2 14,8 20,8"></polyline>
+                <line x1="16" y1="13" x2="8" y2="13"></line>
+                <line x1="16" y1="17" x2="8" y2="17"></line>
+                <polyline points="10,9 9,9 8,9"></polyline>
+              </svg>
             </div>
-            <div style={{ fontSize: "13px", color: "#555" }}>
-              {p.points.join(", ")}
+            
+            <div>
+              <div style={{
+                fontSize: "16px",
+                fontWeight: "700",
+                color: isPaperDropdownOpen ? "#ffffff" : "#0f172a",
+                fontFamily: "'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif",
+                letterSpacing: "-0.01em",
+                transition: "color 0.3s ease"
+              }}>
+                {selectedPaper ? selectedPaper.name : "Select Paper Quality"}
+              </div>
+              {selectedPaper && (
+                <div style={{
+                  fontSize: "12px",
+                  color: isPaperDropdownOpen ? "rgba(255,255,255,0.8)" : "#64748b",
+                  fontFamily: "'SF Pro Text', -apple-system, BlinkMacSystemFont, sans-serif",
+                  fontWeight: "500",
+                  transition: "color 0.3s ease"
+                }}>
+                  {selectedPaper.points.slice(0, 2).join(" • ")}
+                  {selectedPaper.points.length > 2 && ` • +${selectedPaper.points.length - 2} more`}
+                </div>
+              )}
             </div>
           </div>
-        );
-      })}
+        </div>
+        
+        <div style={{
+          position: "relative",
+          zIndex: 2,
+          display: "flex",
+          alignItems: "center",
+          gap: "8px"
+        }}>
+          <div style={{
+            padding: "4px 8px",
+            backgroundColor: isPaperDropdownOpen ? "rgba(255,255,255,0.2)" : "#e2e8f0",
+            borderRadius: "8px",
+            fontSize: "10px",
+            fontWeight: "600",
+            color: isPaperDropdownOpen ? "#ffffff" : "#64748b",
+            textTransform: "uppercase",
+            letterSpacing: "0.05em",
+            transition: "all 0.3s ease"
+          }}>
+            {product.papers.length} Options
+          </div>
+          <div style={{
+            transform: isPaperDropdownOpen ? "rotate(180deg)" : "rotate(0deg)",
+            transition: "transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
+            color: isPaperDropdownOpen ? "#ffffff" : "#64748b"
+          }}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <polyline points="6,9 12,15 18,9"></polyline>
+            </svg>
+          </div>
+        </div>
+      </div>
+      
+      {isPaperDropdownOpen && (
+        <div style={{
+          position: "absolute",
+          top: "calc(100% + 8px)",
+          left: 0,
+          right: 0,
+          backgroundColor: "#ffffff",
+          border: "2px solid #e2e8f0",
+          borderRadius: "16px",
+          boxShadow: "0 20px 40px -12px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0,0,0,0.05)",
+          zIndex: 100,
+          overflow: "hidden",
+          animation: "dropdownSlide 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
+          maxHeight: "300px",
+          overflowY: "auto"
+        }}>
+          <div style={{
+            padding: "12px 16px",
+            backgroundColor: "#f8fafc",
+            borderBottom: "1px solid #e2e8f0"
+          }}>
+            <div style={{
+              fontSize: "13px",
+              fontWeight: "600",
+              color: "#475569",
+              fontFamily: "'SF Pro Text', -apple-system, BlinkMacSystemFont, sans-serif"
+            }}>
+              Available Paper Types
+            </div>
+          </div>
+          
+          {product.papers.map((p, i) => (
+            <div
+              key={i}
+              onClick={() => {
+                setSelectedPaper(p);
+                setIsPaperDropdownOpen(false);
+              }}
+              style={{
+                padding: "14px 16px",
+                cursor: "pointer",
+                borderBottom: i < product.papers.length - 1 ? "1px solid #f1f5f9" : "none",
+                backgroundColor: selectedPaper?.name === p.name ? "#f0f9ff" : "transparent",
+                transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                position: "relative",
+                overflow: "hidden"
+              }}
+              onMouseEnter={(e) => {
+                if (selectedPaper?.name !== p.name) {
+                  e.target.style.backgroundColor = "#f8fafc";
+                  e.target.style.transform = "translateX(4px)";
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (selectedPaper?.name !== p.name) {
+                  e.target.style.backgroundColor = "transparent";
+                  e.target.style.transform = "translateX(0)";
+                }
+              }}
+            >
+              {/* Hover indicator */}
+              <div style={{
+                position: "absolute",
+                left: 0,
+                top: 0,
+                bottom: 0,
+                width: "3px",
+                backgroundColor: selectedPaper?.name === p.name ? "#007abf" : "transparent",
+                transition: "all 0.3s ease"
+              }}></div>
+              
+              <div style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between"
+              }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "10px",
+                    marginBottom: "6px"
+                  }}>
+                    <div style={{
+                      width: "28px",
+                      height: "28px",
+                      borderRadius: "8px",
+                      backgroundColor: selectedPaper?.name === p.name ? "#007abf" : "#e2e8f0",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: "11px",
+                      fontWeight: "700",
+                      color: selectedPaper?.name === p.name ? "#ffffff" : "#64748b",
+                      textTransform: "uppercase"
+                    }}>
+                      {p.name.charAt(0)}
+                    </div>
+                    
+                    <div style={{
+                      fontSize: "14px",
+                      fontWeight: "700",
+                      color: "#0f172a",
+                      fontFamily: "'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif",
+                      textTransform: "capitalize"
+                    }}>
+                      {p.name}
+                    </div>
+                  </div>
+                  
+                  <div style={{
+                    display: "flex",
+                    flexWrap: "wrap",
+                    gap: "4px",
+                    marginTop: "6px"
+                  }}>
+                    {p.points.map((point, idx) => (
+                      <span key={idx} style={{
+                        padding: "2px 6px",
+                        backgroundColor: selectedPaper?.name === p.name ? "#e6f3ff" : "#f1f5f9",
+                        borderRadius: "4px",
+                        fontSize: "10px",
+                        fontWeight: "600",
+                        color: selectedPaper?.name === p.name ? "#007abf" : "#64748b",
+                        fontFamily: "'SF Pro Text', -apple-system, BlinkMacSystemFont, sans-serif"
+                      }}>
+                        {point}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+                
+                {selectedPaper?.name === p.name && (
+                  <div style={{
+                    marginLeft: "12px",
+                    width: "28px",
+                    height: "28px",
+                    borderRadius: "50%",
+                    backgroundColor: "#007abf",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    animation: "checkmarkBounce 0.4s ease"
+                  }}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="white">
+                      <path d="M20.285 2l-11.285 11.567-5.286-5.011-3.714 3.716 9 8.728 15-15.285z"/>
+                    </svg>
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   </div>
 )}
 
-
-
-{/* Finish */}
+{/* Finish - Advanced Powerful Dropdown */}
 {product.finish?.length > 0 && (
-  <div style={{ marginBottom: "16px" }}>
-    <h3 style={{ fontSize: "18px", fontWeight: "600", marginBottom: "12px" }}>
-      Finish
-    </h3>
-
-    <div
-      style={{
-        display: "flex",
-        gap: "16px",
-        flexWrap: "wrap",
-      }}
-    >
-      {product.finish.map((f, i) => {
-        // Map finish name to image
-        const finishImages = {
-          matte:
-            "https://www.moo.com/static-assets/product-images/b199bfe46c94ed9b044c2e52d18b9042f176b7f8/laminates/matte-526x251.jpg",
-          gloss:
-            "https://www.moo.com/static-assets/product-images/b199bfe46c94ed9b044c2e52d18b9042f176b7f8/laminates/gloss-526x251.jpg",
-        };
-
-        const imgUrl = finishImages[f.name.toLowerCase()];
-
-        return (
-          <div
-            key={i}
-            onClick={() => setSelectedFinish(f)}
-            style={{
-              border:
-                selectedFinish?.name === f.name
-                  ? "2px solid #007bff"
-                  : "1px solid #ccc",
-              borderRadius: "8px",
-              padding: "10px",
-              cursor: "pointer",
-              textAlign: "center",
-              width: "180px",
-              transition: "all 0.2s ease-in-out",
-              boxShadow:
-                selectedFinish?.name === f.name
-                  ? "0px 4px 12px rgba(0,0,0,0.15)"
-                  : "none",
-            }}
-          >
-            {imgUrl && (
-              <img
-                src={imgUrl}
-                alt={f.name}
-                style={{
-                  width: "100%",
-                  height: "100px",
-                  objectFit: "cover",
-                  marginBottom: "8px",
-                  borderRadius: "6px",
-                }}
-              />
-            )}
-            <div style={{ fontSize: "14px", fontWeight: "500" }}>
-              {f.name}
+  <div style={{ marginBottom: "32px" }}>
+    <div style={{ 
+      display: "flex", 
+      alignItems: "center", 
+      justifyContent: "space-between",
+      marginBottom: "12px"
+    }}>
+      <div>
+        <h3 style={{ 
+          fontSize: "22px", 
+          fontWeight: "700", 
+          marginBottom: "4px",
+          color: "#0f172a",
+          fontFamily: "'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif",
+          letterSpacing: "-0.02em"
+        }}>
+          Surface Finish
+        </h3>
+        <p style={{
+          fontSize: "14px",
+          color: "#64748b",
+          fontFamily: "'SF Pro Text', -apple-system, BlinkMacSystemFont, sans-serif",
+          fontWeight: "500"
+        }}>
+          Professional finishing options • Enhanced durability
+        </p>
+      </div>
+      <div style={{
+        padding: "8px 12px",
+        backgroundColor: selectedFinish ? "#007abf" : "#e2e8f0",
+        borderRadius: "20px",
+        fontSize: "12px",
+        fontWeight: "600",
+        color: selectedFinish ? "#ffffff" : "#64748b",
+        transition: "all 0.3s ease",
+        textTransform: "uppercase",
+        letterSpacing: "0.05em"
+      }}>
+        {selectedFinish ? "Applied" : "Select"}
+      </div>
+    </div>
+    
+    <div style={{ position: "relative" }}>
+      <div
+        onClick={() => setIsFinishDropdownOpen(!isFinishDropdownOpen)}
+        style={{
+          backgroundColor: isFinishDropdownOpen ? "#007abf" : "#f8fafc",
+          border: `3px solid ${isFinishDropdownOpen ? "#007abf" : "#e2e8f0"}`,
+          borderRadius: "16px",
+          padding: "16px 20px",
+          cursor: "pointer",
+          transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
+          boxShadow: isFinishDropdownOpen 
+            ? "0 20px 40px -12px rgba(0, 122, 191, 0.3), 0 0 0 1px rgba(255,255,255,0.1)" 
+            : "0 4px 15px -3px rgba(0, 0, 0, 0.1), 0 2px 6px -2px rgba(0, 0, 0, 0.05)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          minHeight: "60px",
+          transform: isFinishDropdownOpen ? "translateY(-2px)" : "translateY(0)",
+          position: "relative",
+          overflow: "hidden"
+        }}
+      >
+        <div style={{ flex: 1, position: "relative", zIndex: 2 }}>
+          <div style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "12px",
+            marginBottom: selectedFinish ? "4px" : "0"
+          }}>
+            <div style={{
+              width: "32px",
+              height: "32px",
+              borderRadius: "12px",
+              backgroundColor: selectedFinish 
+                ? (isFinishDropdownOpen ? "rgba(255,255,255,0.2)" : "#007abf")
+                : "#007abf",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              transition: "all 0.3s ease"
+            }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2.5">
+                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
+              </svg>
             </div>
-            <div style={{ fontSize: "13px", color: "#555" }}>
-              {f.description}
+            
+            <div>
+              <div style={{
+                fontSize: "16px",
+                fontWeight: "700",
+                color: isFinishDropdownOpen ? "#ffffff" : "#0f172a",
+                fontFamily: "'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif",
+                letterSpacing: "-0.01em",
+                transition: "color 0.3s ease",
+                textTransform: "capitalize"
+              }}>
+                {selectedFinish ? selectedFinish.name : "Choose Finish Type"}
+              </div>
+              {selectedFinish && (
+                <div style={{
+                  fontSize: "12px",
+                  color: isFinishDropdownOpen ? "rgba(255,255,255,0.8)" : "#64748b",
+                  fontFamily: "'SF Pro Text', -apple-system, BlinkMacSystemFont, sans-serif",
+                  fontWeight: "500",
+                  transition: "color 0.3s ease"
+                }}>
+                  {selectedFinish.description}
+                </div>
+              )}
             </div>
           </div>
-        );
-      })}
+        </div>
+        
+        <div style={{
+          position: "relative",
+          zIndex: 2,
+          display: "flex",
+          alignItems: "center",
+          gap: "8px"
+        }}>
+          <div style={{
+            padding: "4px 8px",
+            backgroundColor: isFinishDropdownOpen ? "rgba(255,255,255,0.2)" : "#e2e8f0",
+            borderRadius: "8px",
+            fontSize: "10px",
+            fontWeight: "600",
+            color: isFinishDropdownOpen ? "#ffffff" : "#64748b",
+            textTransform: "uppercase",
+            letterSpacing: "0.05em",
+            transition: "all 0.3s ease"
+          }}>
+            Premium
+          </div>
+          <div style={{
+            transform: isFinishDropdownOpen ? "rotate(180deg)" : "rotate(0deg)",
+            transition: "transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
+            color: isFinishDropdownOpen ? "#ffffff" : "#64748b"
+          }}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <polyline points="6,9 12,15 18,9"></polyline>
+            </svg>
+          </div>
+        </div>
+      </div>
+      
+      {isFinishDropdownOpen && (
+        <div style={{
+          position: "absolute",
+          top: "calc(100% + 8px)",
+          left: 0,
+          right: 0,
+          backgroundColor: "#ffffff",
+          border: "2px solid #e2e8f0",
+          borderRadius: "16px",
+          boxShadow: "0 20px 40px -12px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0,0,0,0.05)",
+          zIndex: 100,
+          overflow: "hidden",
+          animation: "dropdownSlide 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
+          maxHeight: "300px",
+          overflowY: "auto"
+        }}>
+          <div style={{
+            padding: "12px 16px",
+            backgroundColor: "#f8fafc",
+            borderBottom: "1px solid #e2e8f0"
+          }}>
+            <div style={{
+              fontSize: "13px",
+              fontWeight: "600",
+              color: "#475569",
+              fontFamily: "'SF Pro Text', -apple-system, BlinkMacSystemFont, sans-serif"
+            }}>
+              Finish Options
+            </div>
+          </div>
+          
+          {product.finish.map((f, i) => (
+            <div
+              key={i}
+              onClick={() => {
+                setSelectedFinish(f);
+                setIsFinishDropdownOpen(false);
+              }}
+              style={{
+                padding: "14px 16px",
+                cursor: "pointer",
+                borderBottom: i < product.finish.length - 1 ? "1px solid #f1f5f9" : "none",
+                backgroundColor: selectedFinish?.name === f.name ? "#f0f9ff" : "transparent",
+                transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                position: "relative",
+                overflow: "hidden"
+              }}
+              onMouseEnter={(e) => {
+                if (selectedFinish?.name !== f.name) {
+                  e.target.style.backgroundColor = "#f8fafc";
+                  e.target.style.transform = "translateX(4px)";
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (selectedFinish?.name !== f.name) {
+                  e.target.style.backgroundColor = "transparent";
+                  e.target.style.transform = "translateX(0)";
+                }
+              }}
+            >
+              {/* Hover indicator */}
+              <div style={{
+                position: "absolute",
+                left: 0,
+                top: 0,
+                bottom: 0,
+                width: "3px",
+                backgroundColor: selectedFinish?.name === f.name ? "#007abf" : "transparent",
+                transition: "all 0.3s ease"
+              }}></div>
+              
+              <div style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between"
+              }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "10px",
+                    marginBottom: "6px"
+                  }}>
+                    <div style={{
+                      width: "28px",
+                      height: "28px",
+                      borderRadius: "8px",
+                      backgroundColor: selectedFinish?.name === f.name ? "#007abf" : "#e2e8f0",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: "11px",
+                      fontWeight: "700",
+                      color: selectedFinish?.name === f.name ? "#ffffff" : "#64748b",
+                      textTransform: "uppercase"
+                    }}>
+                      {f.name.charAt(0)}
+                    </div>
+                    
+                    <div style={{
+                      fontSize: "14px",
+                      fontWeight: "700",
+                      color: "#0f172a",
+                      fontFamily: "'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif",
+                      textTransform: "capitalize"
+                    }}>
+                      {f.name}
+                    </div>
+                  </div>
+                  
+                  <div style={{
+                    fontSize: "12px",
+                    color: "#64748b",
+                    lineHeight: "1.4",
+                    fontFamily: "'SF Pro Text', -apple-system, BlinkMacSystemFont, sans-serif",
+                    fontWeight: "500",
+                    marginLeft: "38px"
+                  }}>
+                    {f.description}
+                  </div>
+                </div>
+                
+                {selectedFinish?.name === f.name && (
+                  <div style={{
+                    marginLeft: "12px",
+                    width: "28px",
+                    height: "28px",
+                    borderRadius: "50%",
+                    backgroundColor: "#007abf",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    animation: "checkmarkBounce 0.4s ease"
+                  }}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="white">
+                      <path d="M20.285 2l-11.285 11.567-5.286-5.011-3.714 3.716 9 8.728 15-15.285z"/>
+                    </svg>
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   </div>
 )}
+
+<style>{`
+  @keyframes dropdownSlide {
+    from {
+      opacity: 0;
+      transform: translateY(-20px) scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+  
+  @keyframes checkmarkBounce {
+    0% { transform: scale(0) rotate(-180deg); }
+    50% { transform: scale(1.2) rotate(-90deg); }
+    100% { transform: scale(1) rotate(0deg); }
+  }
+  
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+`}</style>
 
 
 {/* Corners */}
 {product.corner?.length > 0 && (
-  <div style={{ marginBottom: "16px" }}>
-    <h3 style={{ fontSize: "18px", fontWeight: "600", marginBottom: "12px" }}>
-      Corners
+  <div style={{ marginBottom: "24px" }}>
+    <h3 style={{ 
+      fontSize: "20px", 
+      fontWeight: "600", 
+      marginBottom: "16px",
+      color: "#1a1a1a"
+    }}>
+      Choose your corners
     </h3>
-
+    
     <div
       style={{
-        display: "flex",
+        display: "grid",
+        gridTemplateColumns: "1fr 1fr",
         gap: "16px",
-        flexWrap: "wrap",
       }}
     >
       {product.corner.map((c, i) => {
-        // Map corner type to image
+        // Map corner type to appropriate icon/image
         const cornerImages = {
           square: "https://shorturl.at/NvRK3",
-          rounded:
-            "https://static.vecteezy.com/system/resources/previews/042/983/171/non_2x/round-corner-skined-filled-icon-vector.jpg",
+          rounded: "https://static.vecteezy.com/system/resources/previews/042/983/171/non_2x/round-corner-skined-filled-icon-vector.jpg",
         };
-
+        
         const imgUrl = cornerImages[c.name.toLowerCase()];
-
+        
         return (
           <div
             key={i}
             onClick={() => setSelectedCorner(c)}
             style={{
-              border:
-                selectedCorner?.name === c.name
-                  ? "2px solid #007bff"
-                  : "1px solid #ccc",
-              borderRadius: "8px",
-              padding: "10px",
+              border: selectedCorner?.name === c.name 
+                ? "2px solid #007bff" 
+                : "2px solid #e5e5e5",
+              borderRadius: "12px",
+              padding: "20px",
               cursor: "pointer",
-              textAlign: "center",
-              width: "160px",
+              backgroundColor: selectedCorner?.name === c.name 
+                ? "#f8f9ff" 
+                : "#ffffff",
               transition: "all 0.2s ease-in-out",
-              boxShadow:
-                selectedCorner?.name === c.name
-                  ? "0px 4px 12px rgba(0,0,0,0.15)"
-                  : "none",
+              boxShadow: selectedCorner?.name === c.name 
+                ? "0 4px 12px rgba(0, 123, 255, 0.15)" 
+                : "0 2px 8px rgba(0, 0, 0, 0.05)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              minHeight: "100px",
+              position: "relative",
+              overflow: "hidden"
             }}
           >
-            {imgUrl && (
-              <img
-                src={imgUrl}
-                alt={c.name}
-                style={{
-                  width: "100%",
-                  height: "100px",
-                  objectFit: "contain",
-                  marginBottom: "8px",
-                  borderRadius: "6px",
-                  background: "#f9f9f9",
-                  padding: "6px",
-                }}
-              />
+            {/* Left side content */}
+            <div style={{ flex: 1 }}>
+              <div style={{ 
+                fontSize: "16px", 
+                fontWeight: "600",
+                marginBottom: "4px",
+                color: "#1a1a1a",
+                textTransform: "capitalize"
+              }}>
+                {c.name}
+              </div>
+              <div style={{ 
+                fontSize: "14px", 
+                color: "#666",
+                lineHeight: "1.4"
+              }}>
+                {c.description}
+              </div>
+            </div>
+            
+            {/* Right side icon */}
+            <div style={{ 
+              marginLeft: "16px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center"
+            }}>
+              {imgUrl ? (
+                <img
+                  src={imgUrl}
+                  alt={c.name}
+                  style={{
+                    width: "40px",
+                    height: "40px",
+                    objectFit: "contain",
+                    filter: selectedCorner?.name === c.name 
+                      ? "brightness(1.1)" 
+                      : "brightness(0.8)",
+                  }}
+                />
+              ) : (
+                // Fallback SVG icons if images don't load
+                <div style={{
+                  width: "40px",
+                  height: "40px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  backgroundColor: "#f0f0f0",
+                  borderRadius: c.name.toLowerCase() === "square" ? "4px" : "50%",
+                  border: "2px solid #ddd"
+                }}>
+                  {c.name.toLowerCase() === "square" ? (
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                    </svg>
+                  ) : (
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <rect x="3" y="3" width="18" height="18" rx="9" ry="9"/>
+                    </svg>
+                  )}
+                </div>
+              )}
+            </div>
+            
+            {/* Selection indicator */}
+            {selectedCorner?.name === c.name && (
+              <div style={{
+                position: "absolute",
+                top: "12px",
+                right: "12px",
+                width: "20px",
+                height: "20px",
+                backgroundColor: "#007bff",
+                borderRadius: "50%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center"
+              }}>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="white">
+                  <polyline points="20,6 9,17 4,12"></polyline>
+                </svg>
+              </div>
             )}
-            <div style={{ fontSize: "14px", fontWeight: "500" }}>
-              {c.name}
-            </div>
-            <div style={{ fontSize: "13px", color: "#555" }}>
-              {c.description}
-            </div>
           </div>
         );
       })}

@@ -19,32 +19,44 @@ function ProductTable({ products, loading, setProductDataForEditing, setPurpose,
         }).format(price);
     };
 
-   const createRating = (rating) => {
-    // rating = { count: number, total: number }
-    const maxTotal = 60;
+const createRating = (rating = {}) => {
+  // rating might be:
+  // { avg: 4.2, count: 10 }
+  // { total: 42, count: 10 }  -> avg = total / count = 4.2
+  // or rating could be undefined/null
 
-    const avg = rating.count > 0 ? (rating.total / maxTotal) * 5 : 0;
-    const fullStars = Math.floor(avg);
-    const hasHalfStar = avg - fullStars >= 0.5;
-    const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+  const avg = (() => {
+    if (!rating) return 0;
+    if (typeof rating.avg === "number") return Math.max(0, Math.min(5, rating.avg));
+    if (typeof rating.total === "number" && typeof rating.count === "number" && rating.count > 0) {
+      return Math.max(0, Math.min(5, rating.total / rating.count));
+    }
+    return 0;
+  })();
 
-    return (
-        <div className="flex flex-col sm:flex-row sm:items-center gap-1 mt-1 text-sm text-gray-700">
-            <div className="flex items-center gap-1">
-                {[...Array(fullStars)].map((_, i) => (
-                    <Star key={`full-${i}`} className="w-3 h-3 text-yellow-400 fill-current" />
-                ))}
-                {hasHalfStar && (
-                    <Star key="half" className="w-3 h-3 text-yellow-400 fill-current opacity-50" />
-                )}
-                {[...Array(emptyStars)].map((_, i) => (
-                    <Star key={`empty-${i}`} className="w-3 h-3 text-gray-300" />
-                ))}
-                <span className="ml-1 text-xs text-gray-600">{ Math.abs( avg.toFixed(1))} / 5</span>
-            </div>
-            
-        </div>
-    );
+  const fullStars = Math.floor(avg);
+  const hasHalfStar = (avg - fullStars) >= 0.5;
+  const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+
+  return (
+    <div className="flex flex-col sm:flex-row sm:items-center gap-1 mt-1 text-sm text-gray-700">
+      <div className="flex items-center gap-1">
+        {[...Array(fullStars)].map((_, i) => (
+          <Star key={`full-${i}`} className="w-3 h-3" />
+        ))}
+        {hasHalfStar && (
+          <Star key="half" className="w-3 h-3 opacity-50" />
+        )}
+        {[...Array(emptyStars)].map((_, i) => (
+          <Star key={`empty-${i}`} className="w-3 h-3 text-gray-300" />
+        ))}
+        <span className="ml-1 text-xs text-gray-600">{avg.toFixed(1)} / 5</span>
+      </div>
+      <div className="text-xs text-gray-500">
+        {rating?.count ? `${rating.count} review${rating.count > 1 ? 's' : ''}` : 'No reviews yet'}
+      </div>
+    </div>
+  );
 };
 
  
@@ -226,7 +238,8 @@ const tableSorting = () => {
                                             {/* Category - Hidden on mobile */}
                                             <td className="px-2 sm:px-4 lg:px-6 py-3 sm:py-4 hidden sm:table-cell">
                                                 <div className="text-gray-700 font-medium text-xs sm:text-sm lg:text-base">
-                                                    {product.category.name}
+                                                    {product.categories?.[0]?.name ?? 'No Category'
+}
                                                 </div>
                                             </td>
 
