@@ -4,193 +4,322 @@ import Header from "./components/Header";
 import Footer from "./components/Footer";
 import { API_BASE_URL } from "../../config";
 
-/**
- * Cart.jsx
- * - Uses product.priceTiers as canonical source of unit price / shipping / weight.
- * - Shows subtotal, total shipping (summary), total weight, total.
- * - Qty select lists only admin-defined tier qty values.
- * - Updates call PATCH /updateCartQuantity? (body: { cartId, productId, newQty })
- */
-
 const currencySymbol = (s) => s ?? "$";
 
 const formatMoney = (n) => {
   const num = Number(n || 0);
-  return num.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  return num.toLocaleString(undefined, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
 };
 
 export default function Cart() {
-  const [items, setItems] = useState([]); // normalized items
+  const [items, setItems] = useState([]);
   const [cartId, setCartId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [currency, setCurrency] = useState("$");
 
-  // Given a product (possibly populated) and a requested qty, pick the best tier.
-  // Behavior: exact match -> that tier; otherwise largest tier.qty <= qty; otherwise smallest tier.
   const pickTierForQty = (priceTiers = [], qty) => {
     if (!Array.isArray(priceTiers) || !priceTiers.length) return null;
-    const sorted = [...priceTiers].map(t => ({ ...t, qty: Number(t.qty) })).sort((a,b) => a.qty - b.qty);
-    const q = Number(qty);
-    if (!Number.isFinite(q)) return sorted[0];
+    const sorted = [...priceTiers]
+      .map((t) => ({ ...t, qty: Number(t.qty) }))
+      .filter((t) => Number.isFinite(t.qty))
+      .sort((a, b) => a.qty - b.qty);
 
-    const exact = sorted.find(t => t.qty === q);
+    if (!sorted.length) return null;
+
+    const q = Number(qty) || 0;
+    const exact = sorted.find((t) => t.qty === q);
     if (exact) return exact;
+
     for (let i = sorted.length - 1; i >= 0; i--) {
       if (sorted[i].qty <= q) return sorted[i];
     }
+
     return sorted[0];
   };
 
-  // Normalize cart items returned by backend into a consistent shape used by UI.
-  // Backend cart item 'i' expected fields: productId (maybe populated doc), quantity, images, options, unitPrice, shippingPrice, lineTotal
-  const normalizeCart = (cartData) => {
-    if (!cartData || !Array.isArray(cartData.items)) return [];
-    const normalized = cartData.items.map((i) => {
-      // product may be populated document or just objectid
-      const product = (i.productId && typeof i.productId === "object") ? i.productId : null;
-      const productId = product?._id ? String(product._id) : String(i.productId);
-      const qty = Number(i.quantity || 1);
-      const options = i.options || {};
-      const designType = (options.designType || options.design || "single").toString().toLowerCase();
+// REPLACE normalizeCart with this version
+const normalizeCart = (cartData) => {
+  if (!cartData || !Array.isArray(cartData.items)) return [];
 
-      // Find tier either from saved raw fields or from product.priceTiers
-      let tierFromProduct = null;
-      if (product && Array.isArray(product.priceTiers) && product.priceTiers.length) {
-        tierFromProduct = pickTierForQty(product.priceTiers, qty);
-      }
+  return cartData.items.map((i, idx) => {
+    const raw = i;
+    // product may be a populated object or just an id string
+    const product = (i.productId && typeof i.productId === "object") ? i.productId : null;
+    const productIdStr = product?._id ? String(product._id) : (i.productId ? String(i.productId) : `unknown-${idx}`);
 
-      // derive unitPrice, shippingPrice, weightGrams - priority:
-      // 1) saved fields in cart item (unitPrice, shippingPrice, weightGrams if saved by backend)
-      // 2) compute from tierFromProduct
-      // 3) fallback to 0
-      const savedUnit = Number(i.unitPrice ?? NaN);
-      const savedShip = Number(i.shippingPrice ?? NaN);
-      const savedWeight = Number(i.weightGrams ?? NaN);
+    const qty = Number(i.quantity ?? 1) || 1;
+    const options = i.options || {};
+    const designType = (options.designType || options.design || "single").toString().toLowerCase();
 
-      let unitPrice = Number.isFinite(savedUnit) ? savedUnit : 0;
-      let shippingPrice = Number.isFinite(savedShip) ? savedShip : 0;
-      let weightGrams = Number.isFinite(savedWeight) ? savedWeight : 0;
-      let usedTierQty = null;
+    // Helper: find price tiers on the product under common field names
+    const extractTiers = (p) => {
+      if (!p || typeof p !== "object") return null;
+      return p.priceTiers ?? p.price_tiers ?? p.tiers ?? p.pricing?.priceTiers ?? null;
+    };
+    const rawTiers = extractTiers(product);
 
-      if ((!Number.isFinite(savedUnit) || !Number.isFinite(savedShip) || !Number.isFinite(savedWeight)) && tierFromProduct) {
-        usedTierQty = Number(tierFromProduct.qty);
-        unitPrice = designType === "double" ? Number(tierFromProduct.priceDouble) : Number(tierFromProduct.priceSingle);
-        shippingPrice = Number(tierFromProduct.shippingCharge || 0);
-        weightGrams = Number(tierFromProduct.weightGrams || 0);
-      }
-
-      const lineTotal = Number((unitPrice * qty + shippingPrice).toFixed(2));
-
-      // allowed qty options: take from product.priceTiers (admin-defined)
-      const allowedQtyOptions = Array.isArray(product?.priceTiers) && product.priceTiers.length
-        ? [...new Set(product.priceTiers.map(t => Number(t.qty)))].sort((a,b)=>a-b)
-        : (Array.isArray(product?.allowedQuantities) ? product.allowedQuantities.map(n => Number(n)).sort((a,b)=>a-b) : [qty]);
-
-      return {
-        raw: i,
-        id: productId,
-        name: product?.name ?? i.rawName ?? "(Product unavailable)",
-        desc: product?.description ?? "",
-        image: Array.isArray(product?.images) && product.images.length ? product.images[0] : (i.images && i.images[0]) || "",
-        qty,
-        allowedQtyOptions,
-        unitPrice,
-        shippingPrice,
-        weightGrams,
-        lineTotal,
-        designType,
-        usedTierQty,
-        product // keep full product for possible re-calculation
-      };
-    });
-
-    return normalized;
-  };
-
-  const fetchCart = async () => {
-    setLoading(true);
-    try {
-      const res = await fetch(`${API_BASE_URL}/getCart`, {
-        method: "GET",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-      });
-      const payload = await res.json().catch(() => null);
-      const cart = payload?.cartData ?? payload?.data ?? payload ?? null;
-      if (!cart) {
-        setItems([]);
-        setCartId(null);
-        setLoading(false);
-        return;
-      }
-      setCartId(cart._id ?? null);
-      // optionally read currency if backend returns it (common pattern)
-      if (cart.currency) setCurrency(cart.currency);
-      const normalized = normalizeCart(cart);
-      setItems(normalized);
-    } catch (err) {
-      console.error("Failed to fetch cart:", err);
-      setItems([]);
-    } finally {
-      setLoading(false);
+    // Build allowedQtyOptions from product.priceTiers (qty / quantity / minQty)
+    let allowedQtyOptions = [];
+    if (Array.isArray(rawTiers) && rawTiers.length) {
+      const qtys = rawTiers.map(t => Number(t.qty ?? t.quantity ?? t.minQty ?? null)).filter(n => Number.isFinite(n));
+      allowedQtyOptions = [...new Set(qtys)].sort((a,b)=>a-b);
     }
-  };
 
-  useEffect(() => { fetchCart(); }, []);
+    // fallback to any allowed list on item
+    if (!allowedQtyOptions.length) {
+      const itemCandidates = [ raw.allowedQtys, raw.allowedQuantities, raw.qtyOptions, raw.qty_list, raw.allowedQtyOptions ];
+      for (const cand of itemCandidates) {
+        if (Array.isArray(cand) && cand.length) {
+          const v = cand.map(x => Number(x)).filter(n => Number.isFinite(n));
+          if (v.length) { allowedQtyOptions = [...new Set(v)].sort((a,b)=>a-b); break; }
+        }
+      }
+    }
 
-  const updateCartQty = async (productId, newQty) => {
-  console.log("Sending update:", { cartId, productId, newQty });
+    if (!allowedQtyOptions.length) allowedQtyOptions = [qty];
 
-  // optimistic UI
-  setItems(prev =>
-    prev.map(it => it.id === productId ? { ...it, qty: Number(newQty) } : it)
-  );
-
-  try {
-    const body = { 
-      cartId: cartId || "", 
-      productId, 
-      quantity: Number(newQty)  // 👈 many backends expect "quantity" not "newQty"
+    // helper to pick a tier from an array (makes qty field tolerant)
+    const pickTierFromArr = (arr = [], q) => {
+      if (!Array.isArray(arr) || !arr.length) return null;
+      const sorted = arr.map(t => ({ ...t, _qty: Number(t.qty ?? t.quantity ?? t.minQty ?? 0) }))
+                        .filter(t => Number.isFinite(t._qty))
+                        .sort((a,b)=>a._qty-b._qty);
+      if (!sorted.length) return null;
+      const exact = sorted.find(t => t._qty === Number(q));
+      if (exact) return exact;
+      for (let i = sorted.length - 1; i >= 0; i--) {
+        if (sorted[i]._qty <= Number(q)) return sorted[i];
+      }
+      return sorted[0];
     };
 
+    const tierFromProduct = rawTiers ? pickTierFromArr(rawTiers, qty) : null;
+
+    // snapshot values stored on cart item
+    const savedUnit = (i.unitPrice !== undefined && i.unitPrice !== null) ? Number(i.unitPrice) : NaN;
+    const savedShip = (i.shippingPrice !== undefined && i.shippingPrice !== null) ? Number(i.shippingPrice) : NaN;
+
+    let unitPrice = Number.isFinite(savedUnit) ? savedUnit : NaN;
+    let shippingPrice = Number.isFinite(savedShip) ? savedShip : NaN;
+
+    if ((!Number.isFinite(unitPrice) || !Number.isFinite(shippingPrice)) && tierFromProduct) {
+      unitPrice = designType === "double"
+        ? Number(tierFromProduct.priceDouble ?? tierFromProduct.priceSingle ?? tierFromProduct.price ?? 0)
+        : Number(tierFromProduct.priceSingle ?? tierFromProduct.price ?? 0);
+      shippingPrice = Number(tierFromProduct.shippingCharge ?? tierFromProduct.shippingPrice ?? 0);
+    }
+
+    if (!Number.isFinite(unitPrice) && product) unitPrice = Number(product.basePrice ?? product.price ?? 0);
+    if (!Number.isFinite(shippingPrice) && product) shippingPrice = Number(product.shippingCharge ?? product.shippingPrice ?? 0);
+
+    if (!Number.isFinite(unitPrice)) unitPrice = 0;
+    if (!Number.isFinite(shippingPrice)) shippingPrice = 0;
+
+    const lineTotal = Number((unitPrice + shippingPrice).toFixed(2));
+    const image = (Array.isArray(product?.images) && product.images.length) ? product.images[0] : (raw.images && raw.images[0]) || "";
+    const name = product?.name ?? raw.rawName ?? raw.name ?? "(Product unavailable)";
+
+    return {
+      raw,
+      id: productIdStr,
+      name,
+      desc: product?.description ?? raw.description ?? "",
+      image,
+      qty,
+      allowedQtyOptions,
+      unitPrice,
+      shippingPrice,
+      lineTotal,
+      designType,
+      product
+    };
+  });
+};
+
+
+
+// helper used by fetchCart (robust)
+const fetchProductById = async (id) => {
+  try {
+    const res = await fetch(`${API_BASE_URL}/product/productDetails/${encodeURIComponent(id)}`, { credentials: "include" });
+    if (!res.ok) {
+      console.warn("fetchProductById failed", id, res.status);
+      return null;
+    }
+    const payload = await res.json().catch(() => null);
+    // your product endpoint returns { message, data: { ...product... } }
+    return payload?.data ?? payload?.product ?? payload ?? null;
+  } catch (err) {
+    console.error("fetchProductById error", id, err);
+    return null;
+  }
+};
+
+const fetchCart = async () => {
+  setLoading(true);
+  try {
+    const res = await fetch(`${API_BASE_URL}/getCart`, {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+    });
+    const payload = await res.json().catch(() => null);
+    console.debug("fetchCart raw payload:", payload);
+
+    // try common wrappers for cart object
+    const candidate = payload?.cart ?? payload?.cartData ?? payload?.data ?? payload ?? null;
+    const candidateAlt = payload?.data?.cart ?? payload?.data ?? null;
+    const cart = Array.isArray(candidate?.items) ? candidate : (Array.isArray(candidateAlt?.items) ? candidateAlt : null);
+
+    if (!cart || !Array.isArray(cart.items)) {
+      const maybeId = candidate?._id ?? candidate?.id ?? candidate?.cartId ?? payload?.cart?._id ?? payload?.data?._id ?? null;
+      console.warn("fetchCart: could not resolve cart.items; payload:", payload);
+      setCartId(maybeId ? String(maybeId) : null);
+      setItems([]);
+      setLoading(false);
+      return;
+    }
+
+    // store cartId if present
+    const resolvedCartId = cart._id ?? cart.id ?? cart.cartId ?? payload?.cart?._id ?? payload?.data?._id ?? null;
+    if (resolvedCartId) setCartId(String(resolvedCartId));
+
+    // find productIds that are primitive and fetch product details
+    const missingProductIds = cart.items
+      .filter(it => it.productId && typeof it.productId !== "object")
+      .map(it => String(it.productId))
+      .filter(Boolean);
+
+    let productMap = {};
+    if (missingProductIds.length) {
+      const uniqueIds = [...new Set(missingProductIds)];
+      const fetches = uniqueIds.map(id => fetchProductById(id).then(p => ({ id, p })));
+      const results = await Promise.all(fetches);
+      for (const r of results) {
+        if (r?.p) productMap[String(r.id)] = r.p;
+      }
+      console.debug("fetchCart -> productMap keys:", Object.keys(productMap));
+    }
+
+    // inject fetched product objects into items so normalizeCart can use them
+    const cartWithProducts = {
+      ...cart,
+      items: cart.items.map(it => {
+        if (it.productId && typeof it.productId !== "object") {
+          const idStr = String(it.productId);
+          const fetched = productMap[idStr] ?? null;
+          return fetched ? { ...it, productId: fetched } : it;
+        }
+        return it;
+      })
+    };
+
+    const normalized = normalizeCart(cartWithProducts);
+    setItems(normalized);
+  } catch (err) {
+    console.error("fetchCart error:", err);
+    setItems([]);
+    setCartId(null);
+  } finally {
+    setLoading(false);
+  }
+};
+
+
+// REPLACE updateCartQty with this
+const updateCartQty = async (cartItemIdOrProductId, newQty) => {
+  // find UI item to resolve productId and cartItemId
+  const item = items.find(it =>
+    String(it.raw?._id) === String(cartItemIdOrProductId) ||
+    String(it.id) === String(cartItemIdOrProductId) ||
+    String(it.raw?.productId) === String(cartItemIdOrProductId)
+  );
+
+  const productIdFromItem = item?.product?._id || item?.raw?.productId || item?.id || null;
+  const cartItemIdFromItem = item?.raw?._id ?? null;
+  const cartIdToSend = cartId || (item?.raw && (item.raw.cartId || item.raw.cart?._id || item.raw.cart?.id)) || "";
+
+  if (!productIdFromItem && !cartItemIdFromItem) {
+    console.warn("updateCartQty: cannot resolve productId or cartItemId", { cartItemIdOrProductId, item, cartId });
+    await fetchCart();
+    return;
+  }
+
+  // optimistic UI update
+  setItems(prev => prev.map(it =>
+    (String(it.raw?._id) === String(cartItemIdOrProductId) ||
+     String(it.id) === String(cartItemIdOrProductId) ||
+     String(it.raw?.productId) === String(cartItemIdOrProductId))
+      ? { ...it, qty: Number(newQty) }
+      : it
+  ));
+  setUpdatingMap(m => ({ ...m, [cartItemIdOrProductId]: true }));
+
+  // Build body: include cartItemId (most reliable), productId and cartId as fallbacks
+  const body = { newQty: Number(newQty) };
+  if (cartItemIdFromItem) body.cartItemId = String(cartItemIdFromItem);
+  if (productIdFromItem) body.productId = String(productIdFromItem);
+  if (cartIdToSend) body.cartId = String(cartIdToSend);
+
+  console.debug("updateCartQty sending body:", body);
+
+  try {
     const res = await fetch(`${API_BASE_URL}/updateCartQuantity`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
       body: JSON.stringify(body),
     });
+    let json = null;
+    try { json = await res.json(); } catch (e) { /* ignore */ }
+    console.debug("updateCartQty response:", res.status, json);
 
-    const json = await res.json().catch(() => ({}));
     if (!res.ok) {
-      console.error("updateCartQuantity error:", json);
-      await fetchCart(); // rollback if error
+      console.error("updateCartQty server error:", json);
+      await fetchCart(); // revert
       return;
     }
 
-    // 👇 refresh cart only if backend confirms update
-    if (json.success || json.updated || json.cart) {
-      await fetchCart();
-    }
+    // success -> refresh authoritative cart
+    await fetchCart();
   } catch (err) {
     console.error("updateCartQty error:", err);
     await fetchCart();
+  } finally {
+    setUpdatingMap(m => {
+      const copy = { ...m };
+      delete copy[cartItemIdOrProductId];
+      return copy;
+    });
   }
 };
 
 
+  useEffect(() => {
+    fetchCart();
+  }, []);
+const [updatingMap, setUpdatingMap] = useState({});
+
+
+
   const removeItem = async (productId) => {
     try {
-      const res = await fetch(`${API_BASE_URL}/removeCartItem?productId=${encodeURIComponent(productId)}`, {
-        method: "DELETE",
-        credentials: "include",
-      });
-      const json = await res.json().catch(() => ({}));
+      const res = await fetch(
+        `${API_BASE_URL}/removeCartItem?productId=${encodeURIComponent(
+          productId
+        )}`,
+        {
+          method: "DELETE",
+          credentials: "include",
+        }
+      );
       if (!res.ok) {
-        console.error("removeCartItem failed:", json);
         return;
       }
-      // update UI
-      setItems(prev => prev.filter(it => it.id !== productId));
+      setItems((prev) => prev.filter((it) => it.id !== productId));
       await fetchCart();
     } catch (err) {
       console.error("removeItem error:", err);
@@ -198,88 +327,148 @@ export default function Cart() {
     }
   };
 
-  // totals based on normalized items
-  const subtotal = items.reduce((s, it) => s + (Number(it.unitPrice || 0) * Number(it.qty || 0)), 0);
-  const shippingTotal = items.reduce((s, it) => s + Number(it.shippingPrice || 0), 0);
-  const totalWeightGrams = items.reduce((s, it) => s + Number(it.weightGrams || 0), 0);
+  // FIXED: do not multiply by qty, since unitPrice is tier price
+  const subtotal = items.reduce((s, it) => s + Number(it.unitPrice || 0), 0);
+  const shippingTotal = items.reduce(
+    (s, it) => s + Number(it.shippingPrice || 0),
+    0
+  );
   const total = subtotal + shippingTotal;
 
-  if (loading) return <div style={{ padding: 40, textAlign: "center" }}>Loading cart…</div>;
+  if (loading)
+    return <div style={{ padding: 40, textAlign: "center" }}>Loading cart…</div>;
 
   return (
-    <div style={{ width: "100%",  padding: "0px 80px" }}>
+    <div style={{ width: "100%", padding: "0px 80px" }}>
       <Header />
 
       <main style={{ background: "#fff", padding: 20, borderRadius: 8 }}>
         <h1 style={{ fontSize: 22, marginBottom: 12 }}>🛒 Your Cart</h1>
 
         {items.length === 0 ? (
-          <div style={{ padding: 20, color: "#6B7280" }}>Your cart is empty.</div>
+          <div style={{ padding: 20, color: "#6B7280" }}>
+            Your cart is empty.
+          </div>
         ) : (
           <>
-            {items.map(item => (
-              <div key={item.id} style={{ display: "flex", gap: 16, alignItems: "flex-start", padding: "16px 0", borderBottom: "1px solid #EEE" }}>
-                <div style={{ width: 120, height: 90, border: "1px solid #F1F5F9", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <img src={item.image || "https://via.placeholder.com/120x90"} alt={item.name} style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "cover" }} />
-                </div>
+           {items.map((item, idx) => {
+  const cartItemId = item.raw?._id ?? null; // cart item id from backend (preferred)
+  const keyId = cartItemId ? cartItemId : `${item.id}-${idx}`;
 
-                <div style={{ flex: 1 }}>
-                  <h3 style={{ margin: 0, fontSize: 16 }}>{item.name}</h3>
-                  <p style={{ margin: "6px 0 0", color: "#6B7280" }}>{item.desc}</p>
+  return (
+    <div key={keyId} style={{ display: "flex", gap: 16, alignItems: "flex-start", padding: "16px 0", borderBottom: "1px solid #EEE" }}>
+      <div style={{ width: 120, height: 90, border: "1px solid #F1F5F9", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <img src={item.image || "https://via.placeholder.com/120x90"} alt={item.name} style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "cover" }} />
+      </div>
 
-                  <div style={{ marginTop: 8, display: "flex", gap: 24, alignItems: "center", flexWrap: "wrap" }}>
-                    <div>
-                      <div style={{ color: "#374151", fontSize: 13 }}>Design:</div>
-                      <div style={{ fontWeight: 700, textTransform: "capitalize" }}>{item.designType}</div>
-                    </div>
 
-                    <div>
-                      <div style={{ color: "#374151", fontSize: 13 }}>Qty:</div>
-                      <div style={{ marginTop: 6 }}>
-                        <select
-                          value={item.qty}
-                          onChange={(e) => updateCartQty(item.id, e.target.value)}
-                          style={{ padding: "6px 10px", borderRadius: 6, border: "1px solid #D1D5DB" }}
-                        >
-                          {item.allowedQtyOptions.map(q => <option key={q} value={q}>{q}</option>)}
-                        </select>
-                      </div>
-                    </div>
+      <div style={{ flex: 1 }}>
+        <h3 style={{ margin: 0, fontSize: 16 }}>{item.name}</h3>
+        <p style={{ margin: "6px 0 0", color: "#6B7280" }}>{item.desc}</p>
 
-                    
-                  </div>
-                </div>
+        <div style={{ marginTop: 8, display: "flex", gap: 24, alignItems: "center", flexWrap: "wrap" }}>
+          <div>
+            <div style={{ color: "#374151", fontSize: 13 }}>Design:</div>
+            <div style={{ fontWeight: 700, textTransform: "capitalize" }}>{item.designType}</div>
+          </div>
 
-                <div style={{ textAlign: "right", minWidth: 120 }}>
-                  <div style={{ fontWeight: 700, fontSize: 18 }}>{currencySymbol(currency)}{formatMoney(item.unitPrice * item.qty)}</div>
-                  <button onClick={() => removeItem(item.id)} style={{ marginTop: 12, background: "transparent", border: "none", color: "#EF4444", cursor: "pointer", textDecoration: "underline" }}>Remove</button>
-                </div>
-              </div>
-            ))}
+          <div>
+            <div style={{ color: "#374151", fontSize: 13 }}>Qty:</div>
+            <div style={{ marginTop: 6 }}>
+              <select
+  value={item.qty}
+  onChange={(e) => {
+    const newQty = e.target.value;
+    const cartItemId = item.raw?._id ?? item.id;
+    updateCartQty(cartItemId, newQty);
+  }}
+  disabled={ !!updatingMap[item.raw?._id ?? item.id] || !cartId } // <-- don't allow change until cartId known
+  style={{ padding: "6px 10px", borderRadius: 6, border: "1px solid #D1D5DB" }}
+>
 
-            <div style={{ marginTop: 20, borderTop: "1px solid #EEE", paddingTop: 20 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", color: "#6B7280", marginBottom: 8 }}>
-                <span>Subtotal</span>
-                <span>{currencySymbol(currency)}{formatMoney(subtotal)}</span>
-              </div>
+  {item.allowedQtyOptions.map((q) => (
+    <option key={`${item.id}-qty-${q}`} value={q}>{q}</option>
+  ))}
+</select>
 
-              <div style={{ display: "flex", justifyContent: "space-between", color: "#6B7280", marginBottom: 8 }}>
-                <span>Shipping</span>
-                <span>{currencySymbol(currency)}{formatMoney(shippingTotal)}</span>
-              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
-              <div style={{ display: "flex", justifyContent: "space-between", fontWeight: 700, fontSize: 18, marginTop: 12 }}>
+      <div style={{ textAlign: "right", minWidth: 120 }}>
+        <div style={{ fontWeight: 700, fontSize: 18 }}>
+          {currencySymbol(currency)}{formatMoney(item.unitPrice)}
+        </div>
+        <button onClick={() => removeItem(item.id)} style={{ marginTop: 12, background: "transparent", border: "none", color: "#EF4444", cursor: "pointer", textDecoration: "underline" }}>
+          Remove
+        </button>
+      </div>
+    </div>
+  );
+})}
+
+
+            <div
+              style={{
+                marginTop: 20,
+                borderTop: "1px solid #EEE",
+                paddingTop: 20,
+              }}
+            >
+              
+
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  fontWeight: 700,
+                  fontSize: 18,
+                  marginTop: 12,
+                }}
+              >
                 <span>Total</span>
-                <span>{currencySymbol(currency)}{formatMoney(total)}</span>
+                <span>
+                  {currencySymbol(currency)}
+                  {formatMoney(subtotal)}
+                </span>
               </div>
 
-              <div style={{ marginTop: 8, color: "#6B7280" }}>
-                <small>Total weight: {totalWeightGrams} g</small>
-              </div>
-
-              <div style={{ marginTop: 18, display: "flex", justifyContent: "space-between", gap: 12 }}>
-                <a href="/"><button style={{ background: "#2563eb", color: "#fff", padding: "10px 16px", borderRadius: 8, border: "none" }}>← Continue Shopping</button></a>
-                <a href="/checkout"><button style={{ background: "#06b6d4", color: "#fff", padding: "10px 16px", borderRadius: 8, border: "none", fontWeight: 700 }}>Proceed to Checkout</button></a>
+              <div
+                style={{
+                  marginTop: 18,
+                  display: "flex",
+                  justifyContent: "space-between",
+                  gap: 12,
+                }}
+              >
+                <a href="/">
+                  <button
+                    style={{
+                      background: "#2563eb",
+                      color: "#fff",
+                      padding: "10px 16px",
+                      borderRadius: 8,
+                      border: "none",
+                    }}
+                  >
+                    ← Continue Shopping
+                  </button>
+                </a>
+                <a href="/checkout">
+                  <button
+                    style={{
+                      background: "#06b6d4",
+                      color: "#fff",
+                      padding: "10px 16px",
+                      borderRadius: 8,
+                      border: "none",
+                      fontWeight: 700,
+                    }}
+                  >
+                    Proceed to Checkout
+                  </button>
+                </a>
               </div>
             </div>
           </>

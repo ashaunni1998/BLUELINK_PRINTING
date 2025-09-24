@@ -36,8 +36,6 @@ const [appliedCoupon, setAppliedCoupon] = useState(null);
     return 0;
   };
 
-
-  
   const deliveryCost = getDeliveryCost();
   
   const [newAddress, setNewAddress] = useState({

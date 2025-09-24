@@ -705,25 +705,37 @@ const handlePrepareAndUpload = async () => {
     setCustomText(""); // clear input
   };
 
-  // Handle Upload Your Design button click
-  const handleUploadYourDesign = () => {
-    if (!selectedTier) {
-      alert("Please select a quantity tier first.");
-      return;
-    }
+// ProductDetail.jsx
+// FULL handleUploadYourDesign - paste in place of your existing function
+const handleUploadYourDesign = () => {
+  // Ensure selected tier exists
+  if (!selectedTier) {
+    alert("Please select a quantity tier first.");
+    return;
+  }
 
-    // Navigate to UploadDesign page with parameters
-    const params = new URLSearchParams({
-      designType: selectedDesignType,
-      quantity: selectedTier.qty,
-      ...(selectedSize?.name && { size: selectedSize.name }),
-      ...(selectedPaper?.name && { paper: selectedPaper.name }),
-      ...(selectedFinish?.name && { finish: selectedFinish.name }),
-      ...(selectedCorner?.name && { corner: selectedCorner.name }),
-    });
+  // Get safe primitive values for options (use .name/.label if the selected item is an object)
+  const qtyString = String(selectedTier?.qty ?? selectedTier ?? 1);
+  const sizeVal = selectedSize ? String(selectedSize?.name ?? selectedSize?.label ?? selectedSize) : "";
+  const finishVal = selectedFinish ? String(selectedFinish?.name ?? selectedFinish?.label ?? selectedFinish) : "";
+  const cornerVal = selectedCorner ? String(selectedCorner?.name ?? selectedCorner?.label ?? selectedCorner) : "";
+  const paperVal = selectedPaper ? String(selectedPaper?.name ?? selectedPaper?.label ?? selectedPaper) : "";
+  const designTypeVal = selectedDesignType || "single";
 
-    navigate(`/upload-design/${id}?${params.toString()}`);
-  };
+  // Build query string (we include productId here as query param - guaranteed)
+  const params = new URLSearchParams({
+    productId: String(id),            // <-- IMPORTANT: send product id in query param
+    designType: String(designTypeVal),
+    quantity: qtyString,
+    size: sizeVal,
+    finish: finishVal,
+    corner: cornerVal,
+    paper: paperVal
+  });
+
+  // Navigate to upload page with productId in query
+  navigate(`/upload-design?${params.toString()}`);
+};
 
  
 
@@ -1355,7 +1367,7 @@ const isPersonalisedGift = normalize(categoryName) === "personalized gifts";
 {/* ===== Enhanced Quantity + Price Selector ===== */}
  <div style={{ marginTop: "40px" }}>
       <h2 style={{ fontSize: "24px", fontWeight: "600", marginBottom: "20px" }}>
-        Choose your quantity
+        Choose your design type
       </h2>
 
 {/* Design type selection */}
@@ -1404,7 +1416,9 @@ const isPersonalisedGift = normalize(categoryName) === "personalized gifts";
   })}
 </div>
 
-
+ <h2 style={{ fontSize: "24px", fontWeight: "600", marginBottom: "20px" }}>
+        Choose your Quantity
+      </h2>
 
       {/* Pricing table */}
    <table

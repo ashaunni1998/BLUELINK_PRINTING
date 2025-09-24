@@ -32,10 +32,12 @@ try {
 }
 
 export default function UploadDesign() {
-  const { productId } = useParams();
+  const routeParams = useParams();
+
   const navigate = useNavigate();
   const location = useLocation();
-
+const param = new URLSearchParams(location.search);
+const productId = param.get("productId");
   // cropping & previews
   const [frontPreview, setFrontPreview] = useState(null);
   const [backPreview, setBackPreview] = useState(null);
@@ -224,77 +226,121 @@ export default function UploadDesign() {
     return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
   };
 
-  // ------------ FIXED handleSubmit: converts dataURLs to Files and sends FormData ------------
-  const handleSubmit = async () => {
-    // require at least one design according to designType
-    if (!frontPreview && !backPreview && !fullPreview) {
-      alert("Please upload at least one design.");
-      return;
-    }
+
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  try {
+    // Read query string
+    const qs = new URLSearchParams(window.location.search || "");
+
+    // 1) Resolve productId from route param OR query param
+    // routeParams is created at component top (see step 1)
+    const productIdFromRoute = (routeParams && (routeParams.id || routeParams.productId || routeParams.product)) || null;
+    const productIdFromQuery = qs.get("productId") || qs.get("id") || null;
+    const productId = productIdFromRoute || productIdFromQuery;
+
+    // 2) Read quantity/designType/options from querystring (or fallbacks)
+    const quantity = Number(qs.get("quantity") || qs.get("qty") || 1) || 1;
+    const designType = qs.get("designType") || "single";
+
+    const sizeRaw = qs.get("size") || "";
+    const finishRaw = qs.get("finish") || "";
+    const cornerRaw = qs.get("corner") || "";
+    const paperRaw = qs.get("paper") || "";
+
+    // Debug - show resolved values
+    console.log("UploadDesign QUERY:", {
+      productIdFromRoute,
+      productIdFromQuery,
+      resolvedProductId: productId,
+      quantity,
+      designType,
+      sizeRaw,
+      finishRaw,
+      cornerRaw,
+      paperRaw,
+      locationSearch: window.location.search,
+    });
+
+    // Validate productId
     if (!productId) {
-      alert("Product ID missing.");
-      return;
-    }
-    if (quantity <= 0) {
-      alert("Invalid quantity.");
+      console.error("Missing productId in upload design form. ProductDetail must include ?productId=... or route must be /upload-design/:id");
+      alert("Product info missing. Please go back and try again.");
       return;
     }
 
+    // Resolve files — update these names to the actual state var used in your component if needed
+    let resolvedFiles = [];
     try {
-      const formData = new FormData();
-
-      // Determine which sides exist based on designType and append present previews
-      // We'll name files using fileMeta if available or fallback names
-      const appendIf = async (previewDataUrl, metaName, fallbackName) => {
-        if (!previewDataUrl) return;
-        const filename = (metaName && metaName.name) || fallbackName || "design.jpg";
-        const fileObj = await dataURLtoFile(previewDataUrl, filename);
-        formData.append("images", fileObj); // multer.array('images') on backend
-      };
-
-      // Append front/back/full if present
-      await appendIf(frontPreview, fileMeta.front, `${productId}_front.jpg`);
-      await appendIf(backPreview, fileMeta.back, `${productId}_back.jpg`);
-      await appendIf(fullPreview, fileMeta.full, `${productId}_full.jpg`);
-
-      // Append metadata fields
-      formData.append("productId", productId);
-      formData.append("quantity", String(quantity));
-      formData.append("designType", designType);
-
-      // optional fields
-      if (size) formData.append("size", String(size));
-      if (finish) formData.append("finish", String(finish));
-      if (corner) formData.append("corner", String(corner));
-
-      // You can append other fields as required by your price calculation: e.g. selectedFinish, selectedCorner, selectedSize...
-      // formData.append("selectedFinish", selectedFinish);
-
-      // Submit to backend
-      const res = await fetch(`${API_BASE_URL || ""}/addToCartWithDesign`, {
-        method: "POST",
-        credentials: "include", // send cookie auth
-        body: formData,
-      });
-
-      const data = await res.json().catch(() => ({}));
-
-      if (res.ok) {
-        alert("✅ Design uploaded and product added to cart.");
-        navigate("/cart");
-      } else if (res.status === 401) {
-        alert("⚠️ Session expired. Please login again.");
-        navigate("/signin");
+      if (typeof files !== "undefined" && files) {
+        resolvedFiles = Array.isArray(files) ? files : Array.from(files);
+      } else if (typeof images !== "undefined" && images) {
+        resolvedFiles = Array.isArray(images) ? images : Array.from(images);
+      } else if (typeof uploadedFilesState !== "undefined" && uploadedFilesState) {
+        resolvedFiles = Array.isArray(uploadedFilesState) ? uploadedFilesState : [];
       } else {
-        console.error("addToCartWithDesign error:", data);
-        alert(data.message || "Failed to add product to cart. Check console for details.");
+        // fallback: check for input element with id uploadInput
+        const domIn = document.getElementById("uploadInput");
+        if (domIn && domIn.files && domIn.files.length) {
+          resolvedFiles = Array.from(domIn.files);
+        }
       }
     } catch (err) {
-      console.error("Upload+Add-to-cart error:", err);
-      alert("Something went wrong while uploading designs and adding to cart.");
+      console.warn("Error resolving files:", err);
+      resolvedFiles = [];
     }
-  };
-  // ---------------------------------------------------------------------------------------------
+
+    console.log("Resolved files to upload:", resolvedFiles.map(f => f?.name || "(file)"));
+
+    // Build FormData
+    const formData = new FormData();
+    if (Array.isArray(resolvedFiles) && resolvedFiles.length) {
+      for (const f of resolvedFiles) {
+        if (f instanceof File || (typeof f === "object" && (f.name || f.filename))) {
+          formData.append("images", f, f.name || f.filename || "upload.png");
+        }
+      }
+    }
+
+    formData.append("productId", String(productId));
+    formData.append("quantity", String(quantity));
+    formData.append("designType", String(designType));
+
+    const options = {
+      designType,
+      size: sizeRaw || null,
+      finish: finishRaw || null,
+      corner: cornerRaw || null,
+      paper: paperRaw || null,
+    };
+    formData.append("options", JSON.stringify(options));
+
+    console.log("Final form payload summary:", { productId, quantity, designType, options, filesCount: resolvedFiles.length });
+
+    // Send to backend (include credentials so cookie gets sent)
+    const res = await fetch(`${API_BASE_URL}/addToCartWithDesign`, {
+      method: "POST",
+      credentials: "include",
+      body: formData,
+    });
+
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      console.error("addToCartWithDesign failed:", json);
+      alert(json.message || "Failed to add to cart");
+      return;
+    }
+
+    console.log("addToCartWithDesign success:", json);
+    navigate("/cart");
+  } catch (err) {
+    console.error("handleSubmit error:", err);
+    alert("Unexpected error uploading design. See console for details.");
+  }
+};
+
+
+
 
   // hidden file input component
   const InputFile = ({ side, inputRef }) => (
