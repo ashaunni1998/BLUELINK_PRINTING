@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowRight, Sparkles, Heart, FileText, Gift, Star, Zap, Eye } from 'lucide-react';
+import { Link } from "react-router-dom";
+
+
 
 const EnhancedHomeSections = () => {
   const [visibleSections, setVisibleSections] = useState({});
@@ -104,10 +107,12 @@ const EnhancedHomeSections = () => {
                   </div>
 
                   {/* CTA */}
-                  <button className="group/btn w-full flex items-center justify-center gap-2 px-6 py-4 bg-blue-600 text-white font-semibold rounded-2xl transform transition-all duration-300 hover:scale-105">
-                    Read More
-                    <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
-                  </button>
+                 <Link to="/blog">
+  <button className="group/btn w-full flex items-center justify-center gap-2 px-6 py-4 bg-blue-600 text-white font-semibold rounded-2xl transform transition-all duration-300 hover:scale-105">
+    Read More
+    <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
+  </button>
+</Link>
                 </div>
               </div>
             </div>
@@ -147,6 +152,9 @@ const EnhancedHomeSections = () => {
                   
                   <p className="text-gray-600 leading-relaxed mb-6">
                     Master the art of creating paper invites that actually get a "yes" with these proven design strategies and tips.
+                     Make a lasting impression with our high-quality business cards. Choose
+          from a variety of finishes match
+          your brand.
                   </p>
                   
                   {/* Stats */}
@@ -161,10 +169,12 @@ const EnhancedHomeSections = () => {
                   </div>
 
                   {/* CTA */}
-                  <button className="group/btn w-full flex items-center justify-center gap-2 px-6 py-4 bg-blue-600 text-white font-semibold rounded-2xl transform transition-all duration-300 hover:scale-105">
-                    Read More
-                    <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
-                  </button>
+<Link to="/blog">
+  <button className="group/btn w-full flex items-center justify-center gap-2 px-6 py-4 bg-blue-600 text-white font-semibold rounded-2xl transform transition-all duration-300 hover:scale-105">
+    Read More
+    <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
+  </button>
+</Link>
                 </div>
               </div>
             </div>
@@ -248,13 +258,19 @@ const EnhancedHomeSections = () => {
 
               {/* CTA */}
               <div className="flex flex-col sm:flex-row gap-4">
-                <button className="group flex items-center justify-center gap-2 px-6 lg:px-8 py-4 bg-blue-600 text-white font-bold rounded-2xl transform transition-all duration-300 hover:scale-105">
-                  Shop Flyers & Leaflets
-                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                </button>
-                <button className="px-6 lg:px-8 py-4 border-2 border-blue-400 text-blue-600 font-semibold rounded-2xl bg-white hover:bg-blue-50 transition-all duration-300">
-                  View Samples
-                </button>
+            <Link to="/blog">
+    <button className="group flex items-center justify-center gap-2 px-6 lg:px-8 py-4 bg-blue-600 text-white font-bold rounded-2xl transform transition-all duration-300 hover:scale-105">
+      Shop Flyers & Leaflets
+      <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+    </button>
+  </Link>
+
+  {/* View Samples → Blog */}
+  <Link to="/blog">
+    <button className="px-6 lg:px-8 py-4 border-2 border-blue-400 text-blue-600 font-semibold rounded-2xl bg-white hover:bg-blue-50 transition-all duration-300">
+      View Samples
+    </button>
+  </Link>
               </div>
             </div>
           </div>
@@ -311,13 +327,17 @@ const EnhancedHomeSections = () => {
 
               {/* CTA */}
               <div className="flex flex-col sm:flex-row gap-4">
+               <Link to="/blog">
                 <button className="group flex items-center justify-center gap-2 px-6 lg:px-8 py-4 bg-blue-600 text-white font-bold rounded-2xl transform transition-all duration-300 hover:scale-105">
                   Shop Personalized Gifts
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </button>
+                </Link>
+                <Link to="/blog">
                 <button className="px-6 lg:px-8 py-4 border-2 border-blue-400 text-blue-600 font-semibold rounded-2xl bg-white hover:bg-blue-50 transition-all duration-300">
                   Browse Gallery
                 </button>
+                </Link>
               </div>
             </div>
 

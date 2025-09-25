@@ -45,24 +45,53 @@ export default function Header() {
 
 
 
+// --- Addresses (fetch only when user is logged in) ---
   const [addresses, setAddresses] = useState([]);
+
   const fetchAddresses = async () => {
-  try {
-    const res = await fetch(`${API_BASE_URL}/address/addresses`, {
-      method: "GET",
-      credentials: "include",
-    });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
-    setAddresses(data.addresses || []);
-  } catch (err) {
-    console.error("❌ Error fetching addresses:", err);
-    Swal.fire("Error", "Failed to fetch addresses", "error");
-  }
-};
-useEffect(() => {
-  fetchAddresses();
-}, []);
+    try {
+      const res = await fetch(`${API_BASE_URL}/address/addresses`, {
+        method: "GET",
+        credentials: "include", // uses httpOnly cookie if backend sets it
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      // If backend returns 401 for anonymous users, silently ignore
+      if (res.status === 401) {
+        // ensure we clear stored addresses so accountLinks is correct
+        setAddresses([]);
+        return;
+      }
+
+      if (!res.ok) {
+        // don't show a modal to anonymous users; log for debugging
+        console.warn("fetchAddresses unexpected status:", res.status);
+        return;
+      }
+
+      const data = await res.json();
+      setAddresses(data.addresses || []);
+    } catch (err) {
+      // network errors — log only (avoid modal on every page load)
+      console.error("fetchAddresses error:", err);
+    }
+  };
+
+  // only attempt to load addresses for authenticated users
+  useEffect(() => {
+    // avoid fetching while auth state is still loading
+    if (authLoading) return;
+
+    if (isLoggedIn) {
+      fetchAddresses();
+    } else {
+      // ensure addresses cleared for anonymous visitors
+      setAddresses([]);
+    }
+    // re-run when auth state changes
+  }, [isLoggedIn, authLoading]);
 const accountLinks = [
   { label: "Overview", tab: "overview" },
   { label: "Order History", tab: "orders" },

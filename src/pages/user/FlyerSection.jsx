@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Sparkles, Palette, FileText, ArrowRight, Star, Zap } from 'lucide-react';
-
+import { Link } from 'react-router-dom';
 const FlyerSection = () => {
   const [isVisible, setIsVisible] = useState(false);
   const [activeFeature, setActiveFeature] = useState(0);
@@ -73,6 +73,7 @@ const FlyerSection = () => {
 
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 pt-4">
+              <Link to="/sign-in">
               <button
                 onClick={handleGetStarted}
                 className="group px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-2xl transform transition-all duration-300 hover:scale-105 flex items-center justify-center gap-2"
@@ -80,6 +81,7 @@ const FlyerSection = () => {
                 Get Started
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </button>
+              </Link>
             </div>
           </div>
 
