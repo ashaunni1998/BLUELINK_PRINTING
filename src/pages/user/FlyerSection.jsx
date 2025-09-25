@@ -154,4 +154,4 @@ const FlyerSection = () => {
   );
 };
 
-export default FlyerSection;
+export default FlyerSection;       

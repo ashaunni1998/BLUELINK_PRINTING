@@ -240,14 +240,15 @@ console.log(products);
       {/* Features Section */}
 <section style={{ padding: "20px 10px", backgroundColor: "#ffffff" }}>
   <div
+  className="features-container"
     style={{
       display: "flex",
       justifyContent: "center",
       alignItems: "stretch",
       flexWrap: "wrap",
-      gap: "15px",
+      gap: "10%",
       textAlign: "center",
-      maxWidth: "1100px",
+      maxWidth: "80%",
       margin: "0 auto",
     }}
   >
@@ -339,55 +340,55 @@ console.log(products);
 
 
       {/* Popular Products Section */}
-      <section style={{ backgroundColor: "#f5f8f6", padding: "30px 0px 40px", textAlign: "center" }}>
+ <section style={{ backgroundColor: "#f5f8f6", padding: "1.875rem 0 2.5rem", textAlign: "center" }}>
   <h2
-  style={{
-    fontSize: "26px",
-    marginBottom: "10px",
-    fontWeight: "700",
-    color: "#111",
-    textAlign: "center",
-    position: "relative",
-    display: "inline-block",
-  }}
->
-  Popular Products
-  <span
     style={{
-      position: "absolute",
-      left: "50%",
-      bottom: "-6px",
-      transform: "translateX(-50%)",
-      width: "60px",
-      height: "4px",
-      // backgroundColor: "#007bff", // brand accent underline
-      borderRadius: "2px",
+      fontSize: "1.625rem",
+      marginBottom: "0.625rem",
+      fontWeight: "700",
+      color: "#111",
+      textAlign: "center",
+      position: "relative",
+      display: "inline-block",
     }}
-  ></span>
-</h2>
+  >
+    Popular Products
+    <span
+      style={{
+        position: "absolute",
+        left: "50%",
+        bottom: "-0.375rem",
+        transform: "translateX(-50%)",
+        width: "3.75rem",
+        height: "0.25rem",
+        // backgroundColor: "#007bff", // brand accent underline
+        borderRadius: "0.125rem",
+      }}
+    ></span>
+  </h2>
 
-<p
-  style={{
-    fontSize: "14px",
-    color: "#555",
-    marginBottom: "30px",
-    maxWidth: "600px",
-    marginInline: "auto",
-    lineHeight: "1.5",
-    textAlign: "center",
-  }}
->
-  These are tried and true favorites that will have you set to get down to business.
-</p>
-
+  <p
+    style={{
+      fontSize: "0.875rem",
+      color: "#555",
+      marginBottom: "1.875rem",
+      maxWidth: "90%",
+      marginInline: "auto",
+      lineHeight: "1.5",
+      textAlign: "center",
+    }}
+  >
+    These are tried and true favorites that will have you set to get down to business.
+  </p>
 
   <div
     style={{
       display: "grid",
-      gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-      gap: "20px",
-      maxWidth: "1100px",
+      gridTemplateColumns: "repeat(auto-fit, minmax(12.5rem, 1fr))",
+      gap: "1.25rem",
+      maxWidth: "80%",
       margin: "0 auto",
+      padding: "0 1rem",
     }}
   >
     {products.map((product) => (
@@ -395,14 +396,14 @@ console.log(products);
         key={product._id}
         style={{
           backgroundColor: "#fff",
-          borderRadius: "6px",
+          borderRadius: "0.375rem",
           overflow: "hidden",
-          boxShadow: "0 1px 6px rgba(0,0,0,0.07)",
+          boxShadow: "0 0.0625rem 0.375rem rgba(0,0,0,0.07)",
           transition: "transform 0.2s ease",
         }}
       >
         {/* Image wrapper */}
- <Link
+        <Link
           to={`/product/${product._id}`}
           style={{
             width: "100%",
@@ -427,7 +428,7 @@ console.log(products);
         {/* Product details */}
         <div
           style={{
-            padding: "14px",
+            padding: "0.875rem",
             borderTop: "1px solid #eee",
             textAlign: "center",
           }}
@@ -438,14 +439,14 @@ console.log(products);
               color: "#007abf",
               textDecoration: "none",
               fontWeight: "500",
-              fontSize: "15px",
+              fontSize: "0.9375rem",
               display: "block",
-              marginBottom: "6px",
+              marginBottom: "0.375rem",
             }}
           >
             {product.name}
           </Link>
-          <p style={{ fontSize: "14px", color: "#444", margin: 0 }}>
+          <p style={{ fontSize: "0.875rem", color: "#444", margin: 0 }}>
             ${product.price}
           </p>
         </div>

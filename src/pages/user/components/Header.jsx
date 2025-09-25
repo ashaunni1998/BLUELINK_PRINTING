@@ -36,6 +36,7 @@ export default function Header() {
   const [showAccountDropdown, setShowAccountDropdown] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState([]);
+  const [loading, setLoading] = useState(false);
   // const [authLoading, setAuthLoading] = useState(false);
 
   const accountTimeoutRef = useRef(null);
@@ -74,7 +75,7 @@ export default function Header() {
       const data = await res.json();
       setAddresses(data.addresses || []);
     } catch (err) {
-      // network errors — log only (avoid modal on every page load)
+      // network errors â€" log only (avoid modal on every page load)
       console.error("fetchAddresses error:", err);
     }
   };
@@ -429,7 +430,7 @@ const handleLogout = () => {
     )}
 
     <Link to="/cart" style={styles.topLink} onClick={handleCartClick}>
-      <i className="fa-solid fa-cart-shopping" style={{ marginRight: 6 }} />
+      <i className="fa-solid fa-cart-shopping" style={{ marginRight: "0.375rem" }} />
       {t("cart") || "Cart"}
     </Link>
 
@@ -535,12 +536,12 @@ const handleLogout = () => {
                           onMouseEnter={(e) => {
                             e.currentTarget.style.backgroundColor = "#f7fafc";
                             e.currentTarget.style.color = "#2b6cb0";
-                            e.currentTarget.style.paddingLeft = "24px";
+                            e.currentTarget.style.paddingLeft = "1.5rem";
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.style.backgroundColor = "transparent";
                             e.currentTarget.style.color = "#4a5568";
-                            e.currentTarget.style.paddingLeft = "20px";
+                            e.currentTarget.style.paddingLeft = "1.25rem";
                           }}
                         >
                           {product.name}
@@ -687,7 +688,7 @@ onClick={(e) => {
 
             <div style={styles.mobileCart}>
               <Link to="/cart" style={styles.mobileCartLink} onClick={handleCartClick}>
-                <i className="fas fa-shopping-cart" style={{ marginRight: 8 }} />
+                <i className="fas fa-shopping-cart" style={{ marginRight: "0.5rem" }} />
                 Cart
               </Link>
             </div>
@@ -719,11 +720,11 @@ const styles = {
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
-    padding: "8px 15px",
-    maxWidth: "1100px",
+    padding: "0.5rem 1rem",
+    maxWidth: "80%",
     margin: "0 auto",
     width: "100%",
-    minHeight: "60px",
+    minHeight: "3.75rem",
   },
   overlay: {
     position: "fixed",
@@ -740,22 +741,22 @@ const styles = {
     flexShrink: 0,
   },
   logo: { 
-    height: "45px", 
+    height: "2.8rem", 
     width: "auto",
-    maxWidth: "120px",
+    maxWidth: "7.5rem",
     objectFit: "contain",
   },
   topRightRow: { 
     display: "flex", 
     alignItems: "center", 
-    gap: "18px", 
+    gap: "1.125rem", 
     marginLeft: "auto", 
-    marginRight: "60px", 
+    marginRight: "3.75rem", 
   },
   topLink: { 
     cursor: "pointer", 
     color: "#333", 
-    fontSize: "14px", 
+    fontSize: "0.875rem", 
     textDecoration: "none",
     whiteSpace: "nowrap",
   },
@@ -766,43 +767,46 @@ const styles = {
   },
   searchWrapper: { 
     position: "relative", 
-    width: "160px", 
+    width: "12%", 
+    minWidth: "10rem",
     zIndex: 4000 
   },
   searchInput: { 
     width: "100%", 
-    padding: "8px 36px 8px 12px", 
+    padding: "0.5rem 2.25rem 0.5rem 0.75rem", 
     border: "1px solid #ccc", 
-    borderRadius: "6px" 
+    borderRadius: "0.375rem",
+    fontSize: "0.875rem",
   },
   searchIcon: { 
     position: "absolute", 
-    right: "10px", 
+    right: "0.625rem", 
     top: "50%", 
     transform: "translateY(-50%)", 
-    fontSize: "16px", 
+    fontSize: "1rem", 
     color: "#333", 
     pointerEvents: "none" 
   },
 
   searchDropdown: { 
     position: "absolute", 
-    top: "42px", 
+    top: "2.625rem", 
     left: 0, 
     right: 0, 
     backgroundColor: "#fff", 
     border: "1px solid #ccc", 
     zIndex: 5002,
-    maxHeight: "250px", 
+    maxHeight: "15.625rem", 
     overflowY: "auto", 
-    borderRadius: "6px",
-    boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+    borderRadius: "0.375rem",
+    boxShadow: "0 0.25rem 0.75rem rgba(0,0,0,0.15)",
   },
   searchItem: { 
-    padding: "10px", 
+    padding: "0.625rem", 
     borderBottom: "1px solid #eee", 
     cursor: "pointer", 
-    color: "#333" 
+    color: "#333",
+    fontSize: "0.875rem",
   },
 
   hamburger: { 
@@ -812,8 +816,8 @@ const styles = {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    padding: "8px",
-    borderRadius: "4px",
+    padding: "0.5rem",
+    borderRadius: "0.25rem",
     transition: "background-color 0.2s ease",
     flexShrink: 0,
   },
@@ -822,26 +826,25 @@ const styles = {
   },
   navLinks: { 
     display: "flex", 
-    gap: "1px", 
+    gap: "0.0625rem", 
     flexWrap: "nowrap", 
     whiteSpace: "nowrap", 
-   
-     maxWidth: "1113px", // Increased from 1100px to match topBar
+    maxWidth: "80%",
     margin: "0 auto", 
-    padding: "0 15px", // Changed from 20px to match topBar padding
+    padding: "0 1rem",
     width: "100%",
-    alignItems: "flex-start", // Ensure alignment starts from the left
+    alignItems: "flex-start",
   },
   navItem: { 
     position: "relative" 
   },
   navLink: { 
-    fontSize: "12px", 
+    fontSize: "0.75rem", 
     color: "#111", 
     fontWeight: "500", 
     textDecoration: "none", 
-    padding: "12px 6px", 
-    display: "inline-block" ,
+    padding: "0.75rem 0.375rem", 
+    display: "inline-block",
   },
 
   dropdown: {
@@ -850,19 +853,19 @@ const styles = {
     left: "0",
     backgroundColor: "#fff",
     border: "1px solid #e0e6ed",
-    borderRadius: "8px",
-    boxShadow: "0 6px 20px rgba(0,0,0,0.08)",
+    borderRadius: "0.5rem",
+    boxShadow: "0 0.375rem 1.25rem rgba(0,0,0,0.08)",
     zIndex: 3500,
-    minWidth: "240px",
+    minWidth: "15rem",
     padding: "0",
     overflow: "hidden",
   },
   dropdownItem: {
     display: "block",
-    padding: "12px 20px",
+    padding: "0.75rem 1.25rem",
     textDecoration: "none",
     color: "#4a5568",
-    fontSize: "15px",
+    fontSize: "0.9375rem",
     fontWeight: "400",
     borderBottom: "1px solid #f1f3f4",
     transition: "all 0.15s ease",
@@ -870,10 +873,10 @@ const styles = {
   },
   dropdownItemFirst: {
     display: "block",
-    padding: "12px 20px",
+    padding: "0.75rem 1.25rem",
     textDecoration: "none",
     color: "#2d3748",
-    fontSize: "15px",
+    fontSize: "0.9375rem",
     fontWeight: "600",
     borderBottom: "2px solid #e2e8f0",
     backgroundColor: "#f8f9fa",
@@ -885,35 +888,35 @@ const styles = {
     left: "50%", 
     transform: "translateX(-50%)", 
     backgroundColor: "#fff", 
-    boxShadow: "0px 6px 18px rgba(0,0,0,0.12)", 
-    borderRadius: "8px", 
+    boxShadow: "0 0.375rem 1.125rem rgba(0,0,0,0.12)", 
+    borderRadius: "0.5rem", 
     display: "flex", 
     flexDirection: "column", 
     alignItems: "stretch", 
-    minWidth: "180px", 
-    padding: "10px 0", 
+    minWidth: "11.25rem", 
+    padding: "0.625rem 0", 
     zIndex: 5002,
   },
   accountLink: { 
-    padding: "10px 15px", 
+    padding: "0.625rem 0.9375rem", 
     textDecoration: "none", 
     color: "#0073e6", 
-    fontSize: "14px", 
+    fontSize: "0.875rem", 
     fontWeight: "500" 
   },
   divider: { 
     borderTop: "1px solid #eee", 
-    marginTop: "8px" 
+    marginTop: "0.5rem" 
   },
   logoutBtn: { 
-    margin: "10px auto 0 auto", 
-    padding: "8px 16px", 
+    margin: "0.625rem auto 0 auto", 
+    padding: "0.5rem 1rem", 
     backgroundColor: "#0073e6", 
     color: "#fff", 
     border: "none", 
-    borderRadius: "6px", 
+    borderRadius: "0.375rem", 
     cursor: "pointer", 
-    fontSize: "14px", 
+    fontSize: "0.875rem", 
     fontWeight: "500" 
   },
 
@@ -924,10 +927,10 @@ const styles = {
     right: 0, 
     bottom: 0, 
     width: "85%", 
-    maxWidth: "300px",
+    maxWidth: "18.75rem",
     backgroundColor: "#f8f9fa", 
     zIndex: 999, 
-    boxShadow: "-2px 0 8px rgba(0,0,0,0.2)", 
+    boxShadow: "-0.125rem 0 0.5rem rgba(0,0,0,0.2)", 
     overflowY: "auto", 
     display: "flex", 
     flexDirection: "column",
@@ -937,7 +940,7 @@ const styles = {
     display: "flex", 
     justifyContent: "space-between", 
     alignItems: "center", 
-    padding: "15px 16px", 
+    padding: "0.9375rem 1rem", 
     borderBottom: "1px solid #dee2e6", 
     backgroundColor: "#fff", 
     position: "sticky", 
@@ -947,36 +950,36 @@ const styles = {
   mobileSearchWrapper: { 
     position: "relative", 
     flex: 1, 
-    marginRight: "12px" 
+    marginRight: "0.75rem" 
   },
   mobileSearchInput: { 
     width: "100%", 
-    padding: "10px 40px 10px 15px", 
-    fontSize: "16px", 
+    padding: "0.625rem 2.5rem 0.625rem 0.9375rem", 
+    fontSize: "1rem", 
     border: "1px solid #ced4da", 
-    borderRadius: "8px", 
+    borderRadius: "0.5rem", 
     backgroundColor: "#fff" 
   },
   mobileSearchIcon: { 
     position: "absolute", 
-    right: "12px", 
+    right: "0.75rem", 
     top: "50%", 
     transform: "translateY(-50%)", 
-    fontSize: "16px", 
+    fontSize: "1rem", 
     color: "#6c757d" 
   },
   mobileSearchDropdown: { 
     position: "absolute", 
-    top: "48px", 
+    top: "3rem", 
     left: 0, 
     right: 0, 
     backgroundColor: "#fff", 
     border: "1px solid #ced4da", 
-    borderRadius: "8px", 
+    borderRadius: "0.5rem", 
     zIndex: 2000, 
-    maxHeight: "200px", 
+    maxHeight: "12.5rem", 
     overflowY: "auto", 
-    boxShadow: "0 4px 6px rgba(0,0,0,0.1)" 
+    boxShadow: "0 0.25rem 0.375rem rgba(0,0,0,0.1)" 
   },
   closeIcon: { 
     background: "none",
@@ -986,7 +989,7 @@ const styles = {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    padding: "4px",
+    padding: "0.25rem",
   },
   mobileContent: { 
     flex: 1, 
@@ -1001,35 +1004,35 @@ const styles = {
     display: "flex", 
     justifyContent: "space-between", 
     alignItems: "center", 
-    padding: "16px 20px", 
+    padding: "1rem 1.25rem", 
     cursor: "pointer", 
     transition: "background-color 0.2s ease" 
   },
   mobileMenuLink: { 
     textDecoration: "none", 
     color: "#212529", 
-    fontSize: "16px", 
+    fontSize: "1rem", 
     fontWeight: "500", 
     flex: 1, 
     display: "block" 
   },
   arrowContainer: { 
-    marginLeft: "12px", 
+    marginLeft: "0.75rem", 
     display: "flex", 
     alignItems: "center", 
-    padding: "2px" 
+    padding: "0.125rem" 
   },
   mobileDropdownContent: { 
     backgroundColor: "#f8f9fa", 
     borderTop: "1px solid #e9ecef", 
-    paddingLeft: "20px" 
+    paddingLeft: "1.25rem" 
   },
   mobileDropdownLink: { 
     display: "block", 
-    padding: "12px 20px", 
+    padding: "0.75rem 1.25rem", 
     textDecoration: "none", 
     color: "#495057", 
-    fontSize: "15px", 
+    fontSize: "0.9375rem", 
     borderBottom: "1px solid #e9ecef", 
     transition: "background-color 0.2s ease" 
   },
@@ -1037,35 +1040,35 @@ const styles = {
   mobileFooter: { 
     backgroundColor: "#343a40", 
     color: "white", 
-    padding: "20px", 
+    padding: "1.25rem", 
     borderTop: "1px solid #495057", 
     marginTop: "auto" 
   },
   mobileAccountSection: { 
-    marginBottom: "15px" 
+    marginBottom: "0.9375rem" 
   },
   mobileAccountToggle: { 
     display: "flex", 
     justifyContent: "space-between", 
     alignItems: "center", 
     fontWeight: "600", 
-    fontSize: "16px", 
-    padding: "15px 20px", 
+    fontSize: "1rem", 
+    padding: "0.9375rem 1.25rem", 
     backgroundColor: "#495057", 
-    borderRadius: "8px", 
+    borderRadius: "0.5rem", 
     cursor: "pointer", 
     transition: "background-color 0.2s ease" 
   },
   mobileAccountDropdown: { 
-    marginTop: "10px", 
+    marginTop: "0.625rem", 
     backgroundColor: "#212529", 
-    borderRadius: "8px", 
-    padding: "10px 0", 
+    borderRadius: "0.5rem", 
+    padding: "0.625rem 0", 
     overflow: "hidden" 
   },
   mobileAccountLink: { 
-    padding: "12px 20px", 
-    fontSize: "15px", 
+    padding: "0.75rem 1.25rem", 
+    fontSize: "0.9375rem", 
     cursor: "pointer", 
     textDecoration: "none", 
     display: "block", 
@@ -1077,34 +1080,34 @@ const styles = {
     cursor: "pointer", 
     color: "#f8f9fa", 
     textAlign: "left", 
-    padding: "12px 20px", 
+    padding: "0.75rem 1.25rem", 
     width: "100%", 
-    fontSize: "15px" 
+    fontSize: "0.9375rem" 
   },
   mobileSignIn: { 
-    marginBottom: "15px", 
-    padding: "15px 20px", 
+    marginBottom: "0.9375rem", 
+    padding: "0.9375rem 1.25rem", 
     backgroundColor: "#495057", 
-    borderRadius: "8px", 
+    borderRadius: "0.5rem", 
     textAlign: "center" 
   },
   mobileSignInLink: { 
     color: "#fff", 
     textDecoration: "none", 
     fontWeight: "600", 
-    fontSize: "16px" 
+    fontSize: "1rem" 
   },
   mobileCart: { 
-    padding: "15px 20px", 
+    padding: "0.9375rem 1.25rem", 
     backgroundColor: "#007bff", 
     textAlign: "center", 
-    borderRadius: "8px", 
+    borderRadius: "0.5rem", 
     fontWeight: "600" 
   },
   mobileCartLink: { 
     color: "white", 
     textDecoration: "none", 
-    fontSize: "16px", 
+    fontSize: "1rem", 
     display: "flex", 
     alignItems: "center", 
     justifyContent: "center" 
@@ -1114,8 +1117,8 @@ const styles = {
     backgroundColor: "#007BFF", 
     color: "#fff", 
     textAlign: "center", 
-    padding: "10px 20px", 
-    fontSize: "14px", 
+    padding: "0.625rem 1.25rem", 
+    fontSize: "0.875rem", 
     fontWeight: "500", 
     lineHeight: "1.4", 
     wordWrap: "break-word" 
