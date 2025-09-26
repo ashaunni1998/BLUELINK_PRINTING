@@ -126,7 +126,7 @@ const normalizeCart = (cartData) => {
       raw,
       id: productIdStr,
       name,
-      desc: product?.description ?? raw.description ?? "",
+      // desc: product?.description ?? raw.description ?? "",
       image,
       qty,
       allowedQtyOptions,
@@ -352,63 +352,125 @@ const [updatingMap, setUpdatingMap] = useState({});
           </div>
         ) : (
           <>
-           {items.map((item, idx) => {
-  const cartItemId = item.raw?._id ?? null; // cart item id from backend (preferred)
+{items.map((item, idx) => {
+  const cartItemId = item.raw?._id ?? null;
   const keyId = cartItemId ? cartItemId : `${item.id}-${idx}`;
 
   return (
-    
-    <div key={keyId} style={{ display: "flex", gap: 16, alignItems: "flex-start", padding: "16px 0", borderBottom: "1px solid #EEE" }}>
-      <div style={{ width: 120, height: 90, border: "1px solid #F1F5F9", display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <img src={item.image || "https://via.placeholder.com/120x90"} alt={item.name} style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "cover" }} />
+    <div
+      key={keyId}
+      style={{
+        display: "grid",
+        gridTemplateColumns: "120px 1fr 120px",
+        gap: "16px",
+        alignItems: "center",
+        padding: "16px",
+        border: "1px solid #E5E7EB",
+        borderRadius: 12,
+        marginBottom: 16,
+        boxShadow: "0 2px 6px rgba(0,0,0,0.05)",
+      }}
+      className="cart-item"
+    >
+      {/* Image */}
+      <div
+        style={{
+          width: 100,
+          height: 100,
+          borderRadius: 8,
+          overflow: "hidden",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          background: "#F9FAFB",
+        }}
+      >
+        <img
+          src={item.image || "https://via.placeholder.com/100"}
+          alt={item.name}
+          style={{
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+          }}
+        />
       </div>
 
+      {/* Details */}
+      <div>
+        <h3 style={{ margin: "0 0 6px", fontSize: 16, fontWeight: 600 }}>
+          {item.name}
+        </h3>
 
-      <div style={{ flex: 1 }}>
-        <h3 style={{ margin: 0, fontSize: 16 }}>{item.name}</h3>
-        <p style={{ margin: "6px 0 0", color: "#6B7280" }}>{item.desc}</p>
-
-        <div style={{ marginTop: 8, display: "flex", gap: 24, alignItems: "center", flexWrap: "wrap" }}>
+        <div
+          style={{
+            display: "flex",
+            gap: 20,
+            flexWrap: "wrap",
+            fontSize: 14,
+            color: "#374151",
+          }}
+        >
           <div>
-            <div style={{ color: "#374151", fontSize: 13 }}>Design:</div>
-            <div style={{ fontWeight: 700, textTransform: "capitalize" }}>{item.designType}</div>
+            <span style={{ color: "#6B7280" }}>Design:</span>{" "}
+            <strong style={{ textTransform: "capitalize" }}>
+              {item.designType}
+            </strong>
           </div>
 
           <div>
-            <div style={{ color: "#374151", fontSize: 13 }}>Qty:</div>
-            <div style={{ marginTop: 6 }}>
-              <select
-  value={item.qty}
-  onChange={(e) => {
-    const newQty = e.target.value;
-    const cartItemId = item.raw?._id ?? item.id;
-    updateCartQty(cartItemId, newQty);
-  }}
-  disabled={ !!updatingMap[item.raw?._id ?? item.id] || !cartId } // <-- don't allow change until cartId known
-  style={{ padding: "6px 10px", borderRadius: 6, border: "1px solid #D1D5DB" }}
->
-
-  {item.allowedQtyOptions.map((q) => (
-    <option key={`${item.id}-qty-${q}`} value={q}>{q}</option>
-  ))}
-</select>
-
-            </div>
+            <span style={{ color: "#6B7280" }}>Qty:</span>{" "}
+            <select
+              value={item.qty}
+              onChange={(e) => {
+                const newQty = e.target.value;
+                const cartItemId = item.raw?._id ?? item.id;
+                updateCartQty(cartItemId, newQty);
+              }}
+              disabled={!!updatingMap[item.raw?._id ?? item.id] || !cartId}
+              style={{
+                marginLeft: 6,
+                padding: "6px 10px",
+                borderRadius: 6,
+                border: "1px solid #D1D5DB",
+              }}
+            >
+              {item.allowedQtyOptions.map((q) => (
+                <option key={`${item.id}-qty-${q}`} value={q}>
+                  {q}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
       </div>
 
-      <div style={{ textAlign: "right", minWidth: 120 }}>
-        <div style={{ fontWeight: 700, fontSize: 18 }}>
-          {currencySymbol(currency)}{formatMoney(item.unitPrice)}
+      {/* Price + Remove */}
+      <div style={{ textAlign: "right" }}>
+        <div style={{ fontWeight: 700, fontSize: 18, color: "#111827" }}>
+          {currencySymbol(currency)}
+          {formatMoney(item.unitPrice)}
         </div>
-        <button onClick={() => removeItem(item.id)} style={{ marginTop: 12, background: "transparent", border: "none", color: "#EF4444", cursor: "pointer", textDecoration: "underline" }}>
+        <button
+          onClick={() => removeItem(item.id)}
+          style={{
+            marginTop: 10,
+            background: "transparent",
+            border: "none",
+            color: "#EF4444",
+            cursor: "pointer",
+            textDecoration: "underline",
+            fontSize: 14,
+          }}
+        >
           Remove
         </button>
       </div>
     </div>
   );
 })}
+
+
 
 
             <div
