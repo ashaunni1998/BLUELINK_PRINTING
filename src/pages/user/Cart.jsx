@@ -340,7 +340,7 @@ const [updatingMap, setUpdatingMap] = useState({});
 
   return (
       <div className="responsive-container">
-    {/* <div style={{ width: "%", padding: "0px 80px" }}> */}
+    <div className="page-container"> 
       <Header />
 
       <main style={{ background: "#fff", padding: 20, borderRadius: 8,maxWidth:"80%",margin:"20px auto" }}>
@@ -358,18 +358,7 @@ const [updatingMap, setUpdatingMap] = useState({});
 
   return (
     <div
-      key={keyId}
-      style={{
-        display: "grid",
-        gridTemplateColumns: "120px 1fr 120px",
-        gap: "16px",
-        alignItems: "center",
-        padding: "16px",
-        border: "1px solid #E5E7EB",
-        borderRadius: 12,
-        marginBottom: 16,
-        boxShadow: "0 2px 6px rgba(0,0,0,0.05)",
-      }}
+  
       className="cart-item"
     >
       {/* Image */}
@@ -540,6 +529,7 @@ const [updatingMap, setUpdatingMap] = useState({});
       </main>
 
       <Footer />
+    </div>
     </div>
     
   );
