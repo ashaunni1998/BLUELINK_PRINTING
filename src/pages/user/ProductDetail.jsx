@@ -105,7 +105,7 @@ const [selectedTier, setSelectedTier] = useState(() => {
   }
   return null;
 });
-
+//  console.log(category);
 // ✅ in case product loads later, auto-select 200 once it's available
 useEffect(() => {
   if (product?.priceTiers && !selectedTier) {

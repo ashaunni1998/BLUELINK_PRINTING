@@ -265,8 +265,8 @@ const AccountPage = () => {
   };
 
   const sections = {
-    overview:
-      "Welcome to your Blue Link Printing dashboard. From your account dashboard you can view your recent orders, manage your shipping and billing addresses, manage your order return, view your orders, and edit your password and account details.",
+    
+
     orderhistory: "Here you can view and track your orders.",
     address: "Manage your shipping and billing addresses.",
   };
@@ -277,17 +277,50 @@ const AccountPage = () => {
     { id: "ORD003", product: "Posters", date: "2025-08-01", amount: "$120.50" },
   ];
 
-  const handleLogout = async () => {
-    try {
-      await fetch("/api/logout", { method: "POST", credentials: "include" });
-    } catch (err) {
-      console.error("Logout request failed", err);
-    } finally {
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
-      navigate("/sign-in");
+ // ✅ Updated Logout Handler
+const handleLogout = () => {
+  Swal.fire({
+    title: "Are you sure?",
+    text: "You will be logged out of your account.",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonText: "Yes, Logout",
+    cancelButtonText: "Cancel",
+  }).then(async (result) => {
+    if (result.isConfirmed) {
+      try {
+        // Call backend logout API
+        await fetch(`${API_BASE_URL}/user/logout`, {
+          method: "POST",
+          credentials: "include", // ensure cookies/session cleared
+        });
+      } catch (err) {
+        console.error("Logout error:", err);
+      }
+
+      // Use AuthContext's logout if available
+      if (typeof logout === "function") {
+        logout(); // clears user + localStorage
+      } else {
+        // fallback cleanup if no logout() in context
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        setUser(null);
+      }
+
+      // Show success and redirect
+      Swal.fire({
+        icon: "success",
+        title: "Logged Out",
+        timer: 1200,
+        showConfirmButton: false,
+      }).then(() => {
+        navigate("/sign-in");
+      });
     }
-  };
+  });
+};
+
 
   // Styles
   const buttonStyle = {
@@ -352,20 +385,32 @@ const AccountPage = () => {
   return (
     <div className="responsive-container">
       <Header />
-      <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", flex: 1 }}>
+      <div 
+  style={{
+    display: "flex",
+    flexDirection: isMobile ? "column" : "row",
+    gap: "24px",
+    maxWidth: "1100px",
+    margin: "30px auto",
+    padding: "0 20px",
+    alignItems: "flex-start"
+  }}
+>
+
         {/* Sidebar */}
-        <nav
-          style={{
-            backgroundColor: "#f9f9f9",
-            width: isMobile ? "100%" : "240px",
-            padding: isMobile ? "10px" : "20px",
-            borderRight: isMobile ? "none" : "1px solid #ddd",
-            borderBottom: isMobile ? "1px solid #ddd" : "none",
-            display: "flex",
-            flexDirection: "column",
-            gap: "12px",
-          }}
-        >
+   <nav
+  style={{
+    background: "#fff",
+    border: "1px solid #e5e7eb",
+    borderRadius: "12px",
+    padding: "20px",
+    width: isMobile ? "100%" : "240px",
+    boxShadow: "0 2px 6px rgba(0,0,0,0.08)",
+    display: "flex",
+    flexDirection: "column",
+    gap: "12px"
+  }}
+>
           <button
             style={activeSection === "overview" ? activeButtonStyle : buttonStyle}
             onClick={() => setActiveSection("overview")}
@@ -394,7 +439,30 @@ const AccountPage = () => {
           <h2 style={{ fontSize: "24px", marginBottom: "20px", textTransform: "capitalize" }}>
             {activeSection.replace("-", " ")}
           </h2>
-
+<main style={{ flex: 1 }}>
+  {activeSection === "overview" && (
+    <div
+      style={{
+        background: "#fff",
+        border: "1px solid #e5e7eb",
+        borderRadius: "12px",
+        padding: "30px",
+        boxShadow: "0 2px 8px rgba(0,0,0,0.08)"
+      }}
+    >
+      <h2 style={{ fontSize: "22px", marginBottom: "16px", color: "#111827" }}>
+        👋 Welcome back!
+      </h2>
+      <p style={{ fontSize: "16px", lineHeight: "1.6", color: "#374151" }}>
+        From your account dashboard you can easily view your{" "}
+        <strong>recent orders</strong>, manage{" "}
+        <strong>shipping & billing addresses</strong>, track{" "}
+        <strong>returns</strong>, and update your{" "}
+        <strong>account details</strong>.
+      </p>
+    </div>
+  )}
+  </main>
           {activeSection === "orderhistory" ? (
             <div style={{ overflowX: "auto" }}>
               <table style={{ width: "100%", borderCollapse: "collapse" }}>

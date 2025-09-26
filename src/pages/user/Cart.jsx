@@ -339,10 +339,11 @@ const [updatingMap, setUpdatingMap] = useState({});
     return <div style={{ padding: 40, textAlign: "center" }}>Loading cart…</div>;
 
   return (
-    <div style={{ width: "100%", padding: "0px 80px" }}>
+      <div className="responsive-container">
+    {/* <div style={{ width: "%", padding: "0px 80px" }}> */}
       <Header />
 
-      <main style={{ background: "#fff", padding: 20, borderRadius: 8 }}>
+      <main style={{ background: "#fff", padding: 20, borderRadius: 8,maxWidth:"80%",margin:"20px auto" }}>
         <h1 style={{ fontSize: 22, marginBottom: 12 }}>🛒 Your Cart</h1>
 
         {items.length === 0 ? (
@@ -356,6 +357,7 @@ const [updatingMap, setUpdatingMap] = useState({});
   const keyId = cartItemId ? cartItemId : `${item.id}-${idx}`;
 
   return (
+    
     <div key={keyId} style={{ display: "flex", gap: 16, alignItems: "flex-start", padding: "16px 0", borderBottom: "1px solid #EEE" }}>
       <div style={{ width: 120, height: 90, border: "1px solid #F1F5F9", display: "flex", alignItems: "center", justifyContent: "center" }}>
         <img src={item.image || "https://via.placeholder.com/120x90"} alt={item.name} style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "cover" }} />
@@ -477,5 +479,6 @@ const [updatingMap, setUpdatingMap] = useState({});
 
       <Footer />
     </div>
+    
   );
 }

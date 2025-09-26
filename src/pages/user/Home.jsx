@@ -339,11 +339,397 @@ console.log(products);
 </section>
 
 
+<section
+  style={{
+    backgroundColor: "#f9fafb",
+    padding: "70px 0",
+  }}
+>
+  <div
+    style={{
+      maxWidth: "1100px",
+      margin: "0 auto",
+      padding: "0 20px",
+      textAlign: "center",
+    }}
+  >
+    <h2
+      style={{
+        fontSize: "32px",
+        marginBottom: "12px",
+        fontWeight: "700",
+        color: "#111",
+      }}
+    >
+     Popular Business Cards
+    </h2>
+    <p
+      style={{
+        fontSize: "17px",
+        color: "#555",
+        marginBottom: "50px",
+        maxWidth: "700px",
+        marginInline: "auto",
+        lineHeight: "1.6",
+      }}
+    >
+      Make a powerful first impression with professionally designed business
+      cards that reflect your brand and style.
+    </p>
+
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
+        gap: "35px",
+        width: "100%",
+      }}
+    >
+      {products
+        .filter((product) => {
+          const category =
+            typeof product.category === "string"
+              ? product.category.toLowerCase()
+              : "";
+          const name =
+            typeof product.name === "string"
+              ? product.name.toLowerCase()
+              : "";
+          return (
+            category.includes("business card") || name.includes("business card")
+          );
+        })
+        .map((card) => (
+          <div
+            key={card._id}
+            style={{
+              backgroundColor: "#fff",
+              borderRadius: "14px",
+              overflow: "hidden",
+              boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
+              transition: "transform 0.3s ease, box-shadow 0.3s ease",
+              cursor: "pointer",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = "translateY(-6px)";
+              e.currentTarget.style.boxShadow =
+                "0 8px 25px rgba(0,0,0,0.12)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = "translateY(0)";
+              e.currentTarget.style.boxShadow =
+                "0 4px 20px rgba(0,0,0,0.08)";
+            }}
+          >
+            {/* Image wrapper */}
+            <Link
+              to={`/product/${card._id}`}
+              style={{
+                width: "100%",
+                aspectRatio: "4/3",
+                overflow: "hidden",
+                background: "#f3f4f6",
+                display: "block",
+              }}
+            >
+              <img
+                src={card.images[0] || "https://via.placeholder.com/300"}
+                alt={card.name}
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "cover",
+                  display: "block",
+                  transition: "transform 0.4s ease",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = "scale(1.08)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = "scale(1)";
+                }}
+              />
+            </Link>
+
+            {/* Product details */}
+            <div
+              style={{
+                padding: "18px",
+                textAlign: "center",
+              }}
+            >
+              <Link
+                to={`/product/${card._id}`}
+                style={{
+                  color: "#007bff",
+                  textDecoration: "none",
+                  fontWeight: "600",
+                  fontSize: "16px",
+                  display: "block",
+                  marginBottom: "8px",
+                }}
+              >
+                {card.name}
+              </Link>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  gap: "12px",
+                  marginBottom: "12px",
+                }}
+              >
+                <span
+                  style={{
+                    display: "inline-block",
+                    padding: "6px 16px",
+                    backgroundColor: "#eaf4ff",
+                    color: "#007bff",
+                    fontSize: "15px",
+                    fontWeight: "700",
+                    borderRadius: "30px",
+                    boxShadow: "0 2px 6px rgba(0,0,0,0.08)",
+                    minWidth: "60px",
+                  }}
+                >
+                  ${card.price}
+                </span>
+
+                {/* View button */}
+                <Link
+                  to={`/product/${card._id}`}
+                  style={{
+                    padding: "10px 18px",
+                    fontSize: "14px",
+                    fontWeight: "600",
+                    backgroundColor: "#007bff",
+                    color: "#fff",
+                    border: "none",
+                    borderRadius: "6px",
+                    cursor: "pointer",
+                    transition: "background 0.3s ease, transform 0.2s ease",
+                    textDecoration: "none",
+                    display: "inline-block",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = "#0056b3";
+                    e.currentTarget.style.transform = "translateY(-2px)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = "#007bff";
+                    e.currentTarget.style.transform = "translateY(0)";
+                  }}
+                >
+                  View
+                </Link>
+              </div>
+            </div>
+          </div>
+        ))}
+    </div>
+  </div>
+</section>
+
+
+<section
+  style={{
+    backgroundColor: "#f9fafb",
+    padding: "70px 0",
+  }}
+>
+  <div
+    style={{
+      maxWidth: "1100px",
+      margin: "0 auto",
+      padding: "0 20px",
+      textAlign: "center",
+    }}
+  >
+    <h2
+      style={{
+        fontSize: "32px",
+        marginBottom: "12px",
+        fontWeight: "700",
+        color: "#111",
+      }}
+    >
+      Popular Flex & Banners
+    </h2>
+    <p
+      style={{
+        fontSize: "17px",
+        color: "#555",
+        marginBottom: "50px",
+        maxWidth: "700px",
+        marginInline: "auto",
+        lineHeight: "1.6",
+      }}
+    >
+      Promote your brand with high-quality flex prints and banners designed to
+      stand out and capture attention.
+    </p>
+
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
+        gap: "35px",
+        width: "100%",
+      }}
+    >
+      {products
+        .filter((product) => {
+          const category =
+            typeof product.category === "string"
+              ? product.category.toLowerCase()
+              : "";
+          const name =
+            typeof product.name === "string"
+              ? product.name.toLowerCase()
+              : "";
+          return category.includes("flex") ||
+                 category.includes("banner") ||
+                 name.includes("flex") ||
+                 name.includes("banner");
+        })
+        .map((item) => (
+          <div
+            key={item._id}
+            style={{
+              backgroundColor: "#fff",
+              borderRadius: "14px",
+              overflow: "hidden",
+              boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
+              transition: "transform 0.3s ease, box-shadow 0.3s ease",
+              cursor: "pointer",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = "translateY(-6px)";
+              e.currentTarget.style.boxShadow =
+                "0 8px 25px rgba(0,0,0,0.12)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = "translateY(0)";
+              e.currentTarget.style.boxShadow =
+                "0 4px 20px rgba(0,0,0,0.08)";
+            }}
+          >
+            {/* Image wrapper */}
+            <Link
+              to={`/product/${item._id}`}
+              style={{
+                width: "100%",
+                aspectRatio: "4/3",
+                overflow: "hidden",
+                background: "#f3f4f6",
+                display: "block",
+              }}
+            >
+              <img
+                src={item.images[0] || "https://via.placeholder.com/300"}
+                alt={item.name}
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "cover",
+                  display: "block",
+                  transition: "transform 0.4s ease",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = "scale(1.08)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = "scale(1)";
+                }}
+              />
+            </Link>
+
+            {/* Product details */}
+            <div
+              style={{
+                padding: "18px",
+                textAlign: "center",
+              }}
+            >
+              <Link
+                to={`/product/${item._id}`}
+                style={{
+                  color: "#007bff",
+                  textDecoration: "none",
+                  fontWeight: "600",
+                  fontSize: "16px",
+                  display: "block",
+                  marginBottom: "8px",
+                }}
+              >
+                {item.name}
+              </Link>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  gap: "12px",
+                  marginBottom: "12px",
+                }}
+              >
+                <span
+                  style={{
+                    display: "inline-block",
+                    padding: "6px 16px",
+                    backgroundColor: "#eaf4ff",
+                    color: "#007bff",
+                    fontSize: "15px",
+                    fontWeight: "700",
+                    borderRadius: "30px",
+                    boxShadow: "0 2px 6px rgba(0,0,0,0.08)",
+                    minWidth: "60px",
+                  }}
+                >
+                  ${item.price}
+                </span>
+
+                {/* View button */}
+                <Link
+                  to={`/product/${item._id}`}
+                  style={{
+                    padding: "10px 18px",
+                    fontSize: "14px",
+                    fontWeight: "600",
+                    backgroundColor: "#007bff",
+                    color: "#fff",
+                    border: "none",
+                    borderRadius: "6px",
+                    cursor: "pointer",
+                    transition: "background 0.3s ease, transform 0.2s ease",
+                    textDecoration: "none",
+                    display: "inline-block",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = "#0056b3";
+                    e.currentTarget.style.transform = "translateY(-2px)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = "#007bff";
+                    e.currentTarget.style.transform = "translateY(0)";
+                  }}
+                >
+                  View
+                </Link>
+              </div>
+            </div>
+          </div>
+        ))}
+    </div>
+  </div>
+</section>
+
 
 
 
       {/* Popular Products Section */}
- <section style={{ backgroundColor: "#f5f8f6", padding: "1.875rem 0 2.5rem", textAlign: "center" }}>
+ {/* <section style={{ backgroundColor: "#f5f8f6", padding: "1.875rem 0 2.5rem", textAlign: "center" }}>
   <h2
     style={{
       fontSize: "1.625rem",
@@ -364,7 +750,7 @@ console.log(products);
         transform: "translateX(-50%)",
         width: "3.75rem",
         height: "0.25rem",
-        // backgroundColor: "#007bff", // brand accent underline
+       
         borderRadius: "0.125rem",
       }}
     ></span>
@@ -405,7 +791,7 @@ console.log(products);
           transition: "transform 0.2s ease",
         }}
       >
-        {/* Image wrapper */}
+       
         <Link
           to={`/product/${product._id}`}
           style={{
@@ -421,14 +807,14 @@ console.log(products);
             style={{
               width: "100%",
               height: "100%",
-              objectFit: "contain", // prevents cropping
+              objectFit: "contain", 
               display: "block",
               backgroundColor: "#f9f9f9",
             }}
           />
         </Link>
 
-        {/* Product details */}
+       
         <div
           style={{
             padding: "0.875rem",
@@ -456,7 +842,7 @@ console.log(products);
       </div>
     ))}
   </div>
-</section>
+</section> */}
 
 
 
@@ -584,6 +970,7 @@ console.log(products);
               ? product.name.toLowerCase()
               : "";
           return category.includes("PhotoFrame") || name.includes("photo frame") || name.includes("mugs");
+         
         })
         .map((gift) => (
           <div
