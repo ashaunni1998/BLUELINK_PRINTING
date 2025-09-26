@@ -339,6 +339,9 @@ console.log(products);
 </section>
 
 
+
+
+
       {/* Popular Products Section */}
  <section style={{ backgroundColor: "#f5f8f6", padding: "1.875rem 0 2.5rem", textAlign: "center" }}>
   <h2
