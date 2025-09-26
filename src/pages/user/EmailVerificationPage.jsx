@@ -12,9 +12,9 @@ const EmailVerificationPage = () => {
   const [resendDisabled, setResendDisabled] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const hasSentOtp = useRef(false); // ✅ Prevent multiple sends in Strict Mode
-
+  
   const email = location.state?.email || '';
+  const SENT_KEY = `sentVerifyOtp:${email || 'no-email'}`;  
 const { setIsLoggedIn } = useContext(AuthContext);
 
   // Function to send OTP
@@ -39,10 +39,19 @@ const { setIsLoggedIn } = useContext(AuthContext);
 
   // ✅ Send OTP only once
   useEffect(() => {
-    if (!email || hasSentOtp.current) return;
-    hasSentOtp.current = true;
+  if (!email) return;
+  try {
+    const already = sessionStorage.getItem(`sentVerifyOtp:${email}`);
+    if (already) return; // already sent in this session/tab
+    // mark immediately so remounts won't resend
+    sessionStorage.setItem(`sentVerifyOtp:${email}`, Date.now().toString());
     sendOtp();
-  }, [email]);
+  } catch (err) {
+    // fallback to original ref guard if sessionStorage restricted
+    // (optional) console.error('storage error', err);
+    sendOtp();
+  }
+}, [email]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -121,7 +130,8 @@ if (response.ok) {
 
       const data = await res.json();
 
-      if (res.ok && data.success) {
+      if (res.ok) {
+        sessionStorage.setItem(`sentVerifyOtp:${email}`, Date.now().toString());
         Swal.fire({
           icon: 'info',
           title: 'OTP Resent',

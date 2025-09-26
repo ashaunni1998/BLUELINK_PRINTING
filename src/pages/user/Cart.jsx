@@ -328,7 +328,7 @@ const [updatingMap, setUpdatingMap] = useState({});
   };
 
   // FIXED: do not multiply by qty, since unitPrice is tier price
-  const subtotal = items.reduce((s, it) => s + Number(it.unitPrice || 0), 0);
+  const subtotal = items.reduce((s, it) => s + (Number(it.unitPrice || 0) ), 0);
   const shippingTotal = items.reduce(
     (s, it) => s + Number(it.shippingPrice || 0),
     0

@@ -1,13 +1,14 @@
+// src/pages/user/CheckoutForm.jsx
 import { useState, useEffect } from "react";
-import {  Check, AlertCircle, Shield, Clock } from "lucide-react";
+import { Check, AlertCircle, Shield, Clock } from "lucide-react";
 import { useStripe, useElements, CardElement } from "@stripe/react-stripe-js";
-// import axios from "axios"; // Use fetch instead
-import { useLocation,useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { API_BASE_URL } from "../../config";
+
 const CheckoutForm = () => {
-    const location = useLocation();
-    const navigate=useNavigate();
-  const { orderDetails } = location.state || {};
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { orderDetails } = location.state || {}; // passed from checkout page
   const [loading, setLoading] = useState(false);
   const [paymentSuccess, setPaymentSuccess] = useState("");
   const [paymentError, setPaymentError] = useState("");
@@ -18,21 +19,16 @@ const CheckoutForm = () => {
   const stripe = useStripe();
   const elements = useElements();
 
-  // Non-card form state (for billing info)
   const [billingDetails, setBillingDetails] = useState({
-    name: "",
+    name: orderDetails?.orderData?.shippingName || orderDetails?.orderData?.fullName || "",
     email: ""
   });
 
-    useEffect(() => {
-
-    // Simulate Stripe loading
-    const timer = setTimeout(() => {
-      setStripeLoaded(true);
-    }, 1000);
+  useEffect(() => {
+    const timer = setTimeout(() => setStripeLoaded(true), 800);
     return () => clearTimeout(timer);
   }, []);
-  // ✅ Add safety check for orderDetails
+
   if (!orderDetails) {
     return (
       <div className="max-w-md mx-auto p-6 bg-white rounded-lg shadow-lg">
@@ -45,186 +41,161 @@ const CheckoutForm = () => {
     );
   }
 
-  // Card element options
   const cardElementOptions = {
     style: {
       base: {
         fontSize: '16px',
         color: '#424770',
-        '::placeholder': {
-          color: '#aab7c4',
-        },
+        '::placeholder': { color: '#aab7c4' },
         padding: '12px',
       },
-      invalid: {
-        color: '#9e2146',
-      },
+      invalid: { color: '#9e2146' },
     },
     hidePostalCode: true,
   };
 
+  const handleBillingInputChange = (field, value) =>
+    setBillingDetails(prev => ({ ...prev, [field]: value }));
 
-  // Handle billing input changes
-  const handleBillingInputChange = (field, value) => {
-    setBillingDetails(prev => ({
-      ...prev,
-      [field]: value
-    }));
-  };
-
-  // Validate billing form
   const validateBillingForm = () => {
-    if (!billingDetails.name.trim()) {
-      return "Please enter the cardholder name";
-    }
-    if (!billingDetails.email || !billingDetails.email.includes("@")) {
-      return "Please enter a valid email";
-    }
+    if (!billingDetails.name.trim()) return "Please enter the cardholder name";
+    if (!billingDetails.email || !billingDetails.email.includes("@")) return "Please enter a valid email";
     return null;
   };
 
-  // Handle CardElement events
   const handleCardChange = (event) => {
-    if (event.error) {
-      setPaymentError(event.error.message);
-    } else {
-      setPaymentError("");
-    }
+    if (event.error) setPaymentError(event.error.message);
+    else setPaymentError("");
+  };
+  const handleCardReady = () => { setCardReady(true); };
+
+  // Helper to get orderId from orderDetails (support several shapes)
+  const getOrderIdFromDetails = () => {
+    if (!orderDetails) return null;
+    return orderDetails.orderId
+      || orderDetails._id
+      || (orderDetails.orderData && (orderDetails.orderData._id || orderDetails.orderData.orderId))
+      || null;
   };
 
-  const handleCardReady = () => {
-    setCardReady(true);
-    console.log("CardElement is ready");
-  };
-
-  // Handle payment submission
-  const handleSubmit = async () => {
-    setLoading(true);
-    setPaymentSuccess("");
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     setPaymentError("");
+    setPaymentSuccess("");
+
+    const orderId = getOrderIdFromDetails();
+    if (!orderId) {
+      setPaymentError("Order information is missing. Please go back and try again.");
+      return;
+    }
+
+    if (!stripe || !elements) {
+      setPaymentError("Payment system is not ready. Please wait a moment and try again.");
+      return;
+    }
+
+    const billingValidationError = validateBillingForm();
+    if (billingValidationError) {
+      setPaymentError(billingValidationError);
+      return;
+    }
+
+    setLoading(true);
 
     try {
-      if (!stripe || !elements) {
-        console.error("Stripe or Elements not loaded");
-        setPaymentError("Payment system not ready. Please try again.");
+      // 1) ask backend for client secret
+      const piResp = await fetch(`${API_BASE_URL}/order/create-payment-intent`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ orderId, selectedPaymentMethod }),
+      });
+
+      if (!piResp.ok) {
+        const txt = await piResp.text().catch(() => null);
+        throw new Error(txt || `Server error creating payment intent (${piResp.status})`);
+      }
+
+      const piData = await piResp.json();
+      const clientSecret =
+        piData.clientSecret ||
+        piData.client_secret ||
+        (piData.data && (piData.data.clientSecret || piData.data.client_secret)) ||
+        (piData.data && piData.data.paymentIntent && piData.data.paymentIntent.client_secret);
+
+      if (!clientSecret) throw new Error("Missing client secret from server response.");
+
+      // 2) confirm card payment
+      const cardEl = elements.getElement(CardElement);
+      if (!cardEl) throw new Error("Card input is not ready.");
+
+      const confirmResult = await stripe.confirmCardPayment(clientSecret, {
+        payment_method: {
+          card: cardEl,
+          billing_details: {
+            name: billingDetails.name || "Customer",
+            email: billingDetails.email || undefined,
+          },
+        },
+      });
+
+      if (confirmResult.error) {
+        console.error("Stripe confirm error:", confirmResult.error);
+        setPaymentError(confirmResult.error.message || "Payment failed during confirmation.");
         setLoading(false);
         return;
       }
 
-      // Validate billing details for card payments
-      if (selectedPaymentMethod === "card") {
-        const validation = validateBillingForm();
-        if (validation) {
-          setPaymentError(validation);
-          setLoading(false);
-          return;
-        }
+      const paymentIntent = confirmResult.paymentIntent;
+      if (!paymentIntent) throw new Error("Payment did not complete correctly.");
 
-        // Check if CardElement is ready
-        if (!cardReady) {
-          setPaymentError("Card element not ready. Please wait and try again.");
-          setLoading(false);
-          return;
-        }
-      }
-
-      // Create payment intent
-      console.log("Creating payment intent for:", {
-        amount: orderDetails.amount,
-        paymentMethod: selectedPaymentMethod,
-        orderId: orderDetails.orderId
-      });
-
-      const paymentData = {
-        order: { ...orderDetails },
-        selectedPaymentMethod,
-        billingDetails
-      };
-
-      const response = await fetch("${API_BASE_URL}/order/create-payment-intent", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+      // 3) persist payment on backend
+      const saveResp = await fetch(`${API_BASE_URL}/order/${encodeURIComponent(orderId)}/pay`, {
+        method: "PUT",
         credentials: "include",
-        body: JSON.stringify(paymentData)
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ paymentResult: paymentIntent }),
       });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+      if (!saveResp.ok) {
+        const txt = await saveResp.text().catch(() => null);
+        console.error("Failed to save payment on server:", txt);
+        setPaymentError("Payment succeeded but saving failed. Please contact support.");
+        setLoading(false);
+        return;
       }
 
-      const data = await response.json();
+      const saved = await saveResp.json();
 
-      console.log("Payment Intent created:", data.paymentIntent);
+      // 4) clear client cart
+      try { localStorage.removeItem("cart"); } catch (err) { console.warn("Failed to clear cart:", err); }
 
-      if (selectedPaymentMethod === "card") {
-        // Get the CardElement
-        const cardElement = elements.getElement(CardElement);
-        console.log("CardElement:", cardElement);
+      // 5) Navigate to your existing Order Confirmation page (you already have that component)
+      // Prepare state for OrderConfirmation component
+      const returnedOrder = saved.order || saved.data || saved;
+      // Fallback to orderDetails.orderData if server didn't return whole order
+      const orderForConfirmation = returnedOrder && (returnedOrder._id || returnedOrder.orderId)
+        ? returnedOrder
+        : (orderDetails.orderData || { orderItems: orderDetails.products || [], totalPrice: orderDetails.amount ? orderDetails.amount / 100 : orderDetails.totalPrice || 0 });
 
-        if (!cardElement) {
-          console.error("CardElement not found.");
-          setPaymentError("Card element not found. Please refresh and try again.");
-          setLoading(false);
-          return;
-        }
+      const items = orderForConfirmation.orderItems || orderForConfirmation.items || (orderForConfirmation.products || []);
+      const total =
+        (orderForConfirmation.totalPrice ?? orderForConfirmation.total ?? orderForConfirmation.amount ?? orderDetails.amount ?? 0);
 
-        // Confirm card payment
-        const result = await stripe.confirmCardPayment(data.paymentIntent.client_secret, {
-          payment_method: {
-            card: cardElement,
-            billing_details: {
-              name: billingDetails.name,
-              email: billingDetails.email,
-            },
-          },
-        });
-
-        if (result.error) {
-          console.error("Payment failed:", result.error.message);
-          setPaymentError(result.error.message);
-           // Redirect to failure page
-  navigate("/failure", { state: { orderDetails, error: result.error.message } });
-        } else if (result.paymentIntent.status === "succeeded") {
-          console.log("Payment successful:", result.paymentIntent);
-          setPaymentSuccess(`Payment successful! Payment ID: ${result.paymentIntent.id}`);
-          setTimeout(() => {
-    navigate("/success", { state: { orderDetails, paymentId: result.paymentIntent.id } });
-  }, 1500);
-        }
-      } else {
-        const result = await stripe.confirmPayment({
-          elements,
-          clientSecret: data.paymentIntent.client_secret,
-          confirmParams: {
-            return_url: "https://yourdomain.com/payment-success", // update to your frontend success page
-            payment_method_data: {
-              billing_details: {
-                name: billingDetails.name,
-                email: billingDetails.email,
-              },
-            },
-          },
-        });
-
-        if (result.error) {
-          console.error("Payment failed:", result.error.message);
-          setPaymentError(result.error.message);
-        } else {
-          // The user is being redirected → don't show success immediately
-          setPaymentSuccess(`${selectedPaymentMethod} payment initiated. Redirecting...`);
-        }
-        // setPaymentSuccess(`${selectedPaymentMethod} payment initiated successfully!`);
-      }
-
+      navigate("/orderconfirmation", {
+        state: {
+          orderId: orderForConfirmation._id || orderForConfirmation.orderId || orderId,
+          date: new Date().toLocaleString(),
+          items,
+          total,
+        },
+      });
     } catch (err) {
-      console.error("Payment error:", err);
-      setPaymentError(err.message || "Something went wrong. Please try again.");
-       navigate("/failure", { state: { orderDetails, error: err.message } });
+      console.error("Payment flow error:", err);
+      setPaymentError(err.message || "Payment failed. Please try again.");
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   const getPaymentMethodName = (method) => {
@@ -268,90 +239,46 @@ const CheckoutForm = () => {
         <p className="text-sm text-gray-600 mt-1">{orderDetails.description}</p>
       </div>
 
-      {/* Payment Method Selection */}
       <div className="mb-6">
         <h3 className="text-lg font-semibold mb-3">Select Payment Method</h3>
         <div className="space-y-2">
-          {paymentMethods.filter(method => method.available).map((method) => (
-            <label
-              key={method.id}
-              className={`flex items-center p-3 border-2 rounded-lg cursor-pointer transition-all ${selectedPaymentMethod === method.id
-                  ? "border-blue-500 bg-blue-50"
-                  : "border-gray-200 hover:border-gray-300"
-                }`}
-            >
-              <input
-                type="radio"
-                name="paymentMethod"
-                value={method.id}
-                checked={selectedPaymentMethod === method.id}
-                onChange={(e) => setSelectedPaymentMethod(e.target.value)}
-                className="sr-only"
-              />
+          {paymentMethods.filter(m => m.available).map((method) => (
+            <label key={method.id} className={`flex items-center p-3 border-2 rounded-lg cursor-pointer transition-all ${selectedPaymentMethod === method.id ? "border-blue-500 bg-blue-50" : "border-gray-200 hover:border-gray-300"}`}>
+              <input type="radio" name="paymentMethod" value={method.id} checked={selectedPaymentMethod === method.id} onChange={(e) => setSelectedPaymentMethod(e.target.value)} className="sr-only" />
               <span className="text-xl mr-3">{method.icon}</span>
               <div className="flex-1">
                 <div className="font-medium text-gray-800">{method.name}</div>
                 <div className="text-xs text-gray-500">{method.description}</div>
               </div>
-              {selectedPaymentMethod === method.id && (
-                <Check className="w-5 h-5 text-blue-600" />
-              )}
+              {selectedPaymentMethod === method.id && <Check className="w-5 h-5 text-blue-600" />}
             </label>
           ))}
         </div>
       </div>
 
       <div className="space-y-4">
-        {/* Card Details - Only show for card payments */}
         {selectedPaymentMethod === "card" && (
           <div className="space-y-4">
-            {/* Stripe CardElement */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Card Information
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Card Information</label>
               <div className="p-3 border border-gray-300 rounded-lg focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent">
-                <CardElement
-                  options={cardElementOptions}
-                  onChange={handleCardChange}
-                  onReady={handleCardReady}
-                />
+                <CardElement options={cardElementOptions} onChange={handleCardChange} onReady={handleCardReady} />
               </div>
-              <p className="text-xs text-gray-500 mt-1">
-                Use 4242 4242 4242 4242 for success, 4000 0000 0000 0002 for decline
-              </p>
-            </div>
-
-            {/* Billing Details */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Cardholder Name
-              </label>
-              <input
-                type="text"
-                value={billingDetails.name}
-                onChange={(e) => handleBillingInputChange("name", e.target.value)}
-                placeholder="John Doe"
-                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
+              <p className="text-xs text-gray-500 mt-1">Use 4242 4242 4242 4242 for success, 4000 0000 0000 0002 for decline</p>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Email Address
-              </label>
-              <input
-                type="email"
-                value={billingDetails.email}
-                onChange={(e) => handleBillingInputChange("email", e.target.value)}
-                placeholder="john@example.com"
-                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
+              <label className="block text-sm font-medium text-gray-700 mb-1">Cardholder Name</label>
+              <input type="text" value={billingDetails.name} onChange={(e) => handleBillingInputChange("name", e.target.value)} placeholder="John Doe" className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+              <input type="email" value={billingDetails.email} onChange={(e) => handleBillingInputChange("email", e.target.value)} placeholder="john@example.com" className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
             </div>
           </div>
         )}
 
-        {/* Info for redirect payments */}
         {selectedPaymentMethod !== "card" && (
           <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
             <div className="flex items-start">
@@ -364,39 +291,16 @@ const CheckoutForm = () => {
           </div>
         )}
 
-        {/* Payment Button */}
-        <button
-          type="button"
-          onClick={handleSubmit}
-          disabled={loading || (selectedPaymentMethod === "card" && !cardReady)}
-          className={`w-full py-4 px-6 rounded-lg font-semibold text-white transition-all ${loading || (selectedPaymentMethod === "card" && !cardReady)
-              ? "bg-gray-400 cursor-not-allowed"
-              : "bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-            }`}
-        >
-          {loading ? (
-            <div className="flex items-center justify-center">
-              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-              Processing...
-            </div>
-          ) : selectedPaymentMethod === "card" && !cardReady ? (
-            "Loading card form..."
-          ) : (
-            selectedPaymentMethod === "card"
-              ? `Pay $${(orderDetails.amount / 100).toFixed(2)}`
-              : `Continue with ${getPaymentMethodName(selectedPaymentMethod)}`
-          )}
+        <button type="button" onClick={handleSubmit} disabled={loading || (selectedPaymentMethod === "card" && !cardReady)} className={`w-full py-4 px-6 rounded-lg font-semibold text-white transition-all ${loading || (selectedPaymentMethod === "card" && !cardReady) ? "bg-gray-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"}`}>
+          {loading ? (<div className="flex items-center justify-center"><div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>Processing...</div>)
+            : selectedPaymentMethod === "card" && !cardReady ? "Loading card form..." : (selectedPaymentMethod === "card" ? `Pay $${(orderDetails.amount / 100).toFixed(2)}` : `Continue with ${getPaymentMethodName(selectedPaymentMethod)}`)}
         </button>
 
-        {/* Success/Error Messages */}
         {paymentSuccess && (
           <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
             <div className="flex items-start">
               <Check className="w-5 h-5 text-green-600 mt-0.5 mr-2 flex-shrink-0" />
-              <div className="text-sm text-green-800">
-                <p className="font-medium">Payment Successful!</p>
-                <p className="mt-1">{paymentSuccess}</p>
-              </div>
+              <div className="text-sm text-green-800"><p className="font-medium">Payment Successful!</p><p className="mt-1">{paymentSuccess}</p></div>
             </div>
           </div>
         )}
@@ -405,16 +309,12 @@ const CheckoutForm = () => {
           <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
             <div className="flex items-start">
               <AlertCircle className="w-5 h-5 text-red-600 mt-0.5 mr-2 flex-shrink-0" />
-              <div className="text-sm text-red-800">
-                <p className="font-medium">Payment Error</p>
-                <p className="mt-1">{paymentError}</p>
-              </div>
+              <div className="text-sm text-red-800"><p className="font-medium">Payment Error</p><p className="mt-1">{paymentError}</p></div>
             </div>
           </div>
         )}
       </div>
 
-      {/* Security Info */}
       <div className="mt-6 p-4 bg-gray-50 rounded-lg">
         <div className="flex items-center text-sm text-gray-600">
           <Shield className="w-4 h-4 mr-2 text-gray-500" />
@@ -422,7 +322,6 @@ const CheckoutForm = () => {
         </div>
       </div>
 
-      {/* Demo Info */}
       <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
         <div className="text-xs text-yellow-800">
           <p className="font-medium mb-1">Demo Mode</p>

@@ -79,7 +79,7 @@ import AllProducts from './pages/user/AllProducts.jsx';
 import { AuthProvider } from './context/AuthContext.jsx';
 import { TranslateProvider } from './context/TranslateProvider.jsx';
 
-const stripePromise = loadStripe("pk_test_51R5K8GKrchCGsgebVJUW17xrLkCcopyHQJ30gKKVYZ5BWInCQYK75hkDuARp5NdudF80FDoEqCQvN823SZ4tBkHQ005FbTzTqS");
+const stripePromise = loadStripe("pk_test_51SBJuxCJSue85a5PyEGb1wMz4IxhMDda5ZtNgcwQeeFf0eb5Y0QS8b0ZDybTQlNlGUH2IKQbC9k3fQ6HGvANnd4600RY0Yju3T");
 
 function App() {
   return (

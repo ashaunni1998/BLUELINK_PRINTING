@@ -107,13 +107,4 @@
     width: 100%;       /* ✅ full width button on mobile */
     text-align: center;
   }
-  /* Add this in your CSS (or styled JSX if using React) */
-@media screen and (min-width: 1600px) {
-  .features-container {
-    max-width: 100% !important;   /* Loosen width for iMac screens */
-    gap: 40px !important;         /* Replace % gap with fixed px */
-    justify-content: center !important; /* Center the cards */
-  }
-}
-
 }
