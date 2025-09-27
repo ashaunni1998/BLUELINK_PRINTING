@@ -455,17 +455,20 @@ const AccountPage = () => {
   return (
     <div className="responsive-container">
       <Header />
-      <div 
-        style={{
-          display: "flex",
-          flexDirection: isMobile ? "column" : "row",
-          gap: "24px",
-          maxWidth: "1100px",
-          margin: "30px auto",
-          padding: "0 20px",
-          alignItems: "flex-start"
-        }}
-      >
+     <div
+  style={{
+    display: "flex",
+    flexDirection: isMobile ? "column" : "row",
+    gap: isMobile ? "16px" : "22px",
+    width: "100%",
+    maxWidth: isMobile ? "100%" : "81%",
+    margin: "20px auto",
+    padding: isMobile ? "0 12px" : "0 20px",
+    boxSizing: "border-box",
+    alignItems: "flex-start"
+  }}
+>
+
         {/* Sidebar */}
         <nav
           style={{
@@ -473,7 +476,7 @@ const AccountPage = () => {
             border: "1px solid #e5e7eb",
             borderRadius: "12px",
             padding: "20px",
-            width: isMobile ? "100%" : "240px",
+            width: isMobile ? "100%" : "220px",
             boxShadow: "0 2px 6px rgba(0,0,0,0.08)",
             display: "flex",
             flexDirection: "column",
@@ -504,7 +507,7 @@ const AccountPage = () => {
         </nav>
 
         {/* Content */}
-        <main style={{ flex: 1, padding: "30px" }}>
+        <main style={{ flex: 1, padding: "30px",marginRight:"5%" }}>
           <h2 style={{ fontSize: "24px", marginBottom: "20px", textTransform: "capitalize" }}>
             {activeSection.replace("-", " ")}
           </h2>
@@ -517,7 +520,8 @@ const AccountPage = () => {
                   border: "1px solid #e5e7eb",
                   borderRadius: "12px",
                   padding: "30px",
-                  boxShadow: "0 2px 8px rgba(0,0,0,0.08)"
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+                  marginLeft:"10px",
                 }}
               >
                 <h2 style={{ fontSize: "22px", marginBottom: "16px", color: "#111827" }}>
