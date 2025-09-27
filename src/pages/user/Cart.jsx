@@ -1,5 +1,7 @@
 // Cart.jsx
 import React, { useEffect, useState } from "react";
+import { Trash2, ShoppingBag, ArrowLeft, CreditCard, Plus, Minus, ShoppingCart } from "lucide-react";
+
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import { API_BASE_URL } from "../../config";
@@ -19,6 +21,9 @@ export default function Cart() {
   const [cartId, setCartId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [currency, setCurrency] = useState("$");
+const [updatingMap, setUpdatingMap] = useState({});
+
+
 
   const pickTierForQty = (priceTiers = [], qty) => {
     if (!Array.isArray(priceTiers) || !priceTiers.length) return null;
@@ -40,48 +45,42 @@ export default function Cart() {
     return sorted[0];
   };
 
-// REPLACE normalizeCart with this version
+// REPLACE normalizeCart with this version (full replacement)
 const normalizeCart = (cartData) => {
   if (!cartData || !Array.isArray(cartData.items)) return [];
 
   return cartData.items.map((i, idx) => {
-    const raw = i;
-    // product may be a populated object or just an id string
-    const product = (i.productId && typeof i.productId === "object") ? i.productId : null;
-    const productIdStr = product?._id ? String(product._id) : (i.productId ? String(i.productId) : `unknown-${idx}`);
+    const raw = i || {};
+    // product may already be populated object or just an id
+    const product = (raw.productId && typeof raw.productId === "object") ? raw.productId : null;
+    const productIdStr = product?._id ? String(product._id) : (raw.productId ? String(raw.productId) : `unknown-${idx}`);
 
-    const qty = Number(i.quantity ?? 1) || 1;
-    const options = i.options || {};
-    const designType = (options.designType || options.design || "single").toString().toLowerCase();
+    const qty = Number(raw.quantity ?? raw.qty ?? 1) || 1;
+    const options = raw.options || raw.meta || raw.customOptions || {};
+    const designType = (options.designType || options.design || raw.designType || "single").toString().toLowerCase();
 
-    // Helper: find price tiers on the product under common field names
+    // extract price tiers from different shapes
     const extractTiers = (p) => {
       if (!p || typeof p !== "object") return null;
       return p.priceTiers ?? p.price_tiers ?? p.tiers ?? p.pricing?.priceTiers ?? null;
     };
     const rawTiers = extractTiers(product);
 
-    // Build allowedQtyOptions from product.priceTiers (qty / quantity / minQty)
+    // allowed qty options from tiers or item
     let allowedQtyOptions = [];
     if (Array.isArray(rawTiers) && rawTiers.length) {
-      const qtys = rawTiers.map(t => Number(t.qty ?? t.quantity ?? t.minQty ?? null)).filter(n => Number.isFinite(n));
+      const qtys = rawTiers.map(t => Number(t.qty ?? t.quantity ?? t.minQty ?? 0)).filter(n => Number.isFinite(n));
       allowedQtyOptions = [...new Set(qtys)].sort((a,b)=>a-b);
     }
-
-    // fallback to any allowed list on item
     if (!allowedQtyOptions.length) {
-      const itemCandidates = [ raw.allowedQtys, raw.allowedQuantities, raw.qtyOptions, raw.qty_list, raw.allowedQtyOptions ];
-      for (const cand of itemCandidates) {
-        if (Array.isArray(cand) && cand.length) {
-          const v = cand.map(x => Number(x)).filter(n => Number.isFinite(n));
-          if (v.length) { allowedQtyOptions = [...new Set(v)].sort((a,b)=>a-b); break; }
-        }
+      const alt = raw.allowedQtys || raw.qtyOptions || [];
+      if (Array.isArray(alt) && alt.length) {
+        allowedQtyOptions = alt.map(x => Number(x)).filter(n => Number.isFinite(n));
       }
     }
-
     if (!allowedQtyOptions.length) allowedQtyOptions = [qty];
 
-    // helper to pick a tier from an array (makes qty field tolerant)
+    // helper to pick tier from array
     const pickTierFromArr = (arr = [], q) => {
       if (!Array.isArray(arr) || !arr.length) return null;
       const sorted = arr.map(t => ({ ...t, _qty: Number(t.qty ?? t.quantity ?? t.minQty ?? 0) }))
@@ -98,13 +97,14 @@ const normalizeCart = (cartData) => {
 
     const tierFromProduct = rawTiers ? pickTierFromArr(rawTiers, qty) : null;
 
-    // snapshot values stored on cart item
-    const savedUnit = (i.unitPrice !== undefined && i.unitPrice !== null) ? Number(i.unitPrice) : NaN;
-    const savedShip = (i.shippingPrice !== undefined && i.shippingPrice !== null) ? Number(i.shippingPrice) : NaN;
+    // snapshot values saved on cart item
+    const savedUnit = (raw.unitPrice !== undefined && raw.unitPrice !== null) ? Number(raw.unitPrice) : NaN;
+    const savedShip = (raw.shippingPrice !== undefined && raw.shippingPrice !== null) ? Number(raw.shippingPrice) : NaN;
 
     let unitPrice = Number.isFinite(savedUnit) ? savedUnit : NaN;
     let shippingPrice = Number.isFinite(savedShip) ? savedShip : NaN;
 
+    // derive from tier if needed
     if ((!Number.isFinite(unitPrice) || !Number.isFinite(shippingPrice)) && tierFromProduct) {
       unitPrice = designType === "double"
         ? Number(tierFromProduct.priceDouble ?? tierFromProduct.priceSingle ?? tierFromProduct.price ?? 0)
@@ -112,21 +112,59 @@ const normalizeCart = (cartData) => {
       shippingPrice = Number(tierFromProduct.shippingCharge ?? tierFromProduct.shippingPrice ?? 0);
     }
 
+    // fallback to product base fields
     if (!Number.isFinite(unitPrice) && product) unitPrice = Number(product.basePrice ?? product.price ?? 0);
     if (!Number.isFinite(shippingPrice) && product) shippingPrice = Number(product.shippingCharge ?? product.shippingPrice ?? 0);
 
     if (!Number.isFinite(unitPrice)) unitPrice = 0;
     if (!Number.isFinite(shippingPrice)) shippingPrice = 0;
 
+    // compute "line total" according to your app (you said unitPrice is the tier pack price)
     const lineTotal = Number((unitPrice + shippingPrice).toFixed(2));
-    const image = (Array.isArray(product?.images) && product.images.length) ? product.images[0] : (raw.images && raw.images[0]) || "";
-    const name = product?.name ?? raw.rawName ?? raw.name ?? "(Product unavailable)";
+
+    // robust image resolution — accept many shapes
+    const resolveImage = () => {
+      // item-level prepared preview or uploaded URL
+      if (raw.preparedPreview) return raw.preparedPreview;
+      if (raw.uploadedUrl) return raw.uploadedUrl;
+      if (raw.uploadUrl) return raw.uploadUrl;
+      // product images
+      if (product) {
+        if (Array.isArray(product.images) && product.images.length) {
+          const first = product.images[0];
+          if (typeof first === "string") return first;
+          if (typeof first === "object") return first.url || first.path || first.src || "";
+        }
+        if (product.image) return typeof product.image === "string" ? product.image : product.image?.url || "";
+      }
+      // raw item-level images
+      if (Array.isArray(raw.images) && raw.images.length) {
+        const f = raw.images[0];
+        if (typeof f === "string") return f;
+        if (typeof f === "object") return f.url || f.path || "";
+      }
+      // croppedImages
+      if (raw.croppedImages?.front) return raw.croppedImages.front;
+      if (raw.croppedImages?.back) return raw.croppedImages.back;
+      // fallback placeholder
+      return "";
+    };
+
+    const image = resolveImage();
+    const name = product?.name ?? raw.productName ?? raw.name ?? raw.title ?? "(Product)";
+
+    // expose consolidated options (size/paper/finish/corner) from many possible shapes
+    const readOption = (k) => {
+      const val = raw[k] ?? options?.[k] ?? raw.meta?.[k] ?? raw.custom?.[k] ?? product?.[k] ?? null;
+      if (val == null) return null;
+      if (typeof val === "object") return val.name ?? val.label ?? val.value ?? JSON.stringify(val);
+      return String(val);
+    };
 
     return {
       raw,
       id: productIdStr,
       name,
-      // desc: product?.description ?? raw.description ?? "",
       image,
       qty,
       allowedQtyOptions,
@@ -134,10 +172,16 @@ const normalizeCart = (cartData) => {
       shippingPrice,
       lineTotal,
       designType,
-      product
+      product,
+      // common options easy to read in UI
+      selectedSize: readOption("size"),
+      selectedPaper: readOption("paper"),
+      selectedFinish: readOption("finish"),
+      selectedCorner: readOption("corner"),
     };
   });
 };
+
 
 
 
@@ -301,7 +345,7 @@ const updateCartQty = async (cartItemIdOrProductId, newQty) => {
   useEffect(() => {
     fetchCart();
   }, []);
-const [updatingMap, setUpdatingMap] = useState({});
+
 
 
 
@@ -339,194 +383,172 @@ const [updatingMap, setUpdatingMap] = useState({});
     return <div style={{ padding: 40, textAlign: "center" }}>Loading cart…</div>;
 
   return (
-      <div className="responsive-container">
+      <div className="responsive-container" >
     <div className="page-container"> 
       <Header />
 
-      <main style={{ background: "#fff", padding: 20, borderRadius: 8,maxWidth:"80%",margin:"20px auto" }}>
-        <h1 style={{ fontSize: 22, marginBottom: 12 }}>🛒 Your Cart</h1>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="mb-8">
+          <div className="flex items-center space-x-3 mb-2">
+            <div className="p-2 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-lg">
+              <ShoppingBag className="w-6 h-6 text-white" />
+            </div>
+            <h1 className="text-3xl font-bold text-gray-900">Shopping Cart</h1>
+          </div>
+          <p className="text-gray-600">
+            {items.length} {items.length === 1 ? 'item' : 'items'} in your cart
+          </p>
+        </div>
 
         {items.length === 0 ? (
-          <div style={{ padding: 20, color: "#6B7280" }}>
-            Your cart is empty.
+          <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-12 text-center">
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-gray-100 rounded-full mb-6">
+              <ShoppingCart className="w-10 h-10 text-gray-400" />
+            </div>
+            <h2 className="text-2xl font-semibold text-gray-900 mb-4">Your cart is empty</h2>
+            <p className="text-gray-600 mb-8 max-w-md mx-auto">
+              Looks like you haven't added any items to your cart yet. Start shopping to fill it up!
+            </p>
+            <a href="/" className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-xl hover:from-indigo-700 hover:to-purple-700 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl">
+              <ArrowLeft className="w-5 h-5 mr-2" />
+              Continue Shopping
+            </a>
           </div>
         ) : (
-          <>
+          <div className="grid lg:grid-cols-3 gap-8">
+            {/* Cart Items */}
+            <div className="lg:col-span-2 space-y-4">
 {items.map((item, idx) => {
   const cartItemId = item.raw?._id ?? null;
   const keyId = cartItemId ? cartItemId : `${item.id}-${idx}`;
 
   return (
-    <div
-  
-      className="cart-item"
-    >
-      {/* Image */}
-      <div
-        style={{
-          width: 100,
-          height: 100,
-          borderRadius: 8,
-          overflow: "hidden",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          background: "#F9FAFB",
-        }}
-      >
-        <img
-          src={item.image || "https://via.placeholder.com/100"}
-          alt={item.name}
-          style={{
-            width: "100%",
-            height: "100%",
-            objectFit: "cover",
-          }}
-        />
+    <div key={keyId} className="cart-item" style={{ display:'flex', gap:20, alignItems:'center', padding:'18px 0', borderBottom:'1px solid #eee' }}>
+      {/* left: image */}
+      <div style={{
+        width: 100, height:100, borderRadius:8, overflow:'hidden', display:'flex', alignItems:'center', justifyContent:'center',
+        background: item.image ? '#fff' : '#F3F4F6'
+      }}>
+        {item.image ? (
+          <img src={item.image} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+        ) : (
+          <div style={{ textAlign:'center', color:'#9CA3AF', fontSize:13 }}>No image</div>
+        )}
       </div>
 
-      {/* Details */}
-      <div>
-        <h3 style={{ margin: "0 0 6px", fontSize: 16, fontWeight: 600 }}>
-          {item.name}
-        </h3>
+      {/* middle: details */}
+      <div style={{ flex:1, minWidth: 220 }}>
+        <h3 style={{ margin:'0 0 6px', fontSize:16, fontWeight:600 }}>{item.name}</h3>
 
-        <div
-          style={{
-            display: "flex",
-            gap: 20,
-            flexWrap: "wrap",
-            fontSize: 14,
-            color: "#374151",
-          }}
-        >
-          <div>
-            <span style={{ color: "#6B7280" }}>Design:</span>{" "}
-            <strong style={{ textTransform: "capitalize" }}>
-              {item.designType}
-            </strong>
-          </div>
+        <div style={{ display:'flex', gap:18, flexWrap:'wrap', color:'#374151', fontSize:14 }}>
+          <div><span style={{color:'#6B7280'}}>Design:</span> <strong style={{textTransform:'capitalize'}}>{item.designType}</strong></div>
 
           <div>
-            <span style={{ color: "#6B7280" }}>Qty:</span>{" "}
+            <span style={{ color: '#6B7280' }}>Qty:</span>{' '}
             <select
               value={item.qty}
               onChange={(e) => {
                 const newQty = e.target.value;
-                const cartItemId = item.raw?._id ?? item.id;
-                updateCartQty(cartItemId, newQty);
+                const cartItemIdToSend = item.raw?._id ?? item.id;
+                updateCartQty(cartItemIdToSend, newQty);
               }}
               disabled={!!updatingMap[item.raw?._id ?? item.id] || !cartId}
-              style={{
-                marginLeft: 6,
-                padding: "6px 10px",
-                borderRadius: 6,
-                border: "1px solid #D1D5DB",
-              }}
+              style={{ marginLeft: 6, padding: '6px 10px', borderRadius: 6, border: '1px solid #D1D5DB' }}
             >
               {item.allowedQtyOptions.map((q) => (
-                <option key={`${item.id}-qty-${q}`} value={q}>
-                  {q}
-                </option>
+                <option key={`${item.id}-qty-${q}`} value={q}>{q}</option>
               ))}
             </select>
           </div>
+
+          {/* options shown only if present */}
+          {item.selectedSize && <div>Size: <strong>{item.selectedSize}</strong></div>}
+          {item.selectedPaper && <div>Paper: <strong>{item.selectedPaper}</strong></div>}
+          {item.selectedFinish && <div>Finish: <strong>{item.selectedFinish}</strong></div>}
+          {item.selectedCorner && <div>Corner: <strong>{item.selectedCorner}</strong></div>}
         </div>
       </div>
 
-      {/* Price + Remove */}
-      <div style={{ textAlign: "right" }}>
-        <div style={{ fontWeight: 700, fontSize: 18, color: "#111827" }}>
-          {currencySymbol(currency)}
-          {formatMoney(item.unitPrice)}
+      {/* right: price + actions */}
+      <div style={{ textAlign: 'right', minWidth:120 }}>
+        <div style={{ fontWeight:700, fontSize:18, color:'#111827' }}>
+          {currencySymbol(currency)}{formatMoney(item.unitPrice)}
         </div>
-        <button
-          onClick={() => removeItem(item.id)}
-          style={{
-            marginTop: 10,
-            background: "transparent",
-            border: "none",
-            color: "#EF4444",
-            cursor: "pointer",
-            textDecoration: "underline",
-            fontSize: 14,
-          }}
-        >
+        <button onClick={() => removeItem(item.id)} style={{ marginTop:10, background:'transparent', border:'none', color:'#EF4444', cursor:'pointer', textDecoration:'underline', fontSize:14 }}>
           Remove
         </button>
       </div>
     </div>
   );
 })}
+            </div>
 
+            {/* Order Summary */}
+            <div className="lg:col-span-1">
+              <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-6 sticky top-8">
+                <h2 className="text-xl font-semibold text-gray-900 mb-6">Order Summary</h2>
+                
+                <div className="space-y-4 mb-6">
+                  <div className="flex justify-between text-gray-600">
+                    <span>Subtotal ({items.length} items)</span>
+                    <span>{currencySymbol(currency)}{formatMoney(subtotal)}</span>
+                  </div>
+                  
+                  {shippingTotal > 0 && (
+                    <div className="flex justify-between text-gray-600">
+                      <span>Shipping</span>
+                      <span>{currencySymbol(currency)}{formatMoney(shippingTotal)}</span>
+                    </div>
+                  )}
+                  
+                  <div className="border-t border-gray-200 pt-4">
+                    <div className="flex justify-between items-center text-lg font-semibold text-gray-900">
+                      <span>Total</span>
+                      <span>{currencySymbol(currency)}{formatMoney(total)}</span>
+                    </div>
+                  </div>
+                </div>
 
+                <div className="space-y-3">
+                 <a 
+  href="/checkout" 
+  className="w-full text-white font-semibold py-4 px-6 rounded-xl transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center space-x-2"
+  style={{ backgroundColor: "#007abf" }}
+  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#006599"} // darker hover
+  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "#007abf"}
+>
+  <CreditCard className="w-5 h-5" />
+  <span>Proceed to Checkout</span>
+</a>
 
-
-            <div
-              style={{
-                marginTop: 20,
-                borderTop: "1px solid #EEE",
-                paddingTop: 20,
-              }}
-            >
-              
-
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  fontWeight: 700,
-                  fontSize: 18,
-                  marginTop: 12,
-                }}
-              >
-                <span>Total</span>
-                <span>
-                  {currencySymbol(currency)}
-                  {formatMoney(subtotal)}
-                </span>
-              </div>
-
-              <div
-                style={{
-                  marginTop: 18,
-                  display: "flex",
-                  justifyContent: "space-between",
-                  gap: 12,
-                }}
-              >
-                <a href="/">
-                  <button
-                    style={{
-                      background: "#2563eb",
-                      color: "#fff",
-                      padding: "10px 16px",
-                      borderRadius: 8,
-                      border: "none",
-                    }}
+                  
+                  <a 
+                    href="/" 
+                    className="w-full bg-white text-gray-700 font-semibold py-4 px-6 rounded-xl border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-all duration-200 flex items-center justify-center space-x-2"
                   >
-                    ← Continue Shopping
-                  </button>
-                </a>
-                <a href="/checkout">
-                  <button
-                    style={{
-                      background: "#06b6d4",
-                      color: "#fff",
-                      padding: "10px 16px",
-                      borderRadius: 8,
-                      border: "none",
-                      fontWeight: 700,
-                    }}
-                  >
-                    Proceed to Checkout
-                  </button>
-                </a>
+                    <ArrowLeft className="w-5 h-5" />
+                    <span>Continue Shopping</span>
+                  </a>
+                </div>
+
+                {/* Trust Badges */}
+                <div className="mt-6 pt-6 border-t border-gray-200">
+                  <div className="flex items-center justify-center space-x-4 text-sm text-gray-500">
+                    <div className="flex items-center space-x-1">
+                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                      <span>Secure Checkout</span>
+                    </div>
+                    <div className="flex items-center space-x-1">
+                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                      <span>Free Returns</span>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
-          </>
+          </div>
         )}
-      </main>
+      </div>
 
       <Footer />
     </div>

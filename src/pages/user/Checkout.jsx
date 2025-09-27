@@ -565,49 +565,149 @@ const handlePlaceOrder = async () => {
   const totals = computeTotals();
 
   Swal.fire({
-    title: "Place Order?",
-    text: `Confirm placing order. Total: $${totals.grandTotal.toFixed(2)}`,
+    title: "Proceed to payment?",
+    text: `You'll be taken to the secure payment page. Total: $${totals.grandTotal.toFixed(2)}`,
     icon: "question",
     showCancelButton: true,
     confirmButtonColor: "#2563eb",
     cancelButtonColor: "#ccc",
-    confirmButtonText: "Yes, Place Order",
+    confirmButtonText: "Yes, Continue to Payment",
   }).then(async (result) => {
     if (!result.isConfirmed) return;
-    try {
-      const orderRes = await axios.post(
-        `${API_BASE_URL}/order/create`,
-        {
-          products: cart.map((item) => ({
-            productId: item.id,
-            quantity: item.qty,
-          })),
-          address: deliveryMethod === "pickup" ? null : selectedAddress,
-          deliveryMethod,
-          shipping: totals.totalShipping,     // server can persist this
-          methodSurcharge: totals.methodSurcharge,
-          totalPrice: totals.grandTotal,
-        },
-        { withCredentials: true }
-      );
 
-      const order = orderRes.data.orderData;
-Swal.fire("Success", "Order placed successfully!", "success").then(() => {
-  navigate("/checkout-form", {
-    state: {
-      orderDetails: {
-        orderId: order._id,
-        orderData: order,
-        amount: Math.round(totals.grandTotal * 100), // cents
-        currency: "NZD",
-      },
-    },
+   try {
+  // Build robust products payload from cart items (cart comes from your app state)
+  const productsPayload = cart.map((item) => {
+    // item may be normalized (from normalizeCart) but original data often lives in item.raw
+    const raw = item.raw || {};
+    const productObj = item.product || raw.product || raw.productId || null;
+
+    const productId = String(
+      (productObj && (productObj._id || productObj.id || productObj.productId)) ||
+      raw.productId ||
+      item.id ||
+      ""
+    );
+
+    const quantity = Number(item.qty ?? item.quantity ?? raw.quantity ?? 1) || 1;
+
+    // Options can be on many places depending on backend shape
+    const optSource = raw.options || raw.option || raw.designOptions || item.options || {};
+    // Also accept flattened properties saved on the raw item
+    const size =
+      (optSource.size && (optSource.size.name ?? optSource.size)) ||
+      (raw.size && (raw.size.name ?? raw.size)) ||
+      (item.selectedSize && (item.selectedSize.name ?? item.selectedSize)) ||
+      null;
+    const paper =
+      (optSource.paper && (optSource.paper.name ?? optSource.paper)) ||
+      (raw.paper && (raw.paper.name ?? raw.paper)) ||
+      (item.selectedPaper && (item.selectedPaper.name ?? item.selectedPaper)) ||
+      null;
+    const finish =
+      (optSource.finish && (optSource.finish.name ?? optSource.finish)) ||
+      (raw.finish && (raw.finish.name ?? raw.finish)) ||
+      null;
+    const corner =
+      (optSource.corner && (optSource.corner.name ?? optSource.corner)) ||
+      (raw.corner && (raw.corner.name ?? raw.corner)) ||
+      null;
+    const designType =
+      (optSource.designType || raw.designType || item.designType || "single") + "";
+
+    // Collect images: look in common places where your upload code might store them
+    // - order/cart raw item may have userImage (array), images (array), preparedPreview/uploadedUrl
+    // Collect images
+const images = [];
+if (Array.isArray(raw.userImage) && raw.userImage.length) {
+  images.push(...raw.userImage);
+}
+if (Array.isArray(raw.images) && raw.images.length) {
+  images.push(...raw.images);
+}
+if (raw.preparedPreview) images.push(raw.preparedPreview);
+if (raw.uploadedUrl) images.push(raw.uploadedUrl);
+if (item.preparedPreview) images.push(item.preparedPreview);
+if (item.uploadedUrl) images.push(item.uploadedUrl);
+
+
+    // fallback to product image (product object may have images array)
+    const productFirstImage =
+      (productObj && (Array.isArray(productObj.images) ? productObj.images[0] : (productObj.image || null))) || null;
+    if (!images.length && productFirstImage) images.push(productFirstImage);
+
+    // Remove duplicates and empty strings
+    const cleanedImages = [...new Set(images.filter(Boolean))];
+
+    // Attach any other metadata helpful for backend: eg. price tier, selected tier qty
+    const meta = {
+      resolvedProductTitle: productObj && (productObj.name || productObj.title) || raw.name || item.name || null,
+      tierQty: item.qty ?? item.quantity ?? raw.quantity ?? null,
+      rawPreview: raw.preview || null,
+    };
+
+    return {
+      productId,
+      quantity,
+      size,
+      paper,
+      finish,
+      corner,
+      designType,
+      images: cleanedImages, // array of image URLs (may be empty)
+      meta,
+    };
   });
+
+  const payload = {
+    products: productsPayload,
+    shipping: totals.totalShipping || 0,
+    deliveryMethod,
+    address: deliveryMethod === "pickup" ? null : selectedAddress,
+    currency: "nzd",
+  };
+
+  console.debug("Create PaymentIntent payload:", payload);
+
+  // Create PaymentIntent — server validates price and returns clientSecret and amount (cents)
+  const payRes = await axios.post(`${API_BASE_URL}/order/create-payment-intent`, payload, {
+    withCredentials: true,
+  });
+
+  const data = payRes.data?.data || payRes.data;
+  if (!data) throw new Error("Invalid response from payment intent endpoint");
+
+  const clientSecret = data.clientSecret || data.client_secret;
+  const paymentIntentId = data.paymentIntentId || data.payment_intent_id;
+  const amount = data.amount ?? Math.round(totals.grandTotal * 100);
+
+  if (!clientSecret) throw new Error("Missing client secret from server");
+
+  const orderId = data.orderId || data._id || null;
+
+navigate("/checkout-form", {
+  state: {
+    orderDetails: {
+      clientSecret,
+      paymentIntentId,
+      orderId,   // ✅ now included
+      amount,
+      currency: (data.currency || "NZD").toUpperCase(),
+      products: productsPayload,
+      shipping: totals.totalShipping,
+      address: payload.address,
+      preview: data.preview || null,
+      description: `Order payment - preview`,
+    },
+  },
 });
-    } catch (err) {
-      console.error("Place order failed:", err);
-      Swal.fire("Error", "Failed to place order", "error");
-    }
+
+} catch (err) {
+  console.error("Place order -> payment intent error:", err);
+  Swal.fire("Error", err.response?.data?.message || err.message || "Failed to start payment", "error");
+}
+
+
   });
 };
 

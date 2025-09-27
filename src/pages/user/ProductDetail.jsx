@@ -105,7 +105,7 @@ const [selectedTier, setSelectedTier] = useState(() => {
   }
   return null;
 });
-//  console.log(category);
+
 // ✅ in case product loads later, auto-select 200 once it's available
 useEffect(() => {
   if (product?.priceTiers && !selectedTier) {
@@ -224,43 +224,94 @@ const isMobile = useMediaQuery("(max-width: 768px)");
     setCurrentIndex(prev => (prev === (product?.images?.length || 1) - 1 ? 0 : prev + 1));
   };
 
-  // âœ… fixed: Add to cart using cookies (no localStorage token)
-  const handleAddToCart = async () => {
-    try {
-      if (!product?._id) {
-        alert("Product not loaded yet.");
-        return;
-      }
-
-      const res = await fetch(`${API_BASE_URL}/addToCart`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include", // ðŸ'ˆ send login cookie
-        body: JSON.stringify({
-          productId: product._id,
-          quantity: selectedQty,
-          size: selectedSize,
-          finish: selectedFinish,
-          corner: selectedCorner
-        })
-      });
-
-      const data = await res.json();
-      if (res.ok) {
-        alert("âœ… Product added to cart!");
-        // window.location.href = "/getCart";
-        navigate("/cart");
-      } else if (res.status === 401) {
-        alert("âš ï¸ Session expired. Please login again.");
-        // window.location.href = "/signin";
-        navigate("/signin");
-      } else {
-        alert(data.message || "Failed to add product to cart.");
-      }
-    } catch (err) {
-      alert("Something went wrong. Please try again.");
+ // ---------- REPLACE handleAddToCart WITH THIS COMPLETE BLOCK ----------
+const handleAddToCart = async () => {
+  try {
+    if (!product?._id) {
+      alert("Product not loaded yet.");
+      return;
     }
-  };
+
+    // Determine quantity: prefer selectedTier.qty, fall back to any selectedQty or 1
+    const qty = Number(selectedTier?.qty || selectedQty || 1) || 1;
+
+    // Normalize option values (send primitives to backend)
+    const normalizeOption = (opt) => {
+      if (opt === null || opt === undefined) return null;
+      if (typeof opt === "string" || typeof opt === "number") return String(opt);
+      // if object, try common keys
+      if (typeof opt === "object") {
+        return String(opt?.name ?? opt?.label ?? opt?.value ?? opt?.id ?? JSON.stringify(opt));
+      }
+      return String(opt);
+    };
+
+    const sizeVal = normalizeOption(selectedSize);
+    const finishVal = normalizeOption(selectedFinish);
+    const cornerVal = normalizeOption(selectedCorner);
+    const paperVal = normalizeOption(selectedPaper);
+    const designTypeVal = normalizeOption(selectedDesignType);
+
+    // Raw options object — handy for frontend/backends with different shapes
+    const rawOptions = {
+      size: selectedSize ?? null,
+      finish: selectedFinish ?? null,
+      corner: selectedCorner ?? null,
+      paper: selectedPaper ?? null,
+      designType: selectedDesignType ?? null,
+      customText: customText ?? null,
+      preparedPreview: preparedPreview ?? null,
+      croppedImages: croppedImages ?? null,
+    };
+
+    // Build payload to send to server addToCart endpoint
+    const bodyPayload = {
+      productId: product._id,
+      quantity: qty,
+      // send both simple primitives and raw object (server can pick what it needs)
+      size: sizeVal,
+      finish: finishVal,
+      corner: cornerVal,
+      paper: paperVal,
+      designType: designTypeVal,
+      customText: customText || null,
+      preparedPreview: preparedPreview || null, // base64 or uploaded URL if available
+      croppedImages: croppedImages || null,     // { front: base64, back: base64 } if present
+      raw: rawOptions,
+    };
+
+    // Debug log during development (remove in production)
+    console.log("DEBUG addToCart payload:", bodyPayload);
+
+    const res = await fetch(`${API_BASE_URL}/addToCart`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include", // send login cookie/session
+      body: JSON.stringify(bodyPayload),
+    });
+
+    const data = await res.json().catch(() => ({ message: "Invalid JSON response" }));
+
+    if (res.ok) {
+      // success — show confirmation and go to cart
+      alert("✓ Product added to cart!");
+      navigate("/cart");
+    } else if (res.status === 401) {
+      // session expired / unauthorized
+      alert("Session expired. Please login again.");
+      navigate("/signin");
+    } else {
+      // show server-provided message when available
+      alert(data?.message || "Failed to add product to cart.");
+      console.error("addToCart error:", data);
+    }
+  } catch (err) {
+    console.error("Add to cart failed:", err);
+    alert("Something went wrong. Please try again.");
+  }
+};
+// ---------- END REPLACEMENT ----------
+
 
   // reviews
   const handleSubmitReview = () => {

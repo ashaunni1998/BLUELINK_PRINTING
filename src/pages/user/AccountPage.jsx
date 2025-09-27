@@ -32,10 +32,12 @@ const AccountPage = () => {
   const [loadingAddresses, setLoadingAddresses] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
   const [addressError, setAddressError] = useState("");
-  
 
+  // Order history state
+  const [orders, setOrders] = useState([]);
+  const [loadingOrders, setLoadingOrders] = useState(false);
+  const [ordersError, setOrdersError] = useState("");
 
-  
   // New address form state
   const [newAddress, setNewAddress] = useState({
     fullName: "",
@@ -50,8 +52,6 @@ const AccountPage = () => {
     country: "New Zealand",
   });
 
-
-  
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth <= 768);
     window.addEventListener("resize", handleResize);
@@ -64,6 +64,34 @@ const AccountPage = () => {
       setActiveSection(normalizeTab(newTab));
     }
   }, [location]);
+
+  // Fetch orders
+  const fetchOrders = async () => {
+    try {
+      setLoadingOrders(true);
+      setOrdersError("");
+      console.log("📤 Sending GET /order/all with cookies");
+      const res = await axios.get(`${API_BASE_URL}/order/all`, {
+        withCredentials: true,
+      });
+      console.log("📥 Orders response:", res.data);
+      
+      // Handle different response structures
+      const orderData = res.data.orders || res.data.data || res.data || [];
+      setOrders(Array.isArray(orderData) ? orderData : []);
+    } catch (err) {
+      console.error("❌ Error fetching orders:", err);
+      const errorMessage = err.response?.data?.message || "Failed to fetch orders";
+      setOrdersError(errorMessage);
+      
+      // Show error only if it's not a simple "no orders found" case
+      if (err.response?.status !== 404) {
+        Swal.fire("Error", errorMessage, "error");
+      }
+    } finally {
+      setLoadingOrders(false);
+    }
+  };
 
   // Fetch addresses
   const fetchAddresses = async () => {
@@ -83,12 +111,57 @@ const AccountPage = () => {
     }
   };
 
+  // Load orders only when Order History tab is active
+  useEffect(() => {
+    if (activeSection === "orderhistory") {
+      fetchOrders();
+    }
+  }, [activeSection]);
+
   // Load addresses only when Address tab is active
   useEffect(() => {
     if (activeSection === "address") {
       fetchAddresses();
     }
   }, [activeSection]);
+
+  // Format date helper
+  const formatDate = (dateString) => {
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('en-NZ', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      });
+    } catch {
+      return dateString;
+    }
+  };
+
+  // Format currency helper
+  const formatCurrency = (amount) => {
+    if (typeof amount === 'number') {
+      return `$${amount.toFixed(2)}`;
+    }
+    if (typeof amount === 'string' && !isNaN(parseFloat(amount))) {
+      return `$${parseFloat(amount).toFixed(2)}`;
+    }
+    return amount;
+  };
+
+  // Get order status color
+  const getStatusColor = (status) => {
+    const statusColors = {
+      'pending': '#ffc107',
+      'processing': '#17a2b8',
+      'shipped': '#007bff',
+      'delivered': '#28a745',
+      'cancelled': '#dc3545',
+      'completed': '#28a745'
+    };
+    return statusColors[status?.toLowerCase()] || '#6c757d';
+  };
 
   // Add address handler
   const handleAddAddress = async (e) => {
@@ -103,7 +176,7 @@ const AccountPage = () => {
       userId = null;
     }
 
-    // Build base payload (no user info) — backend may use session cookies
+    // Build base payload (no user info) – backend may use session cookies
     const basePayload = {
       fullName: newAddress.fullName,
       phone: newAddress.phone,
@@ -131,7 +204,7 @@ const AccountPage = () => {
       }
     };
 
-    // 1) Try posting base payload (no userId) — good when backend uses session
+    // 1) Try posting base payload (no userId) – good when backend uses session
     console.log("Posting address payload (attempt 1, no user):", basePayload);
     let result = await postAddress(basePayload);
 
@@ -229,7 +302,7 @@ const AccountPage = () => {
       }
     }
 
-    // 4) Still failed — show server error to user and log details
+    // 4) Still failed – show server error to user and log details
     const serverMessage =
       (result.body && (result.body.message || result.body.error || JSON.stringify(result.body))) ||
       "Failed to save address. See console for details.";
@@ -265,62 +338,53 @@ const AccountPage = () => {
   };
 
   const sections = {
-    
-
     orderhistory: "Here you can view and track your orders.",
     address: "Manage your shipping and billing addresses.",
   };
 
-  const orders = [
-    { id: "ORD001", product: "Business Cards", date: "2025-07-20", amount: "$49.99" },
-    { id: "ORD002", product: "Flyers", date: "2025-07-25", amount: "$89.00" },
-    { id: "ORD003", product: "Posters", date: "2025-08-01", amount: "$120.50" },
-  ];
+  // ✅ Updated Logout Handler
+  const handleLogout = () => {
+    Swal.fire({
+      title: "Are you sure?",
+      text: "You will be logged out of your account.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Yes, Logout",
+      cancelButtonText: "Cancel",
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          // Call backend logout API
+          await fetch(`${API_BASE_URL}/user/logout`, {
+            method: "POST",
+            credentials: "include", // ensure cookies/session cleared
+          });
+        } catch (err) {
+          console.error("Logout error:", err);
+        }
 
- // ✅ Updated Logout Handler
-const handleLogout = () => {
-  Swal.fire({
-    title: "Are you sure?",
-    text: "You will be logged out of your account.",
-    icon: "warning",
-    showCancelButton: true,
-    confirmButtonText: "Yes, Logout",
-    cancelButtonText: "Cancel",
-  }).then(async (result) => {
-    if (result.isConfirmed) {
-      try {
-        // Call backend logout API
-        await fetch(`${API_BASE_URL}/user/logout`, {
-          method: "POST",
-          credentials: "include", // ensure cookies/session cleared
+        // Use AuthContext's logout if available
+        if (typeof logout === "function") {
+          logout(); // clears user + localStorage
+        } else {
+          // fallback cleanup if no logout() in context
+          localStorage.removeItem("token");
+          localStorage.removeItem("user");
+          setUser(null);
+        }
+
+        // Show success and redirect
+        Swal.fire({
+          icon: "success",
+          title: "Logged Out",
+          timer: 1200,
+          showConfirmButton: false,
+        }).then(() => {
+          navigate("/sign-in");
         });
-      } catch (err) {
-        console.error("Logout error:", err);
       }
-
-      // Use AuthContext's logout if available
-      if (typeof logout === "function") {
-        logout(); // clears user + localStorage
-      } else {
-        // fallback cleanup if no logout() in context
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
-        setUser(null);
-      }
-
-      // Show success and redirect
-      Swal.fire({
-        icon: "success",
-        title: "Logged Out",
-        timer: 1200,
-        showConfirmButton: false,
-      }).then(() => {
-        navigate("/sign-in");
-      });
-    }
-  });
-};
-
+    });
+  };
 
   // Styles
   const buttonStyle = {
@@ -346,13 +410,19 @@ const handleLogout = () => {
   };
 
   const viewButtonStyle = {
-    padding: "6px 12px",
+    padding: "8px 16px",
     backgroundColor: "#007BFF",
     color: "white",
     border: "none",
-    borderRadius: "4px",
+    borderRadius: "6px",
     cursor: "pointer",
-    marginLeft: "10px",
+    fontSize: "14px",
+    fontWeight: "500",
+    textDecoration: "none",
+    display: "inline-flex",
+    alignItems: "center",
+    gap: "6px",
+    transition: "all 0.2s ease-in-out",
   };
 
   const formStyle = {
@@ -386,31 +456,30 @@ const handleLogout = () => {
     <div className="responsive-container">
       <Header />
       <div 
-  style={{
-    display: "flex",
-    flexDirection: isMobile ? "column" : "row",
-    gap: "24px",
-    maxWidth: "1100px",
-    margin: "30px auto",
-    padding: "0 20px",
-    alignItems: "flex-start"
-  }}
->
-
+        style={{
+          display: "flex",
+          flexDirection: isMobile ? "column" : "row",
+          gap: "24px",
+          maxWidth: "1100px",
+          margin: "30px auto",
+          padding: "0 20px",
+          alignItems: "flex-start"
+        }}
+      >
         {/* Sidebar */}
-   <nav
-  style={{
-    background: "#fff",
-    border: "1px solid #e5e7eb",
-    borderRadius: "12px",
-    padding: "20px",
-    width: isMobile ? "100%" : "240px",
-    boxShadow: "0 2px 6px rgba(0,0,0,0.08)",
-    display: "flex",
-    flexDirection: "column",
-    gap: "12px"
-  }}
->
+        <nav
+          style={{
+            background: "#fff",
+            border: "1px solid #e5e7eb",
+            borderRadius: "12px",
+            padding: "20px",
+            width: isMobile ? "100%" : "240px",
+            boxShadow: "0 2px 6px rgba(0,0,0,0.08)",
+            display: "flex",
+            flexDirection: "column",
+            gap: "12px"
+          }}
+        >
           <button
             style={activeSection === "overview" ? activeButtonStyle : buttonStyle}
             onClick={() => setActiveSection("overview")}
@@ -439,58 +508,373 @@ const handleLogout = () => {
           <h2 style={{ fontSize: "24px", marginBottom: "20px", textTransform: "capitalize" }}>
             {activeSection.replace("-", " ")}
           </h2>
-<main style={{ flex: 1 }}>
-  {activeSection === "overview" && (
-    <div
-      style={{
-        background: "#fff",
-        border: "1px solid #e5e7eb",
-        borderRadius: "12px",
-        padding: "30px",
-        boxShadow: "0 2px 8px rgba(0,0,0,0.08)"
-      }}
-    >
-      <h2 style={{ fontSize: "22px", marginBottom: "16px", color: "#111827" }}>
-        👋 Welcome back!
-      </h2>
-      <p style={{ fontSize: "16px", lineHeight: "1.6", color: "#374151" }}>
-        From your account dashboard you can easily view your{" "}
-        <strong>recent orders</strong>, manage{" "}
-        <strong>shipping & billing addresses</strong>, track{" "}
-        <strong>returns</strong>, and update your{" "}
-        <strong>account details</strong>.
-      </p>
-    </div>
-  )}
-  </main>
+          
+          <main style={{ flex: 1 }}>
+            {activeSection === "overview" && (
+              <div
+                style={{
+                  background: "#fff",
+                  border: "1px solid #e5e7eb",
+                  borderRadius: "12px",
+                  padding: "30px",
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.08)"
+                }}
+              >
+                <h2 style={{ fontSize: "22px", marginBottom: "16px", color: "#111827" }}>
+                  👋 Welcome back!
+                </h2>
+                <p style={{ fontSize: "16px", lineHeight: "1.6", color: "#374151" }}>
+                  From your account dashboard you can easily view your{" "}
+                  <strong>recent orders</strong>, manage{" "}
+                  <strong>shipping & billing addresses</strong>, track{" "}
+                  <strong>returns</strong>, and update your{" "}
+                  <strong>account details</strong>.
+                </p>
+              </div>
+            )}
+          </main>
+          
           {activeSection === "orderhistory" ? (
-            <div style={{ overflowX: "auto" }}>
-              <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                <thead>
-                  <tr>
-                    <th>Order ID</th>
-                    <th>Product Name</th>
-                    <th>Date</th>
-                    <th>Amount</th>
-                    <th>Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {orders.map((order) => (
-                    <tr key={order.id}>
-                      <td>{order.id}</td>
-                      <td>{order.product}</td>
-                      <td>{order.date}</td>
-                      <td>{order.amount}</td>
-                      <td>
-                        <Link to={`/orders/${order.id}`}>
-                          <button style={viewButtonStyle}>View</button>
-                        </Link>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div>
+              {loadingOrders ? (
+                <div style={{
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  padding: '60px',
+                  backgroundColor: '#f8f9fa',
+                  borderRadius: '12px'
+                }}>
+                  <div style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: '16px'
+                  }}>
+                    <div style={{
+                      width: '48px',
+                      height: '48px',
+                      border: '4px solid #f3f3f3',
+                      borderTop: '4px solid #007BFF',
+                      borderRadius: '50%',
+                      animation: 'spin 1s linear infinite'
+                    }}></div>
+                    <p style={{ margin: 0, color: '#666', fontSize: '16px' }}>
+                      Loading your orders...
+                    </p>
+                  </div>
+                </div>
+              ) : ordersError ? (
+                <div style={{
+                  textAlign: 'center',
+                  padding: '60px 20px',
+                  backgroundColor: '#fff3cd',
+                  borderRadius: '12px',
+                  border: '1px solid #ffeaa7'
+                }}>
+                  <div style={{ fontSize: '48px', color: '#856404', marginBottom: '16px' }}>⚠️</div>
+                  <h3 style={{ color: '#856404', marginBottom: '8px' }}>Unable to Load Orders</h3>
+                  <p style={{ color: '#856404', margin: '0 0 20px 0' }}>{ordersError}</p>
+                  <button 
+                    style={{
+                      padding: '12px 24px',
+                      backgroundColor: '#007BFF',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '8px',
+                      cursor: 'pointer',
+                      fontSize: '14px',
+                      fontWeight: '500'
+                    }}
+                    onClick={fetchOrders}
+                  >
+                    Try Again
+                  </button>
+                </div>
+              ) : orders.length === 0 ? (
+                <div style={{
+                  textAlign: 'center',
+                  padding: '60px 20px',
+                  backgroundColor: '#f8f9fa',
+                  borderRadius: '12px',
+                  border: '2px dashed #dee2e6'
+                }}>
+                  <div style={{ fontSize: '64px', color: '#6c757d', marginBottom: '20px' }}>📦</div>
+                  <h3 style={{ color: '#495057', marginBottom: '12px', fontSize: '24px' }}>
+                    No Orders Yet
+                  </h3>
+                  <p style={{ color: '#6c757d', margin: '0 0 24px 0', fontSize: '16px' }}>
+                    You haven't placed any orders yet. Start shopping to see your order history here!
+                  </p>
+                  <Link 
+                    to="/"
+                    style={{
+                      padding: '12px 24px',
+                      backgroundColor: '#007BFF',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '8px',
+                      textDecoration: 'none',
+                      fontSize: '16px',
+                      fontWeight: '500',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '8px'
+                    }}
+                  >
+                    🛍️ Start Shopping
+                  </Link>
+                </div>
+              ) : (
+                <div>
+                  <div style={{
+                    marginBottom: '24px',
+                    padding: '20px',
+                    backgroundColor: '#f8f9fa',
+                    borderRadius: '12px',
+                    border: '1px solid #dee2e6'
+                  }}>
+                    <h3 style={{
+                      margin: '0 0 8px 0',
+                      color: '#212529',
+                      fontSize: '20px',
+                      fontWeight: '600'
+                    }}>
+                      📋 Your Order History
+                    </h3>
+                    <p style={{
+                      margin: 0,
+                      color: '#6c757d',
+                      fontSize: '14px'
+                    }}>
+                      You have <strong>{orders.length}</strong> order{orders.length !== 1 ? 's' : ''} in total
+                    </p>
+                  </div>
+
+                  {isMobile ? (
+                    // Mobile Card Layout
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                      {orders.map((order) => (
+                        <div key={order._id || order.id} style={{
+                          backgroundColor: '#ffffff',
+                          border: '1px solid #e9ecef',
+                          borderRadius: '12px',
+                          padding: '20px',
+                          boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
+                        }}>
+                          <div style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'flex-start',
+                            marginBottom: '16px'
+                          }}>
+                            <div>
+                              <h4 style={{
+                                margin: '0 0 4px 0',
+                                fontSize: '16px',
+                                fontWeight: '600',
+                                color: '#212529'
+                              }}>
+                                #{order.orderNumber || order._id?.slice(-8) || 'N/A'}
+                              </h4>
+                              <p style={{
+                                margin: '0',
+                                fontSize: '14px',
+                                color: '#6c757d'
+                              }}>
+                                {formatDate(order.createdAt || order.orderDate)}
+                              </p>
+                            </div>
+                            <span style={{
+                              padding: '4px 12px',
+                              borderRadius: '20px',
+                              fontSize: '12px',
+                              fontWeight: '600',
+                              textTransform: 'capitalize',
+                              backgroundColor: getStatusColor(order.status) + '20',
+                              color: getStatusColor(order.status),
+                              border: `1px solid ${getStatusColor(order.status)}40`
+                            }}>
+                              {order.status || 'Pending'}
+                            </span>
+                          </div>
+                          
+                          <div style={{
+                            marginBottom: '16px',
+                            paddingBottom: '16px',
+                            borderBottom: '1px solid #e9ecef'
+                          }}>
+                            <p style={{
+                              margin: '0 0 8px 0',
+                              fontSize: '14px',
+                              color: '#6c757d'
+                            }}>
+                              Items: {order.items?.length || order.products?.length || 'N/A'}
+                            </p>
+                            <p style={{
+                              margin: '0',
+                              fontSize: '18px',
+                              fontWeight: '700',
+                              color: '#212529'
+                            }}>
+                              {formatCurrency(order.totalAmount || order.total || 0)}
+                            </p>
+                          </div>
+                          
+                          <Link 
+                            to={`/orders/${order._id || order.id}`}
+                            style={viewButtonStyle}
+                          >
+                            👁️ View Details
+                          </Link>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    // Desktop Table Layout
+                    <div style={{
+                      backgroundColor: '#ffffff',
+                      borderRadius: '12px',
+                      overflow: 'hidden',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+                      border: '1px solid #e9ecef'
+                    }}>
+                      <div style={{ overflowX: "auto" }}>
+                        <table style={{
+                          width: "100%",
+                          borderCollapse: "collapse",
+                          minWidth: '600px'
+                        }}>
+                          <thead>
+                            <tr style={{
+                              backgroundColor: '#f8f9fa',
+                              borderBottom: '2px solid #dee2e6'
+                            }}>
+                              <th style={{
+                                padding: '16px',
+                                textAlign: 'left',
+                                fontWeight: '600',
+                                color: '#495057',
+                                fontSize: '14px'
+                              }}>
+                                Order ID
+                              </th>
+                              <th style={{
+                                padding: '16px',
+                                textAlign: 'left',
+                                fontWeight: '600',
+                                color: '#495057',
+                                fontSize: '14px'
+                              }}>
+                                Date
+                              </th>
+                              <th style={{
+                                padding: '16px',
+                                textAlign: 'left',
+                                fontWeight: '600',
+                                color: '#495057',
+                                fontSize: '14px'
+                              }}>
+                                Status
+                              </th>
+                              <th style={{
+                                padding: '16px',
+                                textAlign: 'left',
+                                fontWeight: '600',
+                                color: '#495057',
+                                fontSize: '14px'
+                              }}>
+                                Items
+                              </th>
+                              <th style={{
+                                padding: '16px',
+                                textAlign: 'right',
+                                fontWeight: '600',
+                                color: '#495057',
+                                fontSize: '14px'
+                              }}>
+                                Amount
+                              </th>
+                              <th style={{
+                                padding: '16px',
+                                textAlign: 'center',
+                                fontWeight: '600',
+                                color: '#495057',
+                                fontSize: '14px'
+                              }}>
+                                Action
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {orders.map((order, index) => (
+                              <tr key={order._id || order.id} style={{
+                                borderBottom: '1px solid #e9ecef',
+                                transition: 'background-color 0.2s ease',
+                                backgroundColor: index % 2 === 0 ? '#ffffff' : '#f8f9fa'
+                              }}>
+                                <td style={{
+                                  padding: '16px',
+                                  fontSize: '14px',
+                                  fontWeight: '600',
+                                  color: '#495057'
+                                }}>
+                                  #{order.orderNumber || order._id?.slice(-8) || 'N/A'}
+                                </td>
+                                <td style={{
+                                  padding: '16px',
+                                  fontSize: '14px',
+                                  color: '#6c757d'
+                                }}>
+                                  {formatDate(order.createdAt || order.orderDate)}
+                                </td>
+                                <td style={{ padding: '16px' }}>
+                                  <span style={{
+                                    padding: '6px 12px',
+                                    borderRadius: '20px',
+                                    fontSize: '12px',
+                                    fontWeight: '600',
+                                    textTransform: 'capitalize',
+                                    backgroundColor: getStatusColor(order.status) + '20',
+                                    color: getStatusColor(order.status),
+                                    border: `1px solid ${getStatusColor(order.status)}40`
+                                  }}>
+                                    {order.status || 'Pending'}
+                                  </span>
+                                </td>
+                                <td style={{
+                                  padding: '16px',
+                                  fontSize: '14px',
+                                  color: '#6c757d'
+                                }}>
+                                  {order.items?.length || order.products?.length || 'N/A'} item(s)
+                                </td>
+                                <td style={{
+                                  padding: '16px',
+                                  fontSize: '16px',
+                                  fontWeight: '700',
+                                  color: '#212529',
+                                  textAlign: 'right'
+                                }}>
+                                  {formatCurrency(order.totalAmount || order.total || 0)}
+                                </td>
+                                <td style={{ padding: '16px', textAlign: 'center' }}>
+                                  <Link 
+                                    to={`/orders/${order._id || order.id}`}
+                                    style={viewButtonStyle}
+                                  >
+                                    👁️ View
+                                  </Link>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           ) : activeSection === "address" ? (
             <div>
@@ -927,26 +1311,6 @@ const handleLogout = () => {
                           gap: '10px',
                           flexWrap: 'wrap'
                         }}>
-                          {/* <button style={{
-                            flex: 1,
-                            minWidth: '100px',
-                            padding: '10px 16px',
-                            backgroundColor: '#007BFF',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '6px',
-                            cursor: 'pointer',
-                            fontSize: '14px',
-                            fontWeight: '500',
-                            transition: 'background-color 0.2s',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: '6px'
-                          }}>
-                            <span>✏️</span>
-                            Edit
-                          </button> */}
                           <button
                             style={{
                               flex: 1,
