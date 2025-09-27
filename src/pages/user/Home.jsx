@@ -349,7 +349,7 @@ console.log(products);
     >
       <div
         style={{
-          maxWidth: "79%",
+          maxWidth: "78%",
           margin: "0 auto",
           padding: "0",
           textAlign: "center",
@@ -383,7 +383,7 @@ console.log(products);
           style={{
             display: "grid",
             gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-            gap: "20px",
+            gap: "10px",
             width: "100%",
           }}
         >
@@ -410,7 +410,7 @@ console.log(products);
                 key={card._id}
                 style={{
                   backgroundColor: "#fff",
-                  borderRadius: "14px",
+                  borderRadius: "10px",
                   overflow: "hidden",
                   boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
                   transition: "transform 0.3s ease, box-shadow 0.3s ease",
@@ -541,7 +541,7 @@ console.log(products);
         {`
           @media (min-width: 1200px) {
             section {
-              padding-right: 2% !important;
+              padding-right: 6% !important;
             }
           }
         `}
@@ -552,11 +552,12 @@ console.log(products);
   style={{
     backgroundColor: "#f9fafb",
     padding: "70px 0",
+    position:"relative",
   }}
 >
   <div
     style={{
-      maxWidth: "80%",
+      maxWidth: "78%",
       margin: "0 auto",
       padding: "0",
       textAlign: "center",
@@ -590,7 +591,7 @@ console.log(products);
       style={{
         display: "grid",
         gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-        gap: "20px",
+        gap: "10px",
         width: "100%",
       }}
     >
@@ -615,7 +616,7 @@ console.log(products);
             key={item._id}
             style={{
               backgroundColor: "#fff",
-              borderRadius: "14px",
+              borderRadius: "10px",
               overflow: "hidden",
               boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
               transition: "transform 0.3s ease, box-shadow 0.3s ease",
@@ -740,6 +741,16 @@ console.log(products);
         ))}
     </div>
   </div>
+    {/* Align content to end exactly at search bar boundary */}
+      <style>
+        {`
+          @media (min-width: 1200px) {
+            section {
+              padding-right: 6% !important;
+            }
+          }
+        `}
+      </style>
 </section>
 
 
@@ -938,7 +949,7 @@ console.log(products);
 >
   <div
     style={{
-      maxWidth: "80%", // Match header container
+      maxWidth: "78%", // Match header container
       margin: "0 auto",
       padding: "0 ", // Match header padding
       textAlign: "center",
@@ -1132,7 +1143,7 @@ console.log(products);
 >
   <div
     style={{
-      maxWidth: "80%", // Match header container
+      maxWidth: "78%", // Match header container
       margin: "0 auto",
       padding: "0 ", // Match header padding
       textAlign: "center",

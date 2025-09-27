@@ -103,9 +103,10 @@ const Footer = () => {
       >
         <div
           style={{
-            maxWidth: "1100px",
+            maxWidth: "80%", // Match header
             margin: "0 auto",
-            padding: "0 20px",
+            padding: "0 1rem", // Match header padding
+            width: "100%",
             display: "flex",
             flexWrap: "wrap",
             justifyContent: "space-between",
@@ -172,9 +173,10 @@ const Footer = () => {
       >
         <div
           style={{
-            maxWidth: "1100px",
+            maxWidth: "80%", // Match header
             margin: "0 auto",
-            padding: isMobile ? "16px 20px" : "16px 20px",
+            padding: isMobile ? "16px 1rem" : "16px 1rem", // Match header padding
+            width: "100%",
           }}
         >
           <GoogleTranslateDropdown />
@@ -189,17 +191,18 @@ const Footer = () => {
       >
         <div
           style={{
-            maxWidth: "1100px",
+            maxWidth: "80%", // Match header
             margin: "0 auto",
-            padding: isMobile ? "0" : "40px 20px",
+            padding: isMobile ? "0" : "40px 1rem", // Match header padding
+            width: "100%",
           }}
         >
           {!isMobile ? (
             <div
               style={{
                 display: "flex",
-                justifyContent: "space-between",
-                gap: "20px",
+                justifyContent: "flex-start",
+                gap: "20%",
                 flexWrap: "wrap",
               }}
             >
@@ -224,6 +227,7 @@ const Footer = () => {
                         color: "#555",
                         textDecoration: "none",
                         margin: "6px 0",
+                        
                       }}
                     >
                       {item.label}
@@ -296,9 +300,10 @@ const Footer = () => {
       >
         <div
           style={{
-            maxWidth: "1100px",
+            maxWidth: "80%", // Match header
             margin: "0 auto",
-            padding: isMobile ? "20px 20px" : "20px 20px",
+            padding: isMobile ? "20px 1rem" : "20px 1rem", // Match header padding
+            width: "100%",
           }}
         >
           <div

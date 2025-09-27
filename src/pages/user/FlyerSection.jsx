@@ -85,7 +85,7 @@ const FlyerSection = () => {
           <div className={`relative transform transition-all duration-1000 delay-300 ${isVisible ? 'translate-x-0 opacity-100' : 'translate-x-[10%] opacity-0'}`}>
             
             {/* Image Frame */}
-            <div className="relative group w-[90%] mx-auto lg:mx-[0%]">
+            <div className="relative group w-[90%] mx-auto lg:mx-[10%]">
               <div className="relative bg-white p-[0%] rounded-3xl border-2 border-blue-200">
                 <div
                   className="w-full h-[50vw] sm:h-[40vw] lg:h-[35vw] rounded-2xl bg-cover bg-center transform group-hover:scale-105 transition-transform duration-500"
