@@ -822,13 +822,19 @@ const handleApplyCoupon = async () => {
       {/* <h2 style={{ fontSize: "28px", fontWeight: "bold", marginBottom: "20px" ,color:"#007bff",fontFamily:"monospace"}}>
         Checkout
       </h2> */}
-
-      <div
+<div className="checkout-wrapper" 
+  style={{ 
+    maxWidth: "80%",   // 👈 adjust this to match your marked lines
+    margin: "0 auto",     // center horizontally
+    padding: "20px"       // keep some breathing space
+  }}
+  >  
+   <div
         className="checkout-grid"
         style={{
           display: "grid",
           gridTemplateColumns: "1fr 1fr",
-          gap: "20px",
+          gap: "1px",
         }}
       >
 
@@ -840,6 +846,7 @@ const handleApplyCoupon = async () => {
     boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
     borderRadius: "12px",
     padding: "20px",
+    width:"90%",
   }}
 >
   <div
@@ -848,6 +855,7 @@ const handleApplyCoupon = async () => {
       justifyContent: "space-between",
       marginBottom: "15px",
       alignItems: "center",
+      
     }}
   >
     <h3 style={{ fontSize: "18px", fontWeight: "600" }}>
@@ -1211,9 +1219,10 @@ const handleApplyCoupon = async () => {
     boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
     borderRadius: "12px",
     padding: "20px",
+    width:"90%"
   }}
 >
-  <h3 style={{ fontSize: "18px", fontWeight: "600", marginBottom: "15px" }}>
+  <h3 style={{ fontSize: "18px", fontWeight: "600", marginBottom: "15px", }}>
     Order Summary
   </h3>
 
@@ -1428,8 +1437,7 @@ const handleApplyCoupon = async () => {
 </div>
 {/* ---------- End Order Summary ---------- */}
 
-      </div>
-
+     
 <div
   style={{
     display: "flex",
@@ -1452,7 +1460,7 @@ const handleApplyCoupon = async () => {
   </div>
 
   {/* right: CTA */}
-  <div style={{ flex: "0 0 auto" }}>
+  <div style={{ flex: "0 0 auto"}}>
     <button
       onClick={handlePlaceOrder}
       style={{
@@ -1465,8 +1473,10 @@ const handleApplyCoupon = async () => {
         cursor: "pointer",
         boxShadow: "0 6px 18px rgba(37,99,235,0.18)",
         minWidth: 160,
+        
         // small extra spacing immediately under the button on very narrow screens:
         marginBottom: 6,
+       
       }}
       className="place-order-inline-btn"
     >
@@ -1474,7 +1484,8 @@ const handleApplyCoupon = async () => {
     </button>
   </div>
 </div>
-
+</div>
+</div>
 {/* responsive tweak (keeps everything in same file) */}
 <style>
 {`
