@@ -39,7 +39,7 @@ const EnhancedHomeSections = () => {
         }`}
       >
         {/* Match header's container structure */}
-<div className="relative z-10 w-full px-[5%] lg:px-[15%]">
+<div className="relative z-10 w-full px-[5%] lg:px-[11%]">
           {/* Section Header */}
           <div className="text-center mb-16">
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 border border-blue-200 rounded-full text-blue-700 text-sm font-medium mb-6">
@@ -181,7 +181,7 @@ const EnhancedHomeSections = () => {
         }`}
       >
         {/* Match header's container structure */}
-<div className="relative z-10 w-full px-[5%] lg:px-[15%]">
+<div className="relative z-10 w-full px-[5%] lg:px-[11%]">
           <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
             
             {/* Image Side */}
@@ -270,7 +270,7 @@ const EnhancedHomeSections = () => {
         }`}
       >
         {/* Match header's container structure */}
-<div className="relative z-10 w-full px-[5%] lg:px-[15%]">
+<div className="relative z-10 w-full px-[5%] lg:px-[11%]">
           <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
             
             {/* Content Side */}
@@ -321,26 +321,27 @@ const EnhancedHomeSections = () => {
               </div>
             </div>
 
-            {/* Image Side */}
-            <div className="relative group">
-              <div className="relative bg-white p-4 lg:p-6 rounded-3xl border-2 border-blue-200 max-w-lg mx-auto lg:mx-0">
+            {/* Image Side - Updated to match the reference design */}
+            <div className="relative">
+              <div className="relative max-w-lg-1 mx-auto lg:mx-0">
                 <img
                   src="https://thesignaturebox.com/cdn/shop/articles/personalised-gifts-5-things-to-consider-before-choosing-personalized-gifts-294055.jpg?v=1706979689&width=1280"
                   alt="Personalized Gift"
-                  className="w-full rounded-2xl transform group-hover:scale-105 transition-transform duration-500"
+                  className="w-full rounded-2xl shadow-lg"
                 />
                 
-                {/* Floating Elements */}
-                <div className="absolute -top-4 -left-4 bg-white rounded-2xl p-3 lg:p-4 border-2 border-blue-200">
+                {/* 100% Custom Badge - Top Left */}
+                <div className="absolute -top-3 -left-3 bg-white rounded-xl px-3 py-2 shadow-lg border border-gray-200">
                   <div className="text-center">
-                    <div className="text-lg lg:text-xl font-black text-blue-600">100%</div>
-                    <div className="text-xs text-gray-600">Custom</div>
+                    <div className="text-sm font-bold text-blue-600">100%</div>
+                    <div className="text-xs text-gray-600 uppercase tracking-wide">Custom</div>
                   </div>
                 </div>
                 
-                <div className="absolute -bottom-4 -right-4 bg-blue-600 text-white rounded-2xl p-3 lg:p-4">
+                {/* Gift Icon Badge - Bottom Right */}
+                <div className="absolute -bottom-3 -right-3 bg-blue-600 text-white rounded-xl p-3 shadow-lg">
                   <div className="text-center">
-                    <div className="text-lg lg:text-xl font-black">🎁</div>
+                    <div className="text-lg">🎁</div>
                     <div className="text-xs">Special</div>
                   </div>
                 </div>

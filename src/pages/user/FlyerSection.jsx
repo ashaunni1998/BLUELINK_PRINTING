@@ -23,7 +23,7 @@ const FlyerSection = () => {
   
     <section className="relative bg-blue-50 overflow-hidden py-[8%] lg:py-[12%]">
   {/* Container */}
-  <div className="relative z-10 w-full px-[6%] lg:px-[15%]">
+  <div className="relative z-10 w-full px-[5%] lg:px-[11%]">
     <div className="grid lg:grid-cols-2 gap-[6%] items-center">
       
           {/* Content Side */}
@@ -85,8 +85,8 @@ const FlyerSection = () => {
           <div className={`relative transform transition-all duration-1000 delay-300 ${isVisible ? 'translate-x-0 opacity-100' : 'translate-x-[10%] opacity-0'}`}>
             
             {/* Image Frame */}
-            <div className="relative group w-[90%] mx-auto lg:mx-[10%]">
-              <div className="relative bg-white p-[5%] rounded-3xl border-2 border-blue-200">
+            <div className="relative group w-[90%] mx-auto lg:mx-[0%]">
+              <div className="relative bg-white p-[0%] rounded-3xl border-2 border-blue-200">
                 <div
                   className="w-full h-[50vw] sm:h-[40vw] lg:h-[35vw] rounded-2xl bg-cover bg-center transform group-hover:scale-105 transition-transform duration-500"
                   style={{

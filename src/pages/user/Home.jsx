@@ -340,202 +340,213 @@ console.log(products);
 </section>
 
 
-<section
-  style={{
-    backgroundColor: "#f9fafb",
-    padding: "70px 0",
-  }}
->
-  <div
-    style={{
-      maxWidth: "80%",
-      margin: "0 auto",
-      padding: "0",
-      textAlign: "center",
-    }}
-  >
-    <h2
+   <section
       style={{
-        fontSize: "32px",
-        marginBottom: "12px",
-        fontWeight: "700",
-        color: "#111",
+        backgroundColor: "#f9fafb",
+        padding: "70px 0",
+        position: "relative"
       }}
     >
-     Popular Business Cards
-    </h2>
-    <p
-      style={{
-        fontSize: "17px",
-        color: "#555",
-        marginBottom: "50px",
-        maxWidth: "700px",
-        marginInline: "auto",
-        lineHeight: "1.6",
-      }}
-    >
-      Make a powerful first impression with professionally designed business
-      cards that reflect your brand and style.
-    </p>
+      <div
+        style={{
+          maxWidth: "79%",
+          margin: "0 auto",
+          padding: "0",
+          textAlign: "center",
+        }}
+      >
+        <h2
+          style={{
+            fontSize: "32px",
+            marginBottom: "12px",
+            fontWeight: "700",
+            color: "#111",
+          }}
+        >
+          Popular Business Cards
+        </h2>
+        <p
+          style={{
+            fontSize: "17px",
+            color: "#555",
+            marginBottom: "50px",
+            maxWidth: "700px",
+            marginInline: "auto",
+            lineHeight: "1.6",
+          }}
+        >
+          Make a powerful first impression with professionally designed business
+          cards that reflect your brand and style.
+        </p>
 
-    <div
-      style={{
-        display: "grid",
-        gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-        gap: "20px",
-        width: "100%",
-      }}
-    >
-      {products
-        .filter((product) => {
-          const category =
-            typeof product.category === "string"
-              ? product.category.toLowerCase()
-              : "";
-          const name =
-            typeof product.name === "string"
-              ? product.name.toLowerCase()
-              : "";
-          return (
-           category.includes("business card") ||
-  category.includes("business cards") ||
-  name.includes("business card") ||
-  name.includes("business cards")
-            
-          );
-        })
-        .slice(0, 8)
-        .map((card) => (
-          <div
-            key={card._id}
-            style={{
-              backgroundColor: "#fff",
-              borderRadius: "14px",
-              overflow: "hidden",
-              boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
-              transition: "transform 0.3s ease, box-shadow 0.3s ease",
-              cursor: "pointer",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = "translateY(-6px)";
-              e.currentTarget.style.boxShadow =
-                "0 8px 25px rgba(0,0,0,0.12)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = "translateY(0)";
-              e.currentTarget.style.boxShadow =
-                "0 4px 20px rgba(0,0,0,0.08)";
-            }}
-          >
-            {/* Image wrapper */}
-            <Link
-              to={`/product/${card._id}`}
-              style={{
-                width: "100%",
-                aspectRatio: "4/3",
-                overflow: "hidden",
-                background: "#f3f4f6",
-                display: "block",
-              }}
-            >
-              <img
-                src={card.images[0] || "https://via.placeholder.com/300"}
-                alt={card.name}
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+            gap: "20px",
+            width: "100%",
+          }}
+        >
+          {products
+            .filter((product) => {
+              const category =
+                typeof product.category === "string"
+                  ? product.category.toLowerCase()
+                  : "";
+              const name =
+                typeof product.name === "string"
+                  ? product.name.toLowerCase()
+                  : "";
+              return (
+                category.includes("business card") ||
+                category.includes("business cards") ||
+                name.includes("business card") ||
+                name.includes("business cards")
+              );
+            })
+            .slice(0, 8)
+            .map((card) => (
+              <div
+                key={card._id}
                 style={{
-                  width: "100%",
-                  height: "100%",
-                  objectFit: "cover",
-                  display: "block",
-                  transition: "transform 0.4s ease",
+                  backgroundColor: "#fff",
+                  borderRadius: "14px",
+                  overflow: "hidden",
+                  boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
+                  transition: "transform 0.3s ease, box-shadow 0.3s ease",
+                  cursor: "pointer",
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = "scale(1.08)";
+                  e.currentTarget.style.transform = "translateY(-6px)";
+                  e.currentTarget.style.boxShadow =
+                    "0 8px 25px rgba(0,0,0,0.12)";
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = "scale(1)";
-                }}
-              />
-            </Link>
-
-            {/* Product details */}
-            <div
-              style={{
-                padding: "18px",
-                textAlign: "center",
-              }}
-            >
-              <Link
-                to={`/product/${card._id}`}
-                style={{
-                  color: "#007bff",
-                  textDecoration: "none",
-                  fontWeight: "600",
-                  fontSize: "16px",
-                  display: "block",
-                  marginBottom: "8px",
+                  e.currentTarget.style.transform = "translateY(0)";
+                  e.currentTarget.style.boxShadow =
+                    "0 4px 20px rgba(0,0,0,0.08)";
                 }}
               >
-                {card.name}
-              </Link>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  gap: "12px",
-                  marginBottom: "12px",
-                }}
-              >
-                <span
+                {/* Image wrapper */}
+                <div
                   style={{
-                    display: "inline-block",
-                    padding: "6px 16px",
-                    backgroundColor: "#eaf4ff",
-                    color: "#007bff",
-                    fontSize: "15px",
-                    fontWeight: "700",
-                    borderRadius: "30px",
-                    boxShadow: "0 2px 6px rgba(0,0,0,0.08)",
-                    minWidth: "60px",
-                  }}
-                >
-                  ${card.price}
-                </span>
-
-                {/* View button */}
-                <Link
-                  to={`/product/${card._id}`}
-                  style={{
-                    padding: "10px 18px",
-                    fontSize: "14px",
-                    fontWeight: "600",
-                    backgroundColor: "#007bff",
-                    color: "#fff",
-                    border: "none",
-                    borderRadius: "6px",
+                    width: "100%",
+                    aspectRatio: "4/3",
+                    overflow: "hidden",
+                    background: "#f3f4f6",
+                    display: "block",
                     cursor: "pointer",
-                    transition: "background 0.3s ease, transform 0.2s ease",
-                    textDecoration: "none",
-                    display: "inline-block",
                   }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = "#0056b3";
-                    e.currentTarget.style.transform = "translateY(-2px)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = "#007bff";
-                    e.currentTarget.style.transform = "translateY(0)";
+                  onClick={() => console.log(`View product ${card._id}`)}
+                >
+                  <img
+                    src={card.images[0] || "https://via.placeholder.com/300"}
+                    alt={card.name}
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      objectFit: "cover",
+                      display: "block",
+                      transition: "transform 0.4s ease",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = "scale(1.08)";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = "scale(1)";
+                    }}
+                  />
+                </div>
+
+                {/* Product details */}
+                <div
+                  style={{
+                    padding: "18px",
+                    textAlign: "center",
                   }}
                 >
-                  View
-                </Link>
+                  <div
+                    style={{
+                      color: "#007bff",
+                      textDecoration: "none",
+                      fontWeight: "600",
+                      fontSize: "16px",
+                      display: "block",
+                      marginBottom: "8px",
+                      cursor: "pointer",
+                    }}
+                    onClick={() => console.log(`View product ${card._id}`)}
+                  >
+                    {card.name}
+                  </div>
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "center",
+                      alignItems: "center",
+                      gap: "12px",
+                      marginBottom: "12px",
+                    }}
+                  >
+                    <span
+                      style={{
+                        display: "inline-block",
+                        padding: "6px 16px",
+                        backgroundColor: "#eaf4ff",
+                        color: "#007bff",
+                        fontSize: "15px",
+                        fontWeight: "700",
+                        borderRadius: "30px",
+                        boxShadow: "0 2px 6px rgba(0,0,0,0.08)",
+                        minWidth: "60px",
+                      }}
+                    >
+                      ${card.price}
+                    </span>
+
+                    {/* View button */}
+                    <button
+                      style={{
+                        padding: "10px 18px",
+                        fontSize: "14px",
+                        fontWeight: "600",
+                        backgroundColor: "#007bff",
+                        color: "#fff",
+                        border: "none",
+                        borderRadius: "6px",
+                        cursor: "pointer",
+                        transition: "background 0.3s ease, transform 0.2s ease",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = "#0056b3";
+                        e.currentTarget.style.transform = "translateY(-2px)";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = "#007bff";
+                        e.currentTarget.style.transform = "translateY(0)";
+                      }}
+                      onClick={() => console.log(`View product ${card._id}`)}
+                    >
+                      View
+                    </button>
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
-        ))}
-    </div>
-  </div>
-</section>
+            ))}
+        </div>
+      </div>
+
+      {/* Align content to end exactly at search bar boundary */}
+      <style>
+        {`
+          @media (min-width: 1200px) {
+            section {
+              padding-right: 2% !important;
+            }
+          }
+        `}
+      </style>
+    </section>
 
 <section
   style={{
