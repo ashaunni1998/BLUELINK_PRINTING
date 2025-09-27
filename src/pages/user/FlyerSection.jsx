@@ -20,34 +20,32 @@ const FlyerSection = () => {
   };
 
   return (
-    <section className="relative bg-blue-50 overflow-hidden py-20 lg:py-32">
+  
+    <section className="relative bg-blue-50 overflow-hidden py-[8%] lg:py-[12%]">
+  {/* Container */}
+  <div className="relative z-10 w-full px-[6%] lg:px-[15%]">
+    <div className="grid lg:grid-cols-2 gap-[6%] items-center">
       
-      {/* Match header's container structure - max-width 1100px with auto margins */}
-      <div className="relative z-10 max-w-[1050px] mx-auto px-4 sm:px-1 lg:px-2">
-        <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
-          
           {/* Content Side */}
-          <div className={`space-y-8 transform transition-all duration-1000 ${isVisible ? 'translate-x-0 opacity-100' : '-translate-x-20 opacity-0'}`}>
+          <div className={`space-y-[5%] transform transition-all duration-1000 ${isVisible ? 'translate-x-0 opacity-100' : '-translate-x-[10%] opacity-0'}`}>
             
             {/* Badge */}
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 border border-blue-200 rounded-full text-blue-700 text-sm font-medium">
-              <Zap className="w-4 h-4 text-blue-500" />
+            <div className="inline-flex items-center gap-[0.6rem] px-[3%] py-[1%] bg-blue-100 border border-blue-200 rounded-full text-blue-700 text-[90%] font-medium">
+              <Zap className="w-[1rem] h-[1rem] text-blue-500" />
               Premium Print Solutions
             </div>
 
-            {/* Main Heading */}
-            <div className="space-y-4">
-              <h1 className="text-4xl lg:text-6xl xl:text-7xl font-black text-gray-900 leading-tight">
-                Flyers &
-                <span className="block text-blue-600">
-                  Leaflets
-                </span>
+            {/* Heading */}
+            <div className="space-y-[4%]">
+              <h1 className="text-[8vw] lg:text-[4vw] font-black text-gray-900 leading-tight">
+                Flyers & 
+                <span className="block text-blue-600">Leaflets</span>
               </h1>
-              <div className="w-24 h-1 bg-blue-600 rounded-full" />
+              <div className="w-[15%] h-[0.4rem] bg-blue-600 rounded-full" />
             </div>
 
             {/* Description */}
-            <p className="text-lg lg:text-xl text-gray-700 leading-relaxed">
+            <p className="text-[1.2rem] lg:text-[1.4rem] text-gray-700 leading-relaxed">
               Elevate your marketing with stunning flyer designs. 
               <span className="text-blue-600 font-semibold"> Premium papers</span> meet 
               <span className="text-blue-600 font-semibold"> exquisite finishes</span> for 
@@ -55,75 +53,73 @@ const FlyerSection = () => {
             </p>
 
             {/* Features Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-[3%]">
               {features.map((feature, index) => (
                 <div
                   key={index}
-                  className={`p-4 rounded-2xl bg-white border-2 border-blue-200 cursor-pointer transition-all duration-300 hover:bg-blue-100 hover:scale-105 ${
+                  className={`p-[5%] rounded-2xl bg-white border-2 border-blue-200 cursor-pointer transition-all duration-300 hover:bg-blue-100 hover:scale-105 ${
                     activeFeature === index ? 'bg-blue-100 border-blue-400' : ''
                   }`}
                   onMouseEnter={() => setActiveFeature(index)}
                 >
-                  <feature.icon className="w-8 h-8 text-blue-500 mb-2" />
-                  <h3 className="text-gray-900 font-semibold text-sm mb-1">{feature.title}</h3>
-                  <p className="text-gray-600 text-xs">{feature.desc}</p>
+                  <feature.icon className="w-[15%] h-[15%] text-blue-500 mb-[5%]" />
+                  <h3 className="text-gray-900 font-semibold text-[0.9rem] mb-[2%]">{feature.title}</h3>
+                  <p className="text-gray-600 text-[0.75rem]">{feature.desc}</p>
                 </div>
               ))}
             </div>
 
-            {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 pt-4">
+            {/* CTA */}
+            <div className="flex flex-col sm:flex-row gap-[4%] pt-[4%]">
               <button
                 onClick={handleGetStarted}
-                className="group px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-2xl transform transition-all duration-300 hover:scale-105 flex items-center justify-center gap-2"
+                className="group px-[8%] py-[4%] bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-2xl transform transition-all duration-300 hover:scale-105 flex items-center justify-center gap-[0.6rem]"
               >
                 Get Started
-                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                <ArrowRight className="w-[1.2rem] h-[1.2rem] group-hover:translate-x-[15%] transition-transform" />
               </button>
             </div>
           </div>
 
-          {/* Visual Side - Constrained to header layout boundaries */}
-          <div className={`relative transform transition-all duration-1000 delay-300 ${isVisible ? 'translate-x-0 opacity-100' : 'translate-x-20 opacity-0'}`}>
+          {/* Visual Side */}
+          <div className={`relative transform transition-all duration-1000 delay-300 ${isVisible ? 'translate-x-0 opacity-100' : 'translate-x-[10%] opacity-0'}`}>
             
-            {/* Main Image Container - Adjusted sizing to respect header boundaries */}
-            <div className="relative group max-w-lg mx-auto lg:mx-11">
-              
-              {/* Image Frame */}
-              <div className="relative bg-white p-4 lg:p-6 rounded-3xl border-2 border-blue-200">
+            {/* Image Frame */}
+            <div className="relative group w-[90%] mx-auto lg:mx-[10%]">
+              <div className="relative bg-white p-[5%] rounded-3xl border-2 border-blue-200">
                 <div
-                  className="w-full h-64 sm:h-80 lg:h-96 rounded-2xl bg-cover bg-center transform group-hover:scale-105 transition-transform duration-500"
+                  className="w-full h-[50vw] sm:h-[40vw] lg:h-[35vw] rounded-2xl bg-cover bg-center transform group-hover:scale-105 transition-transform duration-500"
                   style={{
                     backgroundImage: "url('/homeimages/flyer.jpeg')",
                     backgroundSize: 'cover',
                     backgroundPosition: 'center'
                   }}
                 >
-                  {/* Overlay Content */}
-                  <div className="absolute inset-0 rounded-2xl flex items-end p-4 lg:p-6 transition-all duration-300">
+                  {/* Overlay */}
+                  <div className="absolute inset-0 rounded-2xl flex items-end p-[5%] transition-all duration-300">
                     <div className="text-white">
-                      <div className="flex items-center gap-2 mb-2">
+                      <div className="flex items-center gap-[0.4rem] mb-[2%]">
                         {[...Array(5)].map((_, i) => (
-                          <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                          <Star key={i} className="w-[1rem] h-[1rem] fill-yellow-400 text-yellow-400" />
                         ))}
-                        <span className="text-sm">Professional Quality</span>
+                        <span className="text-[0.9rem]">Professional Quality</span>
                       </div>
                     </div>
                   </div>
                 </div>
                 
-                {/* Floating Stats - Adjusted positioning */}
-                <div className="absolute -top-3 -right-3 lg:-top-4 lg:-right-4 bg-white rounded-2xl p-3 lg:p-4 border-2 border-blue-200">
+                {/* Floating Stats */}
+                <div className="absolute -top-[6%] -right-[6%] bg-white rounded-2xl p-[5%] border-2 border-blue-200">
                   <div className="text-center">
-                    <div className="text-xl lg:text-2xl font-black text-blue-600">24h</div>
-                    <div className="text-xs text-gray-600 font-medium">Fast Delivery</div>
+                    <div className="text-[1.6rem] font-black text-blue-600">24h</div>
+                    <div className="text-[0.8rem] text-gray-600 font-medium">Fast Delivery</div>
                   </div>
                 </div>
                 
-                <div className="absolute -bottom-3 -left-3 lg:-bottom-4 lg:-left-4 bg-blue-600 text-white rounded-2xl p-3 lg:p-4">
+                <div className="absolute -bottom-[6%] -left-[6%] bg-blue-600 text-white rounded-2xl p-[5%]">
                   <div className="text-center">
-                    <div className="text-xl lg:text-2xl font-black">99%</div>
-                    <div className="text-xs font-medium">Satisfaction</div>
+                    <div className="text-[1.6rem] font-black">99%</div>
+                    <div className="text-[0.8rem] font-medium">Satisfaction</div>
                   </div>
                 </div>
               </div>
@@ -131,8 +127,8 @@ const FlyerSection = () => {
           </div>
         </div>
 
-        {/* Bottom Stats Bar - Also constrained within the same container */}
-        <div className="mt-16 lg:mt-20 grid grid-cols-2 md:grid-cols-4 gap-6 lg:gap-8">
+        {/* Bottom Stats */}
+        <div className="mt-[10%] grid grid-cols-2 md:grid-cols-4 gap-[6%]">
           {[
             { number: "50K+", label: "Flyers Printed" },
             { number: "500+", label: "Happy Clients" },
@@ -140,10 +136,10 @@ const FlyerSection = () => {
             { number: "24/7", label: "Support" }
           ].map((stat, index) => (
             <div key={index} className="text-center group">
-              <div className="text-2xl lg:text-3xl xl:text-4xl font-black text-blue-600 mb-2 group-hover:scale-110 transition-transform duration-300">
+              <div className="text-[5vw] lg:text-[2.5vw] font-black text-blue-600 mb-[2%] group-hover:scale-110 transition-transform duration-300">
                 {stat.number}
               </div>
-              <div className="text-gray-600 font-medium text-sm lg:text-base">{stat.label}</div>
+              <div className="text-gray-600 font-medium text-[0.9rem]">{stat.label}</div>
             </div>
           ))}
         </div>

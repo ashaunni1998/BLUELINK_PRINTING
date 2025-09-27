@@ -242,8 +242,8 @@ console.log(products);
   <div
   className="features-container"
     style={{
-      display: "flex",
-      justifyContent: "center",
+      display:"flex" ,
+      justifyContent: "flex-start",
       alignItems: "stretch",
       flexWrap: "wrap",
       gap: "10%",
@@ -256,7 +256,7 @@ console.log(products);
     <div
       style={{
         flex: "1 1 220px",
-        maxWidth: "260px",
+        maxWidth: "570px",
         padding: "12px 10px",
         borderRadius: "8px",
         boxShadow: "0 2px 6px rgba(0,0,0,0.05)",
@@ -265,6 +265,7 @@ console.log(products);
         flexDirection: "column",
         alignItems: "center",
         textAlign: "center",
+        justifyContent:"flex-start",
       }}
     >
       <img
@@ -284,7 +285,7 @@ console.log(products);
     <div
       style={{
         flex: "1 1 240px",
-        maxWidth: "260px",
+        maxWidth: "570px",
         padding: "12px 10px",
         borderRadius: "8px",
         boxShadow: "0 2px 6px rgba(0,0,0,0.05)",
@@ -312,7 +313,7 @@ console.log(products);
     <div
       style={{
         flex: "1 1 220px",
-        maxWidth: "260px",
+        maxWidth: "570px",
         padding: "12px 10px",
         borderRadius: "8px",
         boxShadow: "0 2px 6px rgba(0,0,0,0.05)",
@@ -347,9 +348,9 @@ console.log(products);
 >
   <div
     style={{
-      maxWidth: "1100px",
+      maxWidth: "80%",
       margin: "0 auto",
-      padding: "0 20px",
+      padding: "0",
       textAlign: "center",
     }}
   >
@@ -380,8 +381,8 @@ console.log(products);
     <div
       style={{
         display: "grid",
-        gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
-        gap: "35px",
+        gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+        gap: "20px",
         width: "100%",
       }}
     >
@@ -396,9 +397,14 @@ console.log(products);
               ? product.name.toLowerCase()
               : "";
           return (
-            category.includes("business card") || name.includes("business card")
+           category.includes("business card") ||
+  category.includes("business cards") ||
+  name.includes("business card") ||
+  name.includes("business cards")
+            
           );
         })
+        .slice(0, 8)
         .map((card) => (
           <div
             key={card._id}
@@ -531,7 +537,6 @@ console.log(products);
   </div>
 </section>
 
-
 <section
   style={{
     backgroundColor: "#f9fafb",
@@ -540,9 +545,9 @@ console.log(products);
 >
   <div
     style={{
-      maxWidth: "1100px",
+      maxWidth: "80%",
       margin: "0 auto",
-      padding: "0 20px",
+      padding: "0",
       textAlign: "center",
     }}
   >
@@ -573,8 +578,8 @@ console.log(products);
     <div
       style={{
         display: "grid",
-        gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
-        gap: "35px",
+        gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+        gap: "20px",
         width: "100%",
       }}
     >
@@ -593,6 +598,7 @@ console.log(products);
                  name.includes("flex") ||
                  name.includes("banner");
         })
+        .slice(0, 8)
         .map((item) => (
           <div
             key={item._id}
@@ -921,9 +927,9 @@ console.log(products);
 >
   <div
     style={{
-      maxWidth: "1100px", // Match header container
+      maxWidth: "80%", // Match header container
       margin: "0 auto",
-      padding: "0 20px", // Match header padding
+      padding: "0 ", // Match header padding
       textAlign: "center",
     }}
   >
@@ -954,8 +960,8 @@ console.log(products);
     <div
       style={{
         display: "grid",
-        gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
-        gap: "35px",
+        gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+        gap: "20px",
         width: "100%", // Use full width within container
       }}
     >
@@ -972,6 +978,7 @@ console.log(products);
           return category.includes("PhotoFrame") || name.includes("photo frame") || name.includes("mugs");
          
         })
+        .slice(0,8)
         .map((gift) => (
           <div
             key={gift._id}
@@ -1114,9 +1121,9 @@ console.log(products);
 >
   <div
     style={{
-      maxWidth: "1100px", // Match header container
+      maxWidth: "80%", // Match header container
       margin: "0 auto",
-      padding: "0 20px", // Match header padding
+      padding: "0 ", // Match header padding
       textAlign: "center",
     }}
   >
@@ -1147,8 +1154,8 @@ console.log(products);
     <div
       style={{
         display: "grid",
-        gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
-        gap: "35px",
+        gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+        gap: "20px",
         width: "100%", // Use full width within container
       }}
     >
@@ -1164,6 +1171,7 @@ console.log(products);
               : "";
           return category.includes("flyer") || name.includes("flyer");
         })
+        .slice(0,8)
         .map((flyer) => (
           <div
             key={flyer._id}

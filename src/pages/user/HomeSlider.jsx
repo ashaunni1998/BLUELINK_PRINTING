@@ -179,7 +179,7 @@ export default function HomeSlider() {
         >
           {/* Progress Bars (Desktop Only) */}
           {!isMobile && (
-            <div style={{ display: "flex", justifyContent: "flex-start", gap: "6px", marginTop: "15px", marginBottom: "50px",marginLeft:"122px", }}>
+            <div style={{ display: "flex", justifyContent: "flex-start", gap: "6px", marginTop: "15px", marginBottom: "50px",marginLeft:"10%", }}>
               {homeSlides.map((_, index) => (
                 <div
                   key={index}
@@ -191,7 +191,8 @@ export default function HomeSlider() {
                     position: "relative",
                     width: "50px",
                     marginTop:"50px",
-                  }}
+                    
+                                   }}
                 >
                   <div
                     style={{

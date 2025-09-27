@@ -1,193 +1,171 @@
 // src/components/AddressAutocomplete.jsx
 import React, { useEffect, useRef, useState } from "react";
-import { REACT_APP_GMAPS_KEY } from "../../../config";
-
-const PROVIDED_KEY = REACT_APP_GMAPS_KEY || "AIzaSyAAbaLzcUYc-Mhgj6crbVaA7o1v35GNGhg";
+import { API_BASE_URL } from "../../../config";
 
 /**
- * Loads Google Maps JS with Places library (idempotent).
- * Returns a Promise that resolves when window.google.maps.places is available.
- */
-function loadGMapsScript(apiKey, id = "google-maps-places") {
-  if (!apiKey) return Promise.reject(new Error("Missing Google Maps API key"));
-  if (typeof window !== "undefined" && window.google && window.google.maps && window.google.maps.places) {
-    return Promise.resolve();
-  }
-
-  const existing = document.getElementById(id);
-  if (existing) {
-    // If script tag already in DOM, wait for load/error events
-    return new Promise((resolve, reject) => {
-      existing.addEventListener("load", () => resolve());
-      existing.addEventListener("error", () => reject(new Error("Google Maps script failed to load")));
-    });
-  }
-
-  const script = document.createElement("script");
-  script.id = id;
-  script.async = true;
-  script.defer = true;
-  script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
-  document.head.appendChild(script);
-
-  return new Promise((resolve, reject) => {
-    script.onload = () => resolve();
-    script.onerror = () => reject(new Error("Failed to load Google Maps script"));
-  });
-}
-
-/**
- * AddressAutocomplete component
+ * AddressAutocomplete (no auto-save)
+ *
+ * - Fetches suggestions from `${API_BASE_URL}/geo/autocomplete`
+ * - On select: populates address, city, region, postalCode, country in newAddress
+ * - Does NOT call the backend save endpoint (save should be handled by the parent form)
  *
  * Props:
- *  - newAddress: object state for the new address
+ *  - newAddress: object state for the address
  *  - setNewAddress: setter for newAddress
- *  - countryBias (optional): 2-letter country code string to bias results (e.g. 'nz' or 'au')
+ *  - countryBias (optional)
  */
-export default function AddressAutocomplete({ newAddress, setNewAddress, countryBias }) {
+export default function AddressAutocomplete({
+  newAddress,
+  setNewAddress,
+  countryBias,
+}) {
+  const [q, setQ] = useState(newAddress?.address || "");
   const [predictions, setPredictions] = useState([]);
-  const tokenRef = useRef(null);
-  const serviceRef = useRef(null);
-  const placesServiceRef = useRef(null);
-  const inputRef = useRef(null);
-
-  // pick the key from config (PROVIDED_KEY) — fallback tries process.env (safe-read)
-  const envKey =
-    PROVIDED_KEY ||
-    (typeof process !== "undefined" && process?.env?.REACT_APP_GMAPS_KEY) ||
-    (typeof window !== "undefined" && window.__REACT_APP_GMAPS_KEY) || // optional runtime test fallback
-    "";
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const timerRef = useRef(null);
+  const activeReqRef = useRef(null);
 
   useEffect(() => {
-    let mounted = true;
-    if (!envKey) {
-      console.warn(
-        "AddressAutocomplete: Google Maps API key not found. Please set REACT_APP_GMAPS_KEY in src/config.js or .env."
-      );
-      return;
-    }
+    setQ(newAddress?.address || "");
+  }, [newAddress?.address]);
 
-    loadGMapsScript(envKey)
-      .then(() => {
-        if (!mounted) return;
-        try {
-          tokenRef.current = new window.google.maps.places.AutocompleteSessionToken();
-          serviceRef.current = new window.google.maps.places.AutocompleteService();
-          // PlacesService requires a DOM node — we create a detached div
-          placesServiceRef.current = new window.google.maps.places.PlacesService(document.createElement("div"));
-        } catch (err) {
-          console.error("AddressAutocomplete: failed initializing Google Places services:", err);
-        }
-      })
-      .catch((err) => {
-        console.error("AddressAutocomplete: failed loading Google Maps script:", err);
-      });
-
+  useEffect(() => {
     return () => {
-      mounted = false;
+      if (timerRef.current) clearTimeout(timerRef.current);
+      if (activeReqRef.current && typeof activeReqRef.current.abort === "function") {
+        activeReqRef.current.abort();
+      }
     };
-  }, [envKey]);
+  }, []);
 
-  const handleChange = (e) => {
-    const value = e.target.value;
-    setNewAddress((s) => ({ ...s, address: value }));
-
-    if (!value || value.length < 2 || !serviceRef.current) {
+  async function fetchPredictions(input) {
+    if (!input || input.length < 2) {
       setPredictions([]);
       return;
     }
-
-    const request = {
-      input: value,
-      sessionToken: tokenRef.current,
-      componentRestrictions: countryBias ? { country: countryBias } : undefined,
-      // types: ["address"] // optionally restrict to address results
-    };
+    setLoading(true);
+    setError("");
+    const ctrl = new AbortController();
+    activeReqRef.current = ctrl;
 
     try {
-      serviceRef.current.getPlacePredictions(request, (preds, status) => {
-        if (status !== window.google.maps.places.PlacesServiceStatus.OK || !preds) {
-          setPredictions([]);
-          return;
-        }
-        setPredictions(preds);
-      });
+      const url = `${API_BASE_URL}/geo/autocomplete?q=${encodeURIComponent(input)}${countryBias ? `&country=${encodeURIComponent(countryBias)}` : ""}`;
+      const res = await fetch(url, { signal: ctrl.signal, credentials: "include" });
+      if (!res.ok) {
+        const txt = await res.text().catch(() => "");
+        throw new Error(`Geo error ${res.status} ${txt}`);
+      }
+      const json = await res.json();
+      setPredictions(json.results || []);
     } catch (err) {
-      console.error("AddressAutocomplete: getPlacePredictions failed:", err);
+      if (err.name === "AbortError") return;
+      console.error("autocomplete fetch error", err);
+      setError("Failed to fetch address suggestions");
       setPredictions([]);
+    } finally {
+      setLoading(false);
+      activeReqRef.current = null;
     }
+  }
+
+  const onChange = (e) => {
+    const value = e.target.value;
+    setQ(value);
+    // update typed address text only
+    setNewAddress((s) => ({ ...s, address: value }));
+
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => fetchPredictions(value), 300);
   };
 
-  const handleSelect = (prediction) => {
-    if (!placesServiceRef.current) {
-      // fallback: set description only
-      setNewAddress((s) => ({ ...s, address: prediction.description }));
-      setPredictions([]);
-      return;
+  // Helper — optionally reverse geocode for missing components (light)
+  async function reverseGeocodeIfNeeded(lat, lon) {
+    if (!lat || !lon) return null;
+    try {
+      const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}&addressdetails=1`;
+      const res = await fetch(url, {
+        headers: { "User-Agent": "BlueLinkPrinting/1.0 (contact: support@yourdomain.com)" },
+      });
+      if (!res.ok) return null;
+      const json = await res.json();
+      return json?.address || null;
+    } catch (err) {
+      console.warn("reverseGeocode error", err);
+      return null;
+    }
+  }
+
+  // Choose sensible fields from a geocoder item and optionally reverse geocode to fill gaps
+  async function buildAddressFromItem(item) {
+    const addr = item.address || {};
+    const street = addr.street || "";
+    const housenumber = addr.housenumber || "";
+    const combined = [housenumber, street].filter(Boolean).join(" ").trim() || item.display_name || addr.name || "";
+
+    let city = addr.city || addr.town || addr.village || "";
+    let region = addr.state || "";
+    let postcode = addr.postcode || "";
+    const country = addr.country || "";
+
+    // If city/region/postcode missing, try reverse geocode once
+    if ((!city || !region || !postcode) && item.lat && item.lon) {
+      const more = await reverseGeocodeIfNeeded(item.lat, item.lon);
+      if (more) {
+        city = city || more.city || more.town || more.village || more.county || city;
+        region = region || more.state || more.county || region;
+        postcode = postcode || more.postcode || postcode;
+      }
     }
 
-    placesServiceRef.current.getDetails(
-      {
-        placeId: prediction.place_id,
-        fields: ["address_components", "formatted_address", "geometry", "name"],
-      },
-      (place, status) => {
-        if (status !== window.google.maps.places.PlacesServiceStatus.OK || !place) {
-          setNewAddress((s) => ({ ...s, address: prediction.description }));
-          setPredictions([]);
-          return;
-        }
+    return {
+      address: combined,
+      city: city || "",
+      region: region || "",
+      postalCode: postcode || "",
+      country: country || "",
+      // keep lat/lon locally if you want to persist later (but we won't send them automatically)
+      geometry: item.lat && item.lon ? { lat: item.lat, lng: item.lon } : null,
+    };
+  }
 
-        const ac = place.address_components || [];
-        const find = (type) => {
-          const c = ac.find((x) => x.types.indexOf(type) !== -1);
-          return c ? c.long_name : "";
-        };
+  const onSelect = async (item) => {
+    setError("");
+    setPredictions([]);
 
-        const streetNumber = find("street_number");
-        const route = find("route");
-        const locality = find("locality") || find("postal_town") || find("sublocality") || "";
-        const city = locality || find("administrative_area_level_2") || find("administrative_area_level_1") || "";
-        const region = find("administrative_area_level_1") || "";
-        const postalCode = find("postal_code") || "";
-        const country = find("country") || newAddress.country || "";
+    const filled = await buildAddressFromItem(item);
 
-        const combined = [streetNumber, route].filter(Boolean).join(" ").trim() || place.formatted_address || prediction.description;
+    // Update only the allowed fields; do NOT call backend here.
+    setNewAddress((s) => ({
+      ...s,
+      address: filled.address,
+      city: filled.city,
+      region: filled.region,
+      postalCode: filled.postalCode,
+      country: filled.country || s.country || "New Zealand",
+      // keep user's fullName/phone/addressType/isDefault untouched
+      // store geometry locally if desired (parent can read newAddress.geometry)
+      geometry: filled.geometry || s.geometry,
+    }));
 
-        setNewAddress((s) => ({
-          ...s,
-          address: combined,
-          city: city || s.city || "",
-          region: region || s.region || "",
-          postalCode: postalCode || s.postalCode || "",
-          country: country || s.country || "New Zealand",
-          geometry: place.geometry ? { lat: place.geometry.location.lat(), lng: place.geometry.location.lng() } : s.geometry,
-        }));
-
-        // safe new token for next session
-        try {
-          tokenRef.current = new window.google.maps.places.AutocompleteSessionToken();
-        } catch (err) {
-          // not critical
-        }
-        setPredictions([]);
-      }
-    );
+    setQ(filled.address);
   };
 
   return (
     <div style={{ position: "relative", width: "100%" }}>
       <label style={{ display: "block", marginBottom: 6, fontSize: 13 }}>Address</label>
       <input
-        ref={inputRef}
-        value={newAddress.address || ""}
-        onChange={handleChange}
-        placeholder="Start typing street, suburb or city (e.g. Grey Street, Hamilton)"
+        value={q}
+        onChange={onChange}
+        placeholder="Start typing street, suburb or city"
         style={{ padding: 12, borderRadius: 8, border: "1px solid #e5e7eb", width: "100%", outline: "none" }}
         aria-autocomplete="list"
         aria-controls="address-suggestions"
         aria-expanded={predictions.length > 0}
       />
+
+      {loading && <div style={{ position: "absolute", right: 10, top: 12 }}>…</div>}
+      {error && <div style={{ color: "crimson", marginTop: 6 }}>{error}</div>}
 
       {predictions.length > 0 && (
         <ul
@@ -211,14 +189,18 @@ export default function AddressAutocomplete({ newAddress, setNewAddress, country
         >
           {predictions.map((p) => (
             <li
-              key={p.place_id}
-              onClick={() => handleSelect(p)}
+              key={p.id}
+              onClick={() => onSelect(p)}
               role="option"
               style={{ padding: "8px 10px", borderRadius: 6, cursor: "pointer", fontSize: 13 }}
             >
-              <div style={{ fontWeight: 600 }}>{p.description}</div>
-              {p.structured_formatting?.secondary_text && (
-                <div style={{ fontSize: 12, color: "#6b7280" }}>{p.structured_formatting.secondary_text}</div>
+              <div style={{ fontWeight: 600 }}>{p.display_name}</div>
+              {p.address && (
+                <div style={{ fontSize: 12, color: "#6b7280" }}>
+                  {[p.address.city || p.address.town || p.address.village, p.address.state, p.address.country]
+                    .filter(Boolean)
+                    .join(", ")}
+                </div>
               )}
             </li>
           ))}

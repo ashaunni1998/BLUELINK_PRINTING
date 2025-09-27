@@ -39,7 +39,7 @@ const EnhancedHomeSections = () => {
         }`}
       >
         {/* Match header's container structure */}
-        <div className="relative z-10 max-w-[1100px] mx-auto px-4 sm:px-6 lg:px-8">
+<div className="relative z-10 w-full px-[5%] lg:px-[15%]">
           {/* Section Header */}
           <div className="text-center mb-16">
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 border border-blue-200 rounded-full text-blue-700 text-sm font-medium mb-6">
@@ -181,7 +181,7 @@ const EnhancedHomeSections = () => {
         }`}
       >
         {/* Match header's container structure */}
-        <div className="relative z-10 max-w-[1100px] mx-auto px-4 sm:px-6 lg:px-8">
+<div className="relative z-10 w-full px-[5%] lg:px-[15%]">
           <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
             
             {/* Image Side */}
@@ -270,7 +270,7 @@ const EnhancedHomeSections = () => {
         }`}
       >
         {/* Match header's container structure */}
-        <div className="relative z-10 max-w-[1100px] mx-auto px-4 sm:px-6 lg:px-8">
+<div className="relative z-10 w-full px-[5%] lg:px-[15%]">
           <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
             
             {/* Content Side */}
