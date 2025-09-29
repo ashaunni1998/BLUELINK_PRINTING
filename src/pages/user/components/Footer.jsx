@@ -98,6 +98,8 @@ const Footer = () => {
           backgroundColor: "#2c3e50",
           color: "#fff",
           padding: "12px 0",
+          marginRight:"10%",
+          marginLeft:"10%",
         }}
       >
         <div
@@ -110,6 +112,7 @@ const Footer = () => {
             flexWrap: "wrap",
             justifyContent: "space-between",
             alignItems: "center",
+
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>

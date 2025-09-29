@@ -878,6 +878,8 @@ console.log(products);
     backgroundColor: "#007bff",
     color: "#ffffff",
     textAlign: "center",
+       marginLeft:"10%",
+       marginRight:"10%",
   }}
 >
   <div
@@ -886,7 +888,7 @@ console.log(products);
       margin: "0 auto",
       padding: "0 20px",
       // width: "100%",
-      marginRight:"20%",
+   
     }}
   >
     <h2 style={{ fontSize: "28px", marginBottom: "15px" }}>
