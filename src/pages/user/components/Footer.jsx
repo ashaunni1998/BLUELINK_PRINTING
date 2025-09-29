@@ -88,7 +88,7 @@ const Footer = () => {
     <footer
       style={{
         fontFamily: "Arial, sans-serif",
-        backgroundColor: "#fff",
+         backgroundColor: "#fff",
         color: "#333",
       }}
     >
@@ -98,8 +98,8 @@ const Footer = () => {
           backgroundColor: "#2c3e50",
           color: "#fff",
           padding: "12px 0",
-          marginRight:"10%",
-          marginLeft:"10%",
+          marginRight:"5%",
+          marginLeft:"5%",
         }}
       >
         <div
@@ -189,6 +189,8 @@ const Footer = () => {
       <div
         style={{
           backgroundColor: "#f9f9f9",
+          marginRight:"6%",
+          marginLeft:"6%",
         }}
       >
         <div

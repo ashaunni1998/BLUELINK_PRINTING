@@ -269,11 +269,11 @@ export default function SignIn() {
       <Header />
 
       <div style={{
-        minHeight: "100vh",
+        // minHeight: "100vh",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        backgroundColor: "#f4f6fb",
+        // backgroundColor: "#f4f6fb",
         fontFamily: "Inter, Roboto, Arial, sans-serif",
         padding: "20px",
       }}>
@@ -281,9 +281,9 @@ export default function SignIn() {
           maxWidth: "480px",
           width: "100%",
           padding: "32px",
-          borderRadius: "12px",
+           borderRadius: "12px",
           background: "#ffffff",
-          boxShadow: "0 8px 24px rgba(16,24,40,0.08)"
+           boxShadow: "0 8px 24px rgba(16,24,40,0.08)"
         }}>
           <h2 style={{ margin: 0, marginBottom: 12 }}>Sign in to your account</h2>
           <div style={{ fontSize: 13, color: "#6b7280", marginBottom: 18 }}>

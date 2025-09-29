@@ -109,7 +109,7 @@ export default function HomeSlider() {
           backgroundSize: "cover",
           backgroundPosition: "center",
           height: isMobile ? "200px" : "340px",
-          width: isMobile ? "100%" : "80%",
+          width: isMobile ? "100%" : "89%",
            margin: isMobile ? "0" : "0 auto",
           position: "relative",
           display: "flex",

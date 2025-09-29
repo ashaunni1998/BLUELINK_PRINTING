@@ -275,11 +275,11 @@ export default function SignUp() {
 
       <div
         style={{
-          minHeight: "100vh",
+          // minHeight: "100vh",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          backgroundColor: "#f4f6fb",
+          // backgroundColor: "#f4f6fb",
           fontFamily: "Inter, Roboto, Arial, sans-serif",
           padding: isMobile ? "20px" : "48px",
         }}

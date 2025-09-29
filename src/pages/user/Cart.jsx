@@ -1,6 +1,6 @@
-// Cart.jsx
+// Cart.jsx - Fully Responsive Modern Redesign
 import React, { useEffect, useState } from "react";
-import { Trash2, ShoppingBag, ArrowLeft, CreditCard, Plus, Minus, ShoppingCart } from "lucide-react";
+import { Trash2, ShoppingBag, ArrowLeft, CreditCard, Plus, Minus, ShoppingCart, Package, Truck, Shield, CheckCircle } from "lucide-react";
 
 import Header from "./components/Header";
 import Footer from "./components/Footer";
@@ -21,9 +21,7 @@ export default function Cart() {
   const [cartId, setCartId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [currency, setCurrency] = useState("$");
-const [updatingMap, setUpdatingMap] = useState({});
-
-
+  const [updatingMap, setUpdatingMap] = useState({});
 
   const pickTierForQty = (priceTiers = [], qty) => {
     if (!Array.isArray(priceTiers) || !priceTiers.length) return null;
@@ -45,316 +43,278 @@ const [updatingMap, setUpdatingMap] = useState({});
     return sorted[0];
   };
 
-// REPLACE normalizeCart with this version (full replacement)
-const normalizeCart = (cartData) => {
-  if (!cartData || !Array.isArray(cartData.items)) return [];
+  const normalizeCart = (cartData) => {
+    if (!cartData || !Array.isArray(cartData.items)) return [];
 
-  return cartData.items.map((i, idx) => {
-    const raw = i || {};
-    // product may already be populated object or just an id
-    const product = (raw.productId && typeof raw.productId === "object") ? raw.productId : null;
-    const productIdStr = product?._id ? String(product._id) : (raw.productId ? String(raw.productId) : `unknown-${idx}`);
+    return cartData.items.map((i, idx) => {
+      const raw = i || {};
+      const product = (raw.productId && typeof raw.productId === "object") ? raw.productId : null;
+      const productIdStr = product?._id ? String(product._id) : (raw.productId ? String(raw.productId) : `unknown-${idx}`);
 
-    const qty = Number(raw.quantity ?? raw.qty ?? 1) || 1;
-    const options = raw.options || raw.meta || raw.customOptions || {};
-    const designType = (options.designType || options.design || raw.designType || "single").toString().toLowerCase();
+      const qty = Number(raw.quantity ?? raw.qty ?? 1) || 1;
+      const options = raw.options || raw.meta || raw.customOptions || {};
+      const designType = (options.designType || options.design || raw.designType || "single").toString().toLowerCase();
 
-    // extract price tiers from different shapes
-    const extractTiers = (p) => {
-      if (!p || typeof p !== "object") return null;
-      return p.priceTiers ?? p.price_tiers ?? p.tiers ?? p.pricing?.priceTiers ?? null;
-    };
-    const rawTiers = extractTiers(product);
+      const extractTiers = (p) => {
+        if (!p || typeof p !== "object") return null;
+        return p.priceTiers ?? p.price_tiers ?? p.tiers ?? p.pricing?.priceTiers ?? null;
+      };
+      const rawTiers = extractTiers(product);
 
-    // allowed qty options from tiers or item
-    let allowedQtyOptions = [];
-    if (Array.isArray(rawTiers) && rawTiers.length) {
-      const qtys = rawTiers.map(t => Number(t.qty ?? t.quantity ?? t.minQty ?? 0)).filter(n => Number.isFinite(n));
-      allowedQtyOptions = [...new Set(qtys)].sort((a,b)=>a-b);
-    }
-    if (!allowedQtyOptions.length) {
-      const alt = raw.allowedQtys || raw.qtyOptions || [];
-      if (Array.isArray(alt) && alt.length) {
-        allowedQtyOptions = alt.map(x => Number(x)).filter(n => Number.isFinite(n));
+      let allowedQtyOptions = [];
+      if (Array.isArray(rawTiers) && rawTiers.length) {
+        const qtys = rawTiers.map(t => Number(t.qty ?? t.quantity ?? t.minQty ?? 0)).filter(n => Number.isFinite(n));
+        allowedQtyOptions = [...new Set(qtys)].sort((a,b)=>a-b);
       }
-    }
-    if (!allowedQtyOptions.length) allowedQtyOptions = [qty];
-
-    // helper to pick tier from array
-    const pickTierFromArr = (arr = [], q) => {
-      if (!Array.isArray(arr) || !arr.length) return null;
-      const sorted = arr.map(t => ({ ...t, _qty: Number(t.qty ?? t.quantity ?? t.minQty ?? 0) }))
-                        .filter(t => Number.isFinite(t._qty))
-                        .sort((a,b)=>a._qty-b._qty);
-      if (!sorted.length) return null;
-      const exact = sorted.find(t => t._qty === Number(q));
-      if (exact) return exact;
-      for (let i = sorted.length - 1; i >= 0; i--) {
-        if (sorted[i]._qty <= Number(q)) return sorted[i];
-      }
-      return sorted[0];
-    };
-
-    const tierFromProduct = rawTiers ? pickTierFromArr(rawTiers, qty) : null;
-
-    // snapshot values saved on cart item
-    const savedUnit = (raw.unitPrice !== undefined && raw.unitPrice !== null) ? Number(raw.unitPrice) : NaN;
-    const savedShip = (raw.shippingPrice !== undefined && raw.shippingPrice !== null) ? Number(raw.shippingPrice) : NaN;
-
-    let unitPrice = Number.isFinite(savedUnit) ? savedUnit : NaN;
-    let shippingPrice = Number.isFinite(savedShip) ? savedShip : NaN;
-
-    // derive from tier if needed
-    if ((!Number.isFinite(unitPrice) || !Number.isFinite(shippingPrice)) && tierFromProduct) {
-      unitPrice = designType === "double"
-        ? Number(tierFromProduct.priceDouble ?? tierFromProduct.priceSingle ?? tierFromProduct.price ?? 0)
-        : Number(tierFromProduct.priceSingle ?? tierFromProduct.price ?? 0);
-      shippingPrice = Number(tierFromProduct.shippingCharge ?? tierFromProduct.shippingPrice ?? 0);
-    }
-
-    // fallback to product base fields
-    if (!Number.isFinite(unitPrice) && product) unitPrice = Number(product.basePrice ?? product.price ?? 0);
-    if (!Number.isFinite(shippingPrice) && product) shippingPrice = Number(product.shippingCharge ?? product.shippingPrice ?? 0);
-
-    if (!Number.isFinite(unitPrice)) unitPrice = 0;
-    if (!Number.isFinite(shippingPrice)) shippingPrice = 0;
-
-    // compute "line total" according to your app (you said unitPrice is the tier pack price)
-    const lineTotal = Number((unitPrice + shippingPrice).toFixed(2));
-
-    // robust image resolution — accept many shapes
-    const resolveImage = () => {
-      // item-level prepared preview or uploaded URL
-      if (raw.preparedPreview) return raw.preparedPreview;
-      if (raw.uploadedUrl) return raw.uploadedUrl;
-      if (raw.uploadUrl) return raw.uploadUrl;
-      // product images
-      if (product) {
-        if (Array.isArray(product.images) && product.images.length) {
-          const first = product.images[0];
-          if (typeof first === "string") return first;
-          if (typeof first === "object") return first.url || first.path || first.src || "";
+      if (!allowedQtyOptions.length) {
+        const alt = raw.allowedQtys || raw.qtyOptions || [];
+        if (Array.isArray(alt) && alt.length) {
+          allowedQtyOptions = alt.map(x => Number(x)).filter(n => Number.isFinite(n));
         }
-        if (product.image) return typeof product.image === "string" ? product.image : product.image?.url || "";
       }
-      // raw item-level images
-      if (Array.isArray(raw.images) && raw.images.length) {
-        const f = raw.images[0];
-        if (typeof f === "string") return f;
-        if (typeof f === "object") return f.url || f.path || "";
+      if (!allowedQtyOptions.length) allowedQtyOptions = [qty];
+
+      const pickTierFromArr = (arr = [], q) => {
+        if (!Array.isArray(arr) || !arr.length) return null;
+        const sorted = arr.map(t => ({ ...t, _qty: Number(t.qty ?? t.quantity ?? t.minQty ?? 0) }))
+                          .filter(t => Number.isFinite(t._qty))
+                          .sort((a,b)=>a._qty-b._qty);
+        if (!sorted.length) return null;
+        const exact = sorted.find(t => t._qty === Number(q));
+        if (exact) return exact;
+        for (let i = sorted.length - 1; i >= 0; i--) {
+          if (sorted[i]._qty <= Number(q)) return sorted[i];
+        }
+        return sorted[0];
+      };
+
+      const tierFromProduct = rawTiers ? pickTierFromArr(rawTiers, qty) : null;
+
+      const savedUnit = (raw.unitPrice !== undefined && raw.unitPrice !== null) ? Number(raw.unitPrice) : NaN;
+      const savedShip = (raw.shippingPrice !== undefined && raw.shippingPrice !== null) ? Number(raw.shippingPrice) : NaN;
+
+      let unitPrice = Number.isFinite(savedUnit) ? savedUnit : NaN;
+      let shippingPrice = Number.isFinite(savedShip) ? savedShip : NaN;
+
+      if ((!Number.isFinite(unitPrice) || !Number.isFinite(shippingPrice)) && tierFromProduct) {
+        unitPrice = designType === "double"
+          ? Number(tierFromProduct.priceDouble ?? tierFromProduct.priceSingle ?? tierFromProduct.price ?? 0)
+          : Number(tierFromProduct.priceSingle ?? tierFromProduct.price ?? 0);
+        shippingPrice = Number(tierFromProduct.shippingCharge ?? tierFromProduct.shippingPrice ?? 0);
       }
-      // croppedImages
-      if (raw.croppedImages?.front) return raw.croppedImages.front;
-      if (raw.croppedImages?.back) return raw.croppedImages.back;
-      // fallback placeholder
-      return "";
-    };
 
-    const image = resolveImage();
-    const name = product?.name ?? raw.productName ?? raw.name ?? raw.title ?? "(Product)";
+      if (!Number.isFinite(unitPrice) && product) unitPrice = Number(product.basePrice ?? product.price ?? 0);
+      if (!Number.isFinite(shippingPrice) && product) shippingPrice = Number(product.shippingCharge ?? product.shippingPrice ?? 0);
 
-    // expose consolidated options (size/paper/finish/corner) from many possible shapes
-    const readOption = (k) => {
-      const val = raw[k] ?? options?.[k] ?? raw.meta?.[k] ?? raw.custom?.[k] ?? product?.[k] ?? null;
-      if (val == null) return null;
-      if (typeof val === "object") return val.name ?? val.label ?? val.value ?? JSON.stringify(val);
-      return String(val);
-    };
+      if (!Number.isFinite(unitPrice)) unitPrice = 0;
+      if (!Number.isFinite(shippingPrice)) shippingPrice = 0;
 
-    return {
-      raw,
-      id: productIdStr,
-      name,
-      image,
-      qty,
-      allowedQtyOptions,
-      unitPrice,
-      shippingPrice,
-      lineTotal,
-      designType,
-      product,
-      // common options easy to read in UI
-      selectedSize: readOption("size"),
-      selectedPaper: readOption("paper"),
-      selectedFinish: readOption("finish"),
-      selectedCorner: readOption("corner"),
-    };
-  });
-};
+      const lineTotal = Number((unitPrice + shippingPrice).toFixed(2));
 
+      const resolveImage = () => {
+        if (raw.preparedPreview) return raw.preparedPreview;
+        if (raw.uploadedUrl) return raw.uploadedUrl;
+        if (raw.uploadUrl) return raw.uploadUrl;
+        if (product) {
+          if (Array.isArray(product.images) && product.images.length) {
+            const first = product.images[0];
+            if (typeof first === "string") return first;
+            if (typeof first === "object") return first.url || first.path || first.src || "";
+          }
+          if (product.image) return typeof product.image === "string" ? product.image : product.image?.url || "";
+        }
+        if (Array.isArray(raw.images) && raw.images.length) {
+          const f = raw.images[0];
+          if (typeof f === "string") return f;
+          if (typeof f === "object") return f.url || f.path || "";
+        }
+        if (raw.croppedImages?.front) return raw.croppedImages.front;
+        if (raw.croppedImages?.back) return raw.croppedImages.back;
+        return "";
+      };
 
+      const image = resolveImage();
+      const name = product?.name ?? raw.productName ?? raw.name ?? raw.title ?? "(Product)";
 
+      const readOption = (k) => {
+        const val = raw[k] ?? options?.[k] ?? raw.meta?.[k] ?? raw.custom?.[k] ?? product?.[k] ?? null;
+        if (val == null) return null;
+        if (typeof val === "object") return val.name ?? val.label ?? val.value ?? JSON.stringify(val);
+        return String(val);
+      };
 
-// helper used by fetchCart (robust)
-const fetchProductById = async (id) => {
-  try {
-    const res = await fetch(`${API_BASE_URL}/product/productDetails/${encodeURIComponent(id)}`, { credentials: "include" });
-    if (!res.ok) {
-      console.warn("fetchProductById failed", id, res.status);
+      return {
+        raw,
+        id: productIdStr,
+        name,
+        image,
+        qty,
+        allowedQtyOptions,
+        unitPrice,
+        shippingPrice,
+        lineTotal,
+        designType,
+        product,
+        selectedSize: readOption("size"),
+        selectedPaper: readOption("paper"),
+        selectedFinish: readOption("finish"),
+        selectedCorner: readOption("corner"),
+      };
+    });
+  };
+
+  const fetchProductById = async (id) => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/product/productDetails/${encodeURIComponent(id)}`, { credentials: "include" });
+      if (!res.ok) {
+        console.warn("fetchProductById failed", id, res.status);
+        return null;
+      }
+      const payload = await res.json().catch(() => null);
+      return payload?.data ?? payload?.product ?? payload ?? null;
+    } catch (err) {
+      console.error("fetchProductById error", id, err);
       return null;
     }
-    const payload = await res.json().catch(() => null);
-    // your product endpoint returns { message, data: { ...product... } }
-    return payload?.data ?? payload?.product ?? payload ?? null;
-  } catch (err) {
-    console.error("fetchProductById error", id, err);
-    return null;
-  }
-};
+  };
 
-const fetchCart = async () => {
-  setLoading(true);
-  try {
-    const res = await fetch(`${API_BASE_URL}/getCart`, {
-      method: "GET",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-    });
-    const payload = await res.json().catch(() => null);
-    console.debug("fetchCart raw payload:", payload);
+  const fetchCart = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/getCart`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+      });
+      const payload = await res.json().catch(() => null);
+      console.debug("fetchCart raw payload:", payload);
 
-    // try common wrappers for cart object
-    const candidate = payload?.cart ?? payload?.cartData ?? payload?.data ?? payload ?? null;
-    const candidateAlt = payload?.data?.cart ?? payload?.data ?? null;
-    const cart = Array.isArray(candidate?.items) ? candidate : (Array.isArray(candidateAlt?.items) ? candidateAlt : null);
+      const candidate = payload?.cart ?? payload?.cartData ?? payload?.data ?? payload ?? null;
+      const candidateAlt = payload?.data?.cart ?? payload?.data ?? null;
+      const cart = Array.isArray(candidate?.items) ? candidate : (Array.isArray(candidateAlt?.items) ? candidateAlt : null);
 
-    if (!cart || !Array.isArray(cart.items)) {
-      const maybeId = candidate?._id ?? candidate?.id ?? candidate?.cartId ?? payload?.cart?._id ?? payload?.data?._id ?? null;
-      console.warn("fetchCart: could not resolve cart.items; payload:", payload);
-      setCartId(maybeId ? String(maybeId) : null);
-      setItems([]);
-      setLoading(false);
-      return;
-    }
-
-    // store cartId if present
-    const resolvedCartId = cart._id ?? cart.id ?? cart.cartId ?? payload?.cart?._id ?? payload?.data?._id ?? null;
-    if (resolvedCartId) setCartId(String(resolvedCartId));
-
-    // find productIds that are primitive and fetch product details
-    const missingProductIds = cart.items
-      .filter(it => it.productId && typeof it.productId !== "object")
-      .map(it => String(it.productId))
-      .filter(Boolean);
-
-    let productMap = {};
-    if (missingProductIds.length) {
-      const uniqueIds = [...new Set(missingProductIds)];
-      const fetches = uniqueIds.map(id => fetchProductById(id).then(p => ({ id, p })));
-      const results = await Promise.all(fetches);
-      for (const r of results) {
-        if (r?.p) productMap[String(r.id)] = r.p;
+      if (!cart || !Array.isArray(cart.items)) {
+        const maybeId = candidate?._id ?? candidate?.id ?? candidate?.cartId ?? payload?.cart?._id ?? payload?.data?._id ?? null;
+        console.warn("fetchCart: could not resolve cart.items; payload:", payload);
+        setCartId(maybeId ? String(maybeId) : null);
+        setItems([]);
+        setLoading(false);
+        return;
       }
-      console.debug("fetchCart -> productMap keys:", Object.keys(productMap));
-    }
 
-    // inject fetched product objects into items so normalizeCart can use them
-    const cartWithProducts = {
-      ...cart,
-      items: cart.items.map(it => {
-        if (it.productId && typeof it.productId !== "object") {
-          const idStr = String(it.productId);
-          const fetched = productMap[idStr] ?? null;
-          return fetched ? { ...it, productId: fetched } : it;
+      const resolvedCartId = cart._id ?? cart.id ?? cart.cartId ?? payload?.cart?._id ?? payload?.data?._id ?? null;
+      if (resolvedCartId) setCartId(String(resolvedCartId));
+
+      const missingProductIds = cart.items
+        .filter(it => it.productId && typeof it.productId !== "object")
+        .map(it => String(it.productId))
+        .filter(Boolean);
+
+      let productMap = {};
+      if (missingProductIds.length) {
+        const uniqueIds = [...new Set(missingProductIds)];
+        const fetches = uniqueIds.map(id => fetchProductById(id).then(p => ({ id, p })));
+        const results = await Promise.all(fetches);
+        for (const r of results) {
+          if (r?.p) productMap[String(r.id)] = r.p;
         }
-        return it;
-      })
-    };
+        console.debug("fetchCart -> productMap keys:", Object.keys(productMap));
+      }
 
-    const normalized = normalizeCart(cartWithProducts);
-    setItems(normalized);
-  } catch (err) {
-    console.error("fetchCart error:", err);
-    setItems([]);
-    setCartId(null);
-  } finally {
-    setLoading(false);
-  }
-};
+      const cartWithProducts = {
+        ...cart,
+        items: cart.items.map(it => {
+          if (it.productId && typeof it.productId !== "object") {
+            const idStr = String(it.productId);
+            const fetched = productMap[idStr] ?? null;
+            return fetched ? { ...it, productId: fetched } : it;
+          }
+          return it;
+        })
+      };
 
+      const normalized = normalizeCart(cartWithProducts);
+      setItems(normalized);
+    } catch (err) {
+      console.error("fetchCart error:", err);
+      setItems([]);
+      setCartId(null);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-// REPLACE updateCartQty with this
-const updateCartQty = async (cartItemIdOrProductId, newQty) => {
-  // find UI item to resolve productId and cartItemId
-  const item = items.find(it =>
-    String(it.raw?._id) === String(cartItemIdOrProductId) ||
-    String(it.id) === String(cartItemIdOrProductId) ||
-    String(it.raw?.productId) === String(cartItemIdOrProductId)
-  );
+  const updateCartQty = async (cartItemIdOrProductId, newQty) => {
+    const item = items.find(it =>
+      String(it.raw?._id) === String(cartItemIdOrProductId) ||
+      String(it.id) === String(cartItemIdOrProductId) ||
+      String(it.raw?.productId) === String(cartItemIdOrProductId)
+    );
 
-  const productIdFromItem = item?.product?._id || item?.raw?.productId || item?.id || null;
-  const cartItemIdFromItem = item?.raw?._id ?? null;
-  const cartIdToSend = cartId || (item?.raw && (item.raw.cartId || item.raw.cart?._id || item.raw.cart?.id)) || "";
+    const productIdFromItem = item?.product?._id || item?.raw?.productId || item?.id || null;
+    const cartItemIdFromItem = item?.raw?._id ?? null;
+    const cartIdToSend = cartId || (item?.raw && (item.raw.cartId || item.raw.cart?._id || item.raw.cart?.id)) || "";
 
-  if (!productIdFromItem && !cartItemIdFromItem) {
-    console.warn("updateCartQty: cannot resolve productId or cartItemId", { cartItemIdOrProductId, item, cartId });
-    await fetchCart();
-    return;
-  }
-
-  // optimistic UI update
-  setItems(prev => prev.map(it =>
-    (String(it.raw?._id) === String(cartItemIdOrProductId) ||
-     String(it.id) === String(cartItemIdOrProductId) ||
-     String(it.raw?.productId) === String(cartItemIdOrProductId))
-      ? { ...it, qty: Number(newQty) }
-      : it
-  ));
-  setUpdatingMap(m => ({ ...m, [cartItemIdOrProductId]: true }));
-
-  // Build body: include cartItemId (most reliable), productId and cartId as fallbacks
-  const body = { newQty: Number(newQty) };
-  if (cartItemIdFromItem) body.cartItemId = String(cartItemIdFromItem);
-  if (productIdFromItem) body.productId = String(productIdFromItem);
-  if (cartIdToSend) body.cartId = String(cartIdToSend);
-
-  console.debug("updateCartQty sending body:", body);
-
-  try {
-    const res = await fetch(`${API_BASE_URL}/updateCartQuantity`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-      body: JSON.stringify(body),
-    });
-    let json = null;
-    try { json = await res.json(); } catch (e) { /* ignore */ }
-    console.debug("updateCartQty response:", res.status, json);
-
-    if (!res.ok) {
-      console.error("updateCartQty server error:", json);
-      await fetchCart(); // revert
+    if (!productIdFromItem && !cartItemIdFromItem) {
+      console.warn("updateCartQty: cannot resolve productId or cartItemId", { cartItemIdOrProductId, item, cartId });
+      await fetchCart();
       return;
     }
 
-    // success -> refresh authoritative cart
-    await fetchCart();
-  } catch (err) {
-    console.error("updateCartQty error:", err);
-    await fetchCart();
-  } finally {
-    setUpdatingMap(m => {
-      const copy = { ...m };
-      delete copy[cartItemIdOrProductId];
-      return copy;
-    });
-  }
-};
+    setItems(prev => prev.map(it =>
+      (String(it.raw?._id) === String(cartItemIdOrProductId) ||
+       String(it.id) === String(cartItemIdOrProductId) ||
+       String(it.raw?.productId) === String(cartItemIdOrProductId))
+        ? { ...it, qty: Number(newQty) }
+        : it
+    ));
+    setUpdatingMap(m => ({ ...m, [cartItemIdOrProductId]: true }));
 
+    const body = { newQty: Number(newQty) };
+    if (cartItemIdFromItem) body.cartItemId = String(cartItemIdFromItem);
+    if (productIdFromItem) body.productId = String(productIdFromItem);
+    if (cartIdToSend) body.cartId = String(cartIdToSend);
+
+    console.debug("updateCartQty sending body:", body);
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/updateCartQuantity`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(body),
+      });
+      let json = null;
+      try { json = await res.json(); } catch (e) { /* ignore */ }
+      console.debug("updateCartQty response:", res.status, json);
+
+      if (!res.ok) {
+        console.error("updateCartQty server error:", json);
+        await fetchCart();
+        return;
+      }
+
+      await fetchCart();
+    } catch (err) {
+      console.error("updateCartQty error:", err);
+      await fetchCart();
+    } finally {
+      setUpdatingMap(m => {
+        const copy = { ...m };
+        delete copy[cartItemIdOrProductId];
+        return copy;
+      });
+    }
+  };
 
   useEffect(() => {
     fetchCart();
   }, []);
 
-
-
-
   const removeItem = async (productId) => {
     try {
       const res = await fetch(
-        `${API_BASE_URL}/removeCartItem?productId=${encodeURIComponent(
-          productId
-        )}`,
+        `${API_BASE_URL}/removeCartItem?productId=${encodeURIComponent(productId)}`,
         {
           method: "DELETE",
           credentials: "include",
@@ -371,179 +331,252 @@ const updateCartQty = async (cartItemIdOrProductId, newQty) => {
     }
   };
 
-  // FIXED: do not multiply by qty, since unitPrice is tier price
-  const subtotal = items.reduce((s, it) => s + (Number(it.unitPrice || 0) ), 0);
-  const shippingTotal = items.reduce(
-    (s, it) => s + Number(it.shippingPrice || 0),
-    0
-  );
+  const subtotal = items.reduce((s, it) => s + (Number(it.unitPrice || 0)), 0);
+  const shippingTotal = items.reduce((s, it) => s + Number(it.shippingPrice || 0), 0);
   const total = subtotal + shippingTotal;
 
-  if (loading)
-    return <div style={{ padding: 40, textAlign: "center" }}>Loading cart…</div>;
+  if (loading) {
+    return (
+      <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 64, height: 64, marginBottom: 16 }}>
+            <div style={{ width: 64, height: 64, border: '4px solid #e0e7ff', borderTopColor: '#4f46e5', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
+          </div>
+          <p style={{ color: '#4b5563', fontSize: 18, fontWeight: 500 }}>Loading your cart...</p>
+        </div>
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      </div>
+    );
+  }
 
   return (
-      <div className="responsive-container" >
-    <div className="page-container"> 
+    <div style={{ minHeight: '100vh', paddingBottom: 40 }}>
       <Header />
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <div className="flex items-center space-x-3 mb-2">
-            <div className="p-2 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-lg">
-              <ShoppingBag className="w-6 h-6 text-white" />
-            </div>
-            <h1 className="text-3xl font-bold text-gray-900">Shopping Cart</h1>
-          </div>
-          <p className="text-gray-600">
-            {items.length} {items.length === 1 ? 'item' : 'items'} in your cart
-          </p>
-        </div>
+      <div style={{ maxWidth: "65%", margin: '0 auto', padding: '20px 16px' }}>
+        {/* Header Section */}
+       
 
         {items.length === 0 ? (
-          <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-12 text-center">
-            <div className="inline-flex items-center justify-center w-20 h-20 bg-gray-100 rounded-full mb-6">
-              <ShoppingCart className="w-10 h-10 text-gray-400" />
+          /* Empty Cart */
+          <div style={{ background: 'white', borderRadius: 24, boxShadow: '0 20px 60px rgba(0,0,0,0.1)',  textAlign: 'center' }}>
+            <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%)', borderRadius: '50%', }}>
+              <ShoppingCart style={{  color: '#6366f1' }} />
             </div>
-            <h2 className="text-2xl font-semibold text-gray-900 mb-4">Your cart is empty</h2>
-            <p className="text-gray-600 mb-8 max-w-md mx-auto">
-              Looks like you haven't added any items to your cart yet. Start shopping to fill it up!
+            <h2 style={{  fontWeight: 'bold', color: '#111827',  }}>Your cart is empty</h2>
+            <p style={{ color: '#6b7280',  maxWidth: 448, margin: '0 auto 40px' }}>
+              Looks like you haven't added any items yet. Discover our amazing products and start shopping!
             </p>
-            <a href="/" className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-xl hover:from-indigo-700 hover:to-purple-700 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl">
-              <ArrowLeft className="w-5 h-5 mr-2" />
-              Continue Shopping
+            <a 
+              href="/" 
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 8,  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', fontWeight: 600, borderRadius: 16, textDecoration: 'none', boxShadow: '0 10px 30px rgba(102, 126, 234, 0.3)', }}
+            >
+              <ShoppingBag style={{ width: 20, height: 20 }} />
+              <span>Start Shopping</span>
             </a>
           </div>
         ) : (
-          <div className="grid lg:grid-cols-3 gap-8">
-            {/* Cart Items */}
-            <div className="lg:col-span-2 space-y-4">
-{items.map((item, idx) => {
-  const cartItemId = item.raw?._id ?? null;
-  const keyId = cartItemId ? cartItemId : `${item.id}-${idx}`;
+<div className="cart-grid">
+            {/* Cart Items - Left Side */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              {items.map((item, idx) => {
+                const cartItemId = item.raw?._id ?? null;
+                const keyId = cartItemId ? cartItemId : `${item.id}-${idx}`;
+                const isUpdating = updatingMap[item.raw?._id ?? item.id];
 
-  return (
-    <div key={keyId} className="cart-item" style={{ display:'flex', gap:20, alignItems:'center', padding:'18px 0', borderBottom:'1px solid #eee' }}>
-      {/* left: image */}
-      <div style={{
-        width: 100, height:100, borderRadius:8, overflow:'hidden', display:'flex', alignItems:'center', justifyContent:'center',
-        background: item.image ? '#fff' : '#F3F4F6'
-      }}>
-        {item.image ? (
-          <img src={item.image} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-        ) : (
-          <div style={{ textAlign:'center', color:'#9CA3AF', fontSize:13 }}>No image</div>
-        )}
-      </div>
+                return (
+                  <div 
+                    key={keyId} 
+                    style={{ background: 'white', borderRadius: 20, boxShadow: '0 4px 20px rgba(0,0,0,0.08)',  }}
+                  >
+                    <div style={{ display: 'flex',  }}>
+                      {/* Product Image */}
+                      <div style={{ position: 'relative', flexShrink: 0 }}>
+                        <div style={{  borderRadius: 12, overflow: 'hidden', background: 'linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%)', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+                          {item.image ? (
+                            <img 
+                              src={item.image} 
+                              alt={item.name} 
+                              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                            />
+                          ) : (
+                            <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                              <Package style={{  color: '#9ca3af' }} />
+                            </div>
+                          )}
+                        </div>
+                        <div style={{ position: 'absolute', top: -8, right: -8, width: 24, height: 24, background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: 12, fontWeight: 'bold', boxShadow: '0 2px 8px rgba(102, 126, 234, 0.4)' }}>
+                          {item.qty}
+                        </div>
+                      </div>
 
-      {/* middle: details */}
-      <div style={{ flex:1, minWidth: 220 }}>
-        <h3 style={{ margin:'0 0 6px', fontSize:16, fontWeight:600 }}>{item.name}</h3>
+                      {/* Product Details */}
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', gap: 8, marginBottom: 12 }}>
+                          <h3 style={{ fontWeight: 'bold', color: '#111827', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
+                            {item.name}
+                          </h3>
+                          <button 
+                            onClick={() => removeItem(item.id)}
+                            style={{ flexShrink: 0, padding: 8, background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', borderRadius: 8 }}
+                            title="Remove item"
+                          >
+                            <Trash2 style={{ width: 18, height: 18 }} />
+                          </button>
+                        </div>
 
-        <div style={{ display:'flex', gap:18, flexWrap:'wrap', color:'#374151', fontSize:14 }}>
-          <div><span style={{color:'#6B7280'}}>Design:</span> <strong style={{textTransform:'capitalize'}}>{item.designType}</strong></div>
+                        {/* Options Grid */}
+                        <div style={{ display: 'grid', gap: 8, marginBottom: 16 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6,  }}>
+                            <span style={{ color: '#6b7280' }}>Design:</span>
+                            <span style={{ padding: '4px 8px', background: '#eff6ff', color: '#1e40af', borderRadius: 6, fontWeight: 600, textTransform: 'capitalize', fontSize: 11 }}>
+                              {item.designType}
+                            </span>
+                          </div>
+                          
+                          {item.selectedSize && (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 6, }}>
+                              <span style={{ color: '#6b7280' }}>Size:</span>
+                              <span style={{ fontWeight: 600, color: '#111827' }}>{item.selectedSize}</span>
+                            </div>
+                          )}
+                          
+                          {item.selectedPaper && (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 6,  }}>
+                              <span style={{ color: '#6b7280' }}>Paper:</span>
+                              <span style={{ fontWeight: 600, color: '#111827' }}>{item.selectedPaper}</span>
+                            </div>
+                          )}
+                          
+                          {item.selectedFinish && (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 6,  }}>
+                              <span style={{ color: '#6b7280' }}>Finish:</span>
+                              <span style={{ fontWeight: 600, color: '#111827' }}>{item.selectedFinish}</span>
+                            </div>
+                          )}
+                          
+                          {item.selectedCorner && (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 6,  }}>
+                              <span style={{ color: '#6b7280' }}>Corner:</span>
+                              <span style={{ fontWeight: 600, color: '#111827' }}>{item.selectedCorner}</span>
+                            </div>
+                          )}
+                        </div>
 
-          <div>
-            <span style={{ color: '#6B7280' }}>Qty:</span>{' '}
-            <select
-              value={item.qty}
-              onChange={(e) => {
-                const newQty = e.target.value;
-                const cartItemIdToSend = item.raw?._id ?? item.id;
-                updateCartQty(cartItemIdToSend, newQty);
-              }}
-              disabled={!!updatingMap[item.raw?._id ?? item.id] || !cartId}
-              style={{ marginLeft: 6, padding: '6px 10px', borderRadius: 6, border: '1px solid #D1D5DB' }}
-            >
-              {item.allowedQtyOptions.map((q) => (
-                <option key={`${item.id}-qty-${q}`} value={q}>{q}</option>
-              ))}
-            </select>
-          </div>
-
-          {/* options shown only if present */}
-          {item.selectedSize && <div>Size: <strong>{item.selectedSize}</strong></div>}
-          {item.selectedPaper && <div>Paper: <strong>{item.selectedPaper}</strong></div>}
-          {item.selectedFinish && <div>Finish: <strong>{item.selectedFinish}</strong></div>}
-          {item.selectedCorner && <div>Corner: <strong>{item.selectedCorner}</strong></div>}
-        </div>
-      </div>
-
-      {/* right: price + actions */}
-      <div style={{ textAlign: 'right', minWidth:120 }}>
-        <div style={{ fontWeight:700, fontSize:18, color:'#111827' }}>
-          {currencySymbol(currency)}{formatMoney(item.unitPrice)}
-        </div>
-        <button onClick={() => removeItem(item.id)} style={{ marginTop:10, background:'transparent', border:'none', color:'#EF4444', cursor:'pointer', textDecoration:'underline', fontSize:14 }}>
-          Remove
-        </button>
-      </div>
-    </div>
-  );
-})}
+                        {/* Bottom Row: Quantity & Price */}
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 12, borderTop: '1px solid #f3f4f6', flexWrap: 'wrap', gap: 12 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <span style={{  color: '#6b7280', fontWeight: 500 }}>Qty:</span>
+                            <select
+                              value={item.qty}
+                              onChange={(e) => {
+                                const newQty = e.target.value;
+                                const cartItemIdToSend = item.raw?._id ?? item.id;
+                                updateCartQty(cartItemIdToSend, newQty);
+                              }}
+                              disabled={isUpdating || !cartId}
+                              style={{ padding: '6px 12px', background: '#f9fafb', border: '2px solid #e5e7eb', borderRadius: 8, fontSize: 14, fontWeight: 600, color: '#111827', cursor: 'pointer' }}
+                            >
+                              {item.allowedQtyOptions.map((q) => (
+                                <option key={`${item.id}-qty-${q}`} value={q}>{q}</option>
+                              ))}
+                            </select>
+                          </div>
+                          
+                          <div style={{ textAlign: 'right' }}>
+                            <div style={{  fontWeight: 'bold', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                              {currencySymbol(currency)}{formatMoney(item.unitPrice)}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
 
-            {/* Order Summary */}
-            <div className="lg:col-span-1">
-              <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-6 sticky top-8">
-                <h2 className="text-xl font-semibold text-gray-900 mb-6">Order Summary</h2>
+            {/* Order Summary - Right Side */}
+            <div style={{ height: 'fit-content',  }}>
+              <div style={{ background: 'white', borderRadius: 24, boxShadow: '0 20px 60px rgba(0,0,0,0.1)',  }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
+                  <div style={{ width: 40, height: 40, background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <CheckCircle style={{ width: 20, height: 20, color: 'white' }} />
+                  </div>
+                  <h2 style={{  fontWeight: 'bold', color: '#111827', margin: 0 }}>Order Summary</h2>
+                </div>
                 
-                <div className="space-y-4 mb-6">
-                  <div className="flex justify-between text-gray-600">
-                    <span>Subtotal ({items.length} items)</span>
-                    <span>{currencySymbol(currency)}{formatMoney(subtotal)}</span>
+                <div style={{ marginBottom: 24, paddingBottom: 24, borderBottom: '1px solid #e5e7eb' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                    <span style={{  color: '#6b7280' }}>Subtotal ({items.length} {items.length === 1 ? 'item' : 'items'})</span>
+                    <span style={{  fontWeight: 600, color: '#111827' }}>
+                      {currencySymbol(currency)}{formatMoney(subtotal)}
+                    </span>
                   </div>
                   
                   {shippingTotal > 0 && (
-                    <div className="flex justify-between text-gray-600">
-                      <span>Shipping</span>
-                      <span>{currencySymbol(currency)}{formatMoney(shippingTotal)}</span>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <Truck style={{ width: 16, height: 16, color: '#6b7280' }} />
+                        <span style={{ color: '#6b7280' }}>Shipping</span>
+                      </div>
+                      <span style={{  fontWeight: 600, color: '#111827' }}>
+                        {currencySymbol(currency)}{formatMoney(shippingTotal)}
+                      </span>
                     </div>
                   )}
-                  
-                  <div className="border-t border-gray-200 pt-4">
-                    <div className="flex justify-between items-center text-lg font-semibold text-gray-900">
-                      <span>Total</span>
-                      <span>{currencySymbol(currency)}{formatMoney(total)}</span>
-                    </div>
+                </div>
+                
+                <div style={{ background: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)', borderRadius: 16, marginBottom: 24 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{  fontWeight: 'bold', color: '#111827' }}>Total</span>
+                    <span style={{ fontWeight: 'bold', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                      {currencySymbol(currency)}{formatMoney(total)}
+                    </span>
                   </div>
                 </div>
 
-                <div className="space-y-3">
-                 <a 
-  href="/checkout" 
-  className="w-full text-white font-semibold py-4 px-6 rounded-xl transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center space-x-2"
-  style={{ backgroundColor: "#007abf" }}
-  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#006599"} // darker hover
-  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "#007abf"}
->
-  <CreditCard className="w-5 h-5" />
-  <span>Proceed to Checkout</span>
-</a>
-
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 24 }}>
+                  <a 
+                    href="/checkout" 
+                    style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', fontWeight: 'bold',  borderRadius: 16, textDecoration: 'none', boxShadow: '0 10px 30px rgba(102, 126, 234, 0.3)', }}
+                  >
+                    <CreditCard style={{ width: 20, height: 20 }} />
+                    <span>Proceed to Checkout</span>
+                  </a>
                   
                   <a 
                     href="/" 
-                    className="w-full bg-white text-gray-700 font-semibold py-4 px-6 rounded-xl border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-all duration-200 flex items-center justify-center space-x-2"
+                    style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: 'white', color: '#4b5563', fontWeight: 600,  borderRadius: 16, textDecoration: 'none', border: '2px solid #e5e7eb', boxShadow: '0 2px 8px rgba(0,0,0,0.05)',  }}
                   >
-                    <ArrowLeft className="w-5 h-5" />
+                    <ArrowLeft style={{ width: 20, height: 20 }} />
                     <span>Continue Shopping</span>
                   </a>
                 </div>
 
-                {/* Trust Badges */}
-                <div className="mt-6 pt-6 border-t border-gray-200">
-                  <div className="flex items-center justify-center space-x-4 text-sm text-gray-500">
-                    <div className="flex items-center space-x-1">
-                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                      <span>Secure Checkout</span>
+                {/* Trust Badges
+                <div style={{ paddingTop: 24, borderTop: '1px solid #e5e7eb' }}>
+                  <div style={{ display: 'grid', textAlign: 'center' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+                      <div style={{ width: 40, height: 40, background: '#d1fae5', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <Shield style={{ width: 20, height: 20, color: '#059669' }} />
+                      </div>
+                      <span style={{ fontSize: window.innerWidth < 640 ? 11 : 12, fontWeight: 600, color: '#374151', lineHeight: 1.3 }}>Secure Payment</span>
                     </div>
-                    <div className="flex items-center space-x-1">
-                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                      <span>Free Returns</span>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+                      <div style={{ width: 40, height: 40, background: '#dbeafe', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <Truck style={{ width: 20, height: 20, color: '#2563eb' }} />
+                      </div>
+                      <span style={{ fontSize: window.innerWidth < 640 ? 11 : 12, fontWeight: 600, color: '#374151', lineHeight: 1.3 }}>Fast Shipping</span>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+                      <div style={{ width: 40, height: 40, background: '#e9d5ff', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <CheckCircle style={{ width: 20, height: 20, color: '#9333ea' }} />
+                      </div>
+                      <span style={{ fontSize: window.innerWidth < 640 ? 11 : 12, fontWeight: 600, color: '#374151', lineHeight: 1.3 }}>Easy Returns</span>
                     </div>
                   </div>
-                </div>
+                </div> */}
               </div>
             </div>
           </div>
@@ -552,7 +585,5 @@ const updateCartQty = async (cartItemIdOrProductId, newQty) => {
 
       <Footer />
     </div>
-    </div>
-    
   );
 }

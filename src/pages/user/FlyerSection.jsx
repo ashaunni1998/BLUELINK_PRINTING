@@ -21,7 +21,8 @@ const FlyerSection = () => {
 
   return (
   
-    <section className="relative bg-blue-50 overflow-hidden py-[8%] lg:py-[12%]">
+    <section className="relative bg-blue-50 overflow-hidden py-[8%] lg:py-[12%] ml-[6%] mr-[6%]"
+>
   {/* Container */}
   <div className="relative z-10 w-full px-[5%] lg:px-[18%]">
     <div className="grid lg:grid-cols-2 gap-[6%] items-center">

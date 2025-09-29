@@ -1,14 +1,12 @@
 // src/pages/user/Checkout.jsx
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom"; 
-
 import axios from "axios";
 import { API_BASE_URL } from "../../config";
 import CheckoutForm from "./CheckoutForm";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 axios.defaults.withCredentials = true;
-import { GET_ALL_COUPONS } from "../../admin/apiServices/couponApi";
 import Swal from "sweetalert2";
 import { useRef } from "react";
 import AddressAutocomplete from "../../pages/user/components/AddressAutocomplete";
@@ -20,6 +18,9 @@ const Checkout = () => {
   const [cart, setCart] = useState([]);
   const [total, setTotal] = useState(0);
   const [orderDetails, setOrderDetails] = useState(null);
+  const [orderPreview, setOrderPreview] = useState(null);
+
+  
 const [couponCode, setCouponCode] = useState("");
 const [discountAmount, setDiscountAmount] = useState(0);
 const [couponError, setCouponError] = useState("");
@@ -211,7 +212,61 @@ const [addressError, setAddressError] = useState("");   // for error messages
     );
     setTotal(totalPrice);
   }, []);
+useEffect(() => {
+  const fetchCoupons = async () => {
+    try {
+      // Build query params: cart total and country help server filter usable coupons
+      const cartTotal = Number(total || 0);
+      const country = (selectedAddress?.country || newAddress?.country || "New Zealand").toLowerCase();
 
+      // prefer public endpoint /coupons (not /api/admin/coupons)
+      // API_BASE_URL already contains /api in your config, so endpoint becomes `${API_BASE_URL}/coupons`
+      const url = `${API_BASE_URL}/coupons?cartTotal=${encodeURIComponent(cartTotal)}&country=${encodeURIComponent(country)}`;
+
+      // using axios instance with credentials
+      const res = await axios.get(url, { withCredentials: true });
+      // normalize shape: server may return { data: [...] } or { coupons: [...] } or [...]
+      const body = res.data ?? {};
+      let coupons = [];
+      if (Array.isArray(body)) coupons = body;
+      else if (Array.isArray(body.data)) coupons = body.data;
+      else if (Array.isArray(body.coupons)) coupons = body.coupons;
+      else coupons = [];
+
+      // Basic client-side sanitization: only active / applicable coupons
+      const now = Date.now();
+      const filtered = coupons.filter(c => {
+        if (!c) return false;
+        if (typeof c.isActive === 'boolean' && !c.isActive) return false;
+        // start/end date checks if present (support both ISO and timestamp)
+        if (c.startDate) {
+          const s = new Date(c.startDate).getTime();
+          if (!isNaN(s) && s > now) return false;
+        }
+        if (c.endDate) {
+          const e = new Date(c.endDate).getTime();
+          if (!isNaN(e) && e < now) return false;
+        }
+        // min amount checks (best-effort)
+        const minAmt = Number(c.minAmount ?? c.minPrice ?? c.minPriceNZD ?? 0);
+        if (minAmt > 0 && cartTotal < minAmt) return false;
+        // country filter: optional property names
+        const allowedCountries = (c.applicableCountries || c.countries || c.applicableTo || []).map(x => String(x || "").toLowerCase());
+        if (allowedCountries.length && !allowedCountries.includes(country)) return false;
+        return true;
+      });
+
+      setAvailableCoupons(filtered);
+    } catch (err) {
+      console.error("Failed to fetch coupons:", err);
+      // fallback: empty list
+      setAvailableCoupons([]);
+    }
+  };
+
+  // fetch coupons when checkout loads and whenever cart total or selected country changes
+  fetchCoupons();
+}, [total, selectedAddress?.country, newAddress.country]);
 
 useEffect(() => {
   const fetchServerCart = async () => {
@@ -557,159 +612,145 @@ const handleAddAddress = async (e) => {
 
 
 const handlePlaceOrder = async () => {
-  if (!selectedAddress && deliveryMethod !== "pickup") {
-    Swal.fire("Warning", "Please select a shipping address.", "warning");
-    return;
+  try {
+    // basic validations
+    if (!selectedAddress && deliveryMethod !== "pickup") {
+      Swal.fire("Warning", "Please select a shipping address.", "warning");
+      return;
+    }
+    if (!Array.isArray(cart) || cart.length === 0) {
+      Swal.fire("Warning", "Your cart is empty.", "warning");
+      return;
+    }
+
+    // helper: choose a tier object from product.priceTiers according to qty
+    const pickTierForQtyLocal = (priceTiers = [], qty = 1) => {
+      if (!Array.isArray(priceTiers) || !priceTiers.length) return null;
+      const sorted = priceTiers
+        .map(t => ({
+          qty: Number(t.qty ?? t.quantity ?? t.minQty ?? 0),
+          tier: t
+        }))
+        .filter(x => Number.isFinite(x.qty) && x.qty > 0)
+        .sort((a, b) => a.qty - b.qty);
+      if (!sorted.length) return null;
+      let chosen = sorted[0].tier;
+      for (let i = 0; i < sorted.length; i++) {
+        if (qty >= sorted[i].qty) chosen = sorted[i].tier;
+        else break;
+      }
+      return chosen;
+    };
+
+    // Build robust products payload
+    const productsPayload = cart.map((item) => {
+      const productObj = item.product || item.productObj || item.raw?.productObj || {};
+      const qty = Number(item.qty ?? item.quantity ?? item.raw?.quantity ?? 1) || 1;
+
+      const tiers = productObj?.priceTiers || item.raw?.priceTiers || [];
+      const chosenTier = pickTierForQtyLocal(tiers, qty);
+
+      let unitMajor = 0;
+      if (Number.isFinite(Number(item.unitPrice))) unitMajor = Number(item.unitPrice);
+      else if (Number.isFinite(Number(item.price))) unitMajor = Number(item.price);
+      else if (chosenTier && (Number(chosenTier.priceSingle) || Number(chosenTier.price))) {
+        unitMajor = Number(chosenTier.priceSingle ?? chosenTier.price);
+      } else if (Number.isFinite(Number(productObj?.basePrice))) {
+        unitMajor = Number(productObj.basePrice);
+      }
+
+      if (unitMajor >= 1000) unitMajor = unitMajor / 100;
+
+      let shippingMajor = 0;
+      if (chosenTier?.shipping) shippingMajor = Number(chosenTier.shipping);
+      else if (item.shippingPrice) shippingMajor = Number(item.shippingPrice);
+      else if (item.raw?.shippingPrice) shippingMajor = Number(item.raw.shippingPrice);
+      else if (productObj?.shippingPrice) shippingMajor = Number(productObj.shippingPrice);
+
+      if (shippingMajor >= 1000) shippingMajor = shippingMajor / 100;
+
+      return {
+        productId: productObj?._id ?? item.id ?? item.productId ?? null,
+        title: productObj?.name ?? item.name ?? "Product",
+        qty,
+        unitMajor,
+        shippingMajor,
+        tier: chosenTier ?? undefined,
+        raw: item.raw ?? undefined
+      };
+    });
+
+    // ✅ Use computeTotals() so CheckoutForm matches Checkout summary
+    const t = computeTotals();
+
+    const subtotalMajor = Number(t.subtotal || 0);
+    const shippingMajor = Number(t.totalShipping || 0);
+    const discountMajor = Number(discountAmount || 0) || 0;
+    const grandMajor = Math.max(0, subtotalMajor + shippingMajor - discountMajor);
+    const amountCents = Math.round(grandMajor * 100);
+
+    console.debug("PLACE ORDER totals:", { subtotalMajor, shippingMajor, discountMajor, grandMajor, amountCents });
+
+    // Build payload for backend
+    const payload = {
+      products: productsPayload.map(p => ({
+        productId: p.productId,
+        quantity: p.qty,
+        unitPrice: Math.round(p.unitMajor * 100), // cents
+        shippingPrice: Math.round(p.shippingMajor * 100),
+        tier: p.tier ? p.tier : undefined
+      })),
+      shipping: Math.round(shippingMajor * 100),
+      subtotal: Math.round(subtotalMajor * 100),
+      discount: Math.round(discountMajor * 100),
+      amount: amountCents, // final amount in cents
+      currency: (selectedAddress?.currency || "nzd").toLowerCase(),
+      deliveryMethod,
+      address: deliveryMethod === "pickup" ? null : selectedAddress ?? newAddress
+    };
+
+    console.debug("Calling create-payment-intent with payload:", payload);
+
+    // Create payment intent
+    const payRes = await axios.post(`${API_BASE_URL}/order/create-payment-intent`, payload, { withCredentials: true });
+    const data = payRes.data?.data ?? payRes.data;
+    if (!data) throw new Error("Invalid response from payment intent endpoint");
+
+    if (data.preview) setOrderPreview(data.preview);
+
+    const clientSecret = data.clientSecret || data.client_secret;
+    if (!clientSecret) throw new Error("Server did not return client secret.");
+
+    // Navigate to checkout form with normalized orderDetails
+    navigate("/checkout-form", {
+      state: {
+        orderDetails: {
+          clientSecret,
+          paymentIntentId: data.paymentIntentId || data.payment_intent_id || null,
+          amount: amountCents, // cents
+          currency: payload.currency.toUpperCase(),
+          products: productsPayload,
+          shipping: payload.shipping,
+          address: payload.address,
+          preview: {
+            totalMajor: grandMajor,
+            subtotal: subtotalMajor,
+            shipping: shippingMajor
+          },
+          description: "Order payment - preview",
+        }
+      }
+    });
+  } catch (err) {
+    console.error("PlaceOrder error:", err);
+    Swal.fire("Error", err.response?.data?.message || err.message || "Failed to start payment", "error");
   }
-
-  const totals = computeTotals();
-
-  Swal.fire({
-    title: "Proceed to payment?",
-    text: `You'll be taken to the secure payment page. Total: $${totals.grandTotal.toFixed(2)}`,
-    icon: "question",
-    showCancelButton: true,
-    confirmButtonColor: "#2563eb",
-    cancelButtonColor: "#ccc",
-    confirmButtonText: "Yes, Continue to Payment",
-  }).then(async (result) => {
-    if (!result.isConfirmed) return;
-
-   try {
-  // Build robust products payload from cart items (cart comes from your app state)
-  const productsPayload = cart.map((item) => {
-    // item may be normalized (from normalizeCart) but original data often lives in item.raw
-    const raw = item.raw || {};
-    const productObj = item.product || raw.product || raw.productId || null;
-
-    const productId = String(
-      (productObj && (productObj._id || productObj.id || productObj.productId)) ||
-      raw.productId ||
-      item.id ||
-      ""
-    );
-
-    const quantity = Number(item.qty ?? item.quantity ?? raw.quantity ?? 1) || 1;
-
-    // Options can be on many places depending on backend shape
-    const optSource = raw.options || raw.option || raw.designOptions || item.options || {};
-    // Also accept flattened properties saved on the raw item
-    const size =
-      (optSource.size && (optSource.size.name ?? optSource.size)) ||
-      (raw.size && (raw.size.name ?? raw.size)) ||
-      (item.selectedSize && (item.selectedSize.name ?? item.selectedSize)) ||
-      null;
-    const paper =
-      (optSource.paper && (optSource.paper.name ?? optSource.paper)) ||
-      (raw.paper && (raw.paper.name ?? raw.paper)) ||
-      (item.selectedPaper && (item.selectedPaper.name ?? item.selectedPaper)) ||
-      null;
-    const finish =
-      (optSource.finish && (optSource.finish.name ?? optSource.finish)) ||
-      (raw.finish && (raw.finish.name ?? raw.finish)) ||
-      null;
-    const corner =
-      (optSource.corner && (optSource.corner.name ?? optSource.corner)) ||
-      (raw.corner && (raw.corner.name ?? raw.corner)) ||
-      null;
-    const designType =
-      (optSource.designType || raw.designType || item.designType || "single") + "";
-
-    // Collect images: look in common places where your upload code might store them
-    // - order/cart raw item may have userImage (array), images (array), preparedPreview/uploadedUrl
-    // Collect images
-const images = [];
-if (Array.isArray(raw.userImage) && raw.userImage.length) {
-  images.push(...raw.userImage);
-}
-if (Array.isArray(raw.images) && raw.images.length) {
-  images.push(...raw.images);
-}
-if (raw.preparedPreview) images.push(raw.preparedPreview);
-if (raw.uploadedUrl) images.push(raw.uploadedUrl);
-if (item.preparedPreview) images.push(item.preparedPreview);
-if (item.uploadedUrl) images.push(item.uploadedUrl);
-
-
-    // fallback to product image (product object may have images array)
-    const productFirstImage =
-      (productObj && (Array.isArray(productObj.images) ? productObj.images[0] : (productObj.image || null))) || null;
-    if (!images.length && productFirstImage) images.push(productFirstImage);
-
-    // Remove duplicates and empty strings
-    const cleanedImages = [...new Set(images.filter(Boolean))];
-
-    // Attach any other metadata helpful for backend: eg. price tier, selected tier qty
-    const meta = {
-      resolvedProductTitle: productObj && (productObj.name || productObj.title) || raw.name || item.name || null,
-      tierQty: item.qty ?? item.quantity ?? raw.quantity ?? null,
-      rawPreview: raw.preview || null,
-    };
-
-    return {
-      productId,
-      quantity,
-      size,
-      paper,
-      finish,
-      corner,
-      designType,
-      images: cleanedImages, // array of image URLs (may be empty)
-      meta,
-    };
-  });
-
-  const payload = {
-    products: productsPayload,
-    shipping: totals.totalShipping || 0,
-    deliveryMethod,
-    address: deliveryMethod === "pickup" ? null : selectedAddress,
-    currency: "nzd",
-  };
-
-  console.debug("Create PaymentIntent payload:", payload);
-
-  // Create PaymentIntent — server validates price and returns clientSecret and amount (cents)
-  const payRes = await axios.post(`${API_BASE_URL}/order/create-payment-intent`, payload, {
-    withCredentials: true,
-  });
-
-  const data = payRes.data?.data || payRes.data;
-  if (!data) throw new Error("Invalid response from payment intent endpoint");
-
-  const clientSecret = data.clientSecret || data.client_secret;
-  const paymentIntentId = data.paymentIntentId || data.payment_intent_id;
-  const amount = data.amount ?? Math.round(totals.grandTotal * 100);
-
-  if (!clientSecret) throw new Error("Missing client secret from server");
-
-  const orderId = data.orderId || data._id || null;
-
-navigate("/checkout-form", {
-  state: {
-    orderDetails: {
-      clientSecret,
-      paymentIntentId,
-      orderId,   // ✅ now included
-      amount,
-      currency: (data.currency || "NZD").toUpperCase(),
-      products: productsPayload,
-      shipping: totals.totalShipping,
-      address: payload.address,
-      preview: data.preview || null,
-      description: `Order payment - preview`,
-    },
-  },
-});
-
-} catch (err) {
-  console.error("Place order -> payment intent error:", err);
-  Swal.fire("Error", err.response?.data?.message || err.message || "Failed to start payment", "error");
-}
-
-
-  });
 };
+
+
+
+
+
 
   //     setOrderDetails({
   //       orderId: order._id,
@@ -723,20 +764,7 @@ navigate("/checkout-form", {
   // };
 
 
-  useEffect(() => {
-  const fetchCoupons = async () => {
-    try {
-      const response= await GET_ALL_COUPONS();
-      console.log("fetched coupons:",response);
-      setAvailableCoupons(response.data || []); // assuming API returns { coupons: [...] }
-    } catch (err) {
-      console.error("Error fetching coupons:", err);
-       Swal.fire("Error", "Failed to load coupons", "error");
-    }
-  };
-
-  fetchCoupons();
-}, []);
+  
 
 useEffect(() => {
   const fetchCoupons = async () => {
@@ -822,19 +850,13 @@ const handleApplyCoupon = async () => {
       {/* <h2 style={{ fontSize: "28px", fontWeight: "bold", marginBottom: "20px" ,color:"#007bff",fontFamily:"monospace"}}>
         Checkout
       </h2> */}
-<div className="checkout-wrapper" 
-  style={{ 
-    maxWidth: "65%",   // 👈 adjust this to match your marked lines
-    margin: "0 auto",     // center horizontally
-    padding: "20px"       // keep some breathing space
-  }}
-  >  
-   <div
+
+      <div
         className="checkout-grid"
         style={{
           display: "grid",
           gridTemplateColumns: "1fr 1fr",
-          gap: "1px",
+          gap: "20px",
         }}
       >
 
@@ -846,7 +868,6 @@ const handleApplyCoupon = async () => {
     boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
     borderRadius: "12px",
     padding: "20px",
-    width:"90%",
   }}
 >
   <div
@@ -855,7 +876,6 @@ const handleApplyCoupon = async () => {
       justifyContent: "space-between",
       marginBottom: "15px",
       alignItems: "center",
-      
     }}
   >
     <h3 style={{ fontSize: "18px", fontWeight: "600" }}>
@@ -1219,10 +1239,9 @@ const handleApplyCoupon = async () => {
     boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
     borderRadius: "12px",
     padding: "20px",
-    width:"90%"
   }}
 >
-  <h3 style={{ fontSize: "18px", fontWeight: "600", marginBottom: "15px", }}>
+  <h3 style={{ fontSize: "18px", fontWeight: "600", marginBottom: "15px" }}>
     Order Summary
   </h3>
 
@@ -1244,50 +1263,60 @@ const handleApplyCoupon = async () => {
     ))}
   </div>
 
-  {/* Coupon + Apply */}
-  <div style={{ marginTop: "15px" }}>
-    <select
-      value={couponCode}
-      onChange={(e) => setCouponCode(e.target.value)}
-      style={{
-        width: "70%",
-        padding: "10px",
-        border: "1px solid #ccc",
-        borderRadius: "6px",
-        marginRight: "10px",
-      }}
-    >
-      <option value="">Select a coupon</option>
-      {availableCoupons.length > 0 ? (
-  availableCoupons.map((coupon) => (
-    <option key={coupon._id || coupon.code} value={coupon.code}>
-      {couponLabel(coupon)}
-    </option>
-  ))
-) : (
-  <option disabled>No coupons available</option>
-)}
-    </select>
+ <div style={{ marginTop: "15px" }}>
+  <select
+    value={couponCode}
+    onChange={(e) => setCouponCode(e.target.value)}
+    style={{
+      width: "70%",
+      padding: "10px",
+      border: "1px solid #ccc",
+      borderRadius: "6px",
+      marginRight: "10px",
+    }}
+  >
+    <option value="">Select a coupon</option>
 
-    <button
-      type="button"
-      onClick={handleApplyCoupon}
-      disabled={!couponCode}
-      style={{
-        padding: "10px 16px",
-        background: couponCode ? "#007bff" : "#ccc",
-        color: "#fff",
-        border: "none",
-        borderRadius: "6px",
-        cursor: couponCode ? "pointer" : "not-allowed",
-      }}
-    >
-      Apply
-    </button>
+    {availableCoupons.length > 0 ? (
+      availableCoupons.map((coupon) => {
+        const min = Number(coupon.minPrice ?? coupon.minAmount ?? 0);
+        const disabled = Number(total || 0) < min;
+        const label = couponLabel(coupon) + (disabled && min > 0 ? ` (Requires $${min})` : "");
+        return (
+          <option
+            key={coupon._id || coupon.code}
+            value={coupon.code}
+            disabled={disabled}
+            title={disabled ? `Requires minimum order of $${min}` : ""}
+          >
+            {label}
+          </option>
+        );
+      })
+    ) : (
+      <option disabled>No coupons available</option>
+    )}
+  </select>
 
-    {couponError && <p style={{ color: "red", marginTop: "6px" }}>{couponError}</p>}
-    {appliedCoupon && <p style={{ color: "green", marginTop: "6px" }}>Coupon <strong>{appliedCoupon}</strong> applied!</p>}
-  </div>
+  <button
+    type="button"
+    onClick={handleApplyCoupon}
+    disabled={!couponCode}
+    style={{
+      padding: "10px 16px",
+      background: couponCode ? "#007bff" : "#ccc",
+      color: "#fff",
+      border: "none",
+      borderRadius: "6px",
+      cursor: couponCode ? "pointer" : "not-allowed",
+    }}
+  >
+    Apply
+  </button>
+
+  {couponError && <p style={{ color: "red", marginTop: "6px" }}>{couponError}</p>}
+  {appliedCoupon && <p style={{ color: "green", marginTop: "6px" }}>Coupon <strong>{appliedCoupon}</strong> applied!</p>}
+</div>
 
 <div style={{ marginTop: "20px" }}>
   <h3 style={{ fontSize: "16px", fontWeight: "600", marginBottom: "10px" }}>
@@ -1360,7 +1389,15 @@ const handleApplyCoupon = async () => {
 {/* ---------- Totals (computed) — REPLACE THIS BLOCK ---------- */}
 <div style={{ marginTop: 16 }}>
   {(() => {
-    const t = computeTotals();
+    // Prefer backend preview if available
+    const preview = orderPreview;
+    const t = preview ? {
+      subtotal: preview.subtotal,
+      totalShipping: preview.shipping,
+      discount: Number(discountAmount || 0),
+      grandTotal: preview.totalMajor - Number(discountAmount || 0),
+      country: selectedAddress?.country ?? newAddress?.country ?? "New Zealand",
+    } : computeTotals();
 
     // use Intl for nicer currency formatting
     const fmt = (v) =>
@@ -1437,7 +1474,8 @@ const handleApplyCoupon = async () => {
 </div>
 {/* ---------- End Order Summary ---------- */}
 
-     
+      </div>
+
 <div
   style={{
     display: "flex",
@@ -1460,7 +1498,7 @@ const handleApplyCoupon = async () => {
   </div>
 
   {/* right: CTA */}
-  <div style={{ flex: "0 0 auto"}}>
+  <div style={{ flex: "0 0 auto" }}>
     <button
       onClick={handlePlaceOrder}
       style={{
@@ -1473,10 +1511,8 @@ const handleApplyCoupon = async () => {
         cursor: "pointer",
         boxShadow: "0 6px 18px rgba(37,99,235,0.18)",
         minWidth: 160,
-        
         // small extra spacing immediately under the button on very narrow screens:
         marginBottom: 6,
-       
       }}
       className="place-order-inline-btn"
     >
@@ -1484,8 +1520,7 @@ const handleApplyCoupon = async () => {
     </button>
   </div>
 </div>
-</div>
-</div>
+
 {/* responsive tweak (keeps everything in same file) */}
 <style>
 {`

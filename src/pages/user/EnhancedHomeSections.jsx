@@ -185,9 +185,12 @@ const EnhancedHomeSections = () => {
       <section 
         id="flyers-section"
         data-animate
-        className={`relative py-20 lg:py-32 overflow-hidden transition-all duration-1000 delay-200 bg-blue-50 ${
-          visibleSections['flyers-section'] ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
-        }`}
+       className={`relative py-20 lg:py-32 overflow-hidden transition-all duration-1000 delay-200 bg-blue-50 ml-[6%] mr-[6%] ${
+  visibleSections['flyers-section']
+    ? 'opacity-100 translate-y-0'
+    : 'opacity-0 translate-y-10'
+}`}
+
       >
         {/* Match header's container structure */}
 {/* <div className="relative z-10 w-full px-[5%] lg:px-[18%]"> */}

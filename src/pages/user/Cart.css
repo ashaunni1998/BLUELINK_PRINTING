@@ -1,25 +1,21 @@
-/* Mobile first */
 .cart-grid {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: 1fr; /* default mobile */
   gap: 1.5rem;
 }
 
-/* Tablet */
 @media (min-width: 768px) {
   .cart-grid {
     grid-template-columns: 1fr 280px;
   }
 }
 
-/* Desktop */
 @media (min-width: 1024px) {
   .cart-grid {
     grid-template-columns: 1fr 350px;
   }
 }
 
-/* Large screen (MacBook Pro, big monitors) */
 @media (min-width: 1440px) {
   .cart-grid {
     grid-template-columns: 2fr 400px;

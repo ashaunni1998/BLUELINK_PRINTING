@@ -700,7 +700,7 @@ onClick={(e) => {
  <div
   style={{
     ...styles.offerBar,
-    width: isMobile ? "100%" : "80%",   // ✅ now works inside component
+    width: isMobile ? "100%" : "89%",   // ✅ now works inside component
     margin: isMobile ? "0" : "0 auto", // ✅ no error
   }}
 >
@@ -760,7 +760,7 @@ const styles = {
     alignItems: "center", 
     gap: "1.250rem", 
     marginLeft: "auto", 
-    marginRight: "0.85rem", 
+    marginRight: "0.99rem", 
   },
   topLink: { 
     cursor: "pointer", 

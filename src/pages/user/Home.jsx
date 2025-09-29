@@ -243,21 +243,21 @@ console.log(products);
   className="features-container"
     style={{
       display:"flex" ,
-      justifyContent: "flex-start",
+      justifyContent: "center",
       alignItems: "stretch",
       flexWrap: "wrap",
-      gap: "1%",
+      gap: "20px",
       textAlign: "center",
-      maxWidth: "65%",
+      maxWidth: "900px",
       margin: "0 auto",
     }}
   >
     {/* Card 1 */}
     <div
       style={{
-        flex: "1 1 220px",
-        maxWidth: "570px",
-        padding: "12px 10px",
+        flex: "1 1 260px",
+        maxWidth: "280px",
+        padding: "16px 12px",
         borderRadius: "8px",
         boxShadow: "0 2px 6px rgba(0,0,0,0.05)",
         backgroundColor: "#fff",
@@ -265,7 +265,7 @@ console.log(products);
         flexDirection: "column",
         alignItems: "center",
         textAlign: "center",
-        justifyContent:"flex-start",
+        
       }}
     >
       <img
@@ -284,9 +284,9 @@ console.log(products);
     {/* Card 2 */}
     <div
       style={{
-        flex: "1 1 240px",
-        maxWidth: "570px",
-        padding: "12px 10px",
+        flex: "1 1 260px",
+        maxWidth: "280px",
+        padding: "16px 12px",
         borderRadius: "8px",
         boxShadow: "0 2px 6px rgba(0,0,0,0.05)",
         backgroundColor: "#fff",
@@ -312,9 +312,9 @@ console.log(products);
     {/* Card 3 */}
     <div
       style={{
-        flex: "1 1 220px",
-        maxWidth: "570px",
-        padding: "12px 10px",
+        flex: "1 1 260px",
+        maxWidth: "280px",
+        padding: "16px 12px",
         borderRadius: "8px",
         boxShadow: "0 2px 6px rgba(0,0,0,0.05)",
         backgroundColor: "#fff",
@@ -345,7 +345,7 @@ console.log(products);
 
 
 {/* Popular Products Section */}
-<section style={{ backgroundColor: "#f5f8f6", padding: "1.875rem 0 2.5rem", textAlign: "center" }}>
+<section style={{ backgroundColor: "#f5f8f6", padding: "1.875rem 0 2.5rem", marginLeft:"6%",marginRight:"6%",textAlign: "center" }}>
   <h2
     style={{
       fontSize: "1.625rem",
@@ -398,7 +398,7 @@ console.log(products);
     <div
       style={{
         display: "grid",
-        gridTemplateColumns: "repeat(4, 1fr)",
+        gridTemplateColumns: "repeat(5, 1fr)",
         gap: "1.25rem",
       }}
     >
@@ -406,7 +406,7 @@ console.log(products);
         <div
           key={product._id}
           style={{
-            backgroundColor: "#fff",
+             backgroundColor: "#fff",
             borderRadius: "0.375rem",
             overflow: "hidden",
             boxShadow: "0 0.0625rem 0.375rem rgba(0,0,0,0.07)",
@@ -492,7 +492,7 @@ console.log(products);
 
 
 {/* Personalized Gifts Section - Aligned with Header */}
-<section style={{ backgroundColor: "#f5f8f6", padding: "1.875rem 0 2.5rem", textAlign: "center" }}>
+<section style={{ backgroundColor: "#f5f8f6", padding: "1.875rem 0 2.5rem", textAlign: "center" ,marginLeft:"6%",marginRight:"6%"}}>
 
 
     <h2
@@ -683,7 +683,7 @@ console.log(products);
 </section>
 
 {/* Flyers Section - Aligned with Header */}
-<section style={{ backgroundColor: "#f5f8f6", padding: "1.875rem 0 2.5rem", textAlign: "center" }}>
+<section style={{ backgroundColor: "#f5f8f6", padding: "1.875rem 0 2.5rem", textAlign: "center",  marginLeft:"6%",marginRight:"6%"}}>
 
  
     <h2
@@ -878,8 +878,8 @@ console.log(products);
     backgroundColor: "#007bff",
     color: "#ffffff",
     textAlign: "center",
-       marginLeft:"10%",
-       marginRight:"10%",
+       marginLeft:"6%",
+       marginRight:"6%",
   }}
 >
   <div
