@@ -31,146 +31,155 @@ const EnhancedHomeSections = () => {
     <div className="relative bg-white">
       
       {/* Blog/Examples Section */}
-      <section 
-        id="blog-section"
-        data-animate
-        className={`relative py-20 lg:py-32 overflow-hidden transition-all duration-1000 ${
-          visibleSections['blog-section'] ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+     <section 
+  id="blog-section"
+  data-animate
+  className={`relative py-20 lg:py-32 overflow-hidden transition-all duration-1000 ${
+    visibleSections['blog-section'] ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+  }`}
+>
+  {/* Container matches header's 65% maxWidth */}
+  {/* <div className="relative z-10 w-full max-w-[65%] mx-auto px-4"> */}
+   <div
+    style={{
+      maxWidth: "65%",
+      margin: "0 auto",
+      padding: "0 1rem",
+      marginLeft:"18%",
+      marginRight:"21%"
+    }}
+  >
+    {/* Section Header */}
+    <div className="text-center mb-16">
+      <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 border border-blue-200 rounded-full text-blue-700 text-sm font-medium mb-6">
+        <Eye className="w-4 h-4" />
+        Design Inspiration
+      </div>
+      <h2 className="text-4xl lg:text-5xl font-black text-gray-900 mb-4">
+        Creative <span className="text-blue-600">Showcase</span>
+      </h2>
+      <div className="w-24 h-1 bg-blue-600 rounded-full mx-auto" />
+    </div>
+
+    {/* Cards Grid */}
+    <div className="grid lg:grid-cols-2 gap-8 lg:gap-8">
+      
+      {/* Business Cards Card */}
+      <div 
+        className={`group relative bg-white rounded-3xl overflow-hidden border-2 border-blue-200 transform transition-all duration-500 hover:scale-105 ${
+          hoveredCard === 'business' ? 'scale-105' : ''
         }`}
+        onMouseEnter={() => setHoveredCard('business')}
+        onMouseLeave={() => setHoveredCard(null)}
       >
-        {/* Match header's container structure */}
-<div className="relative z-10 w-full px-[5%] lg:px-[11%]">
-          {/* Section Header */}
-          <div className="text-center mb-16">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 border border-blue-200 rounded-full text-blue-700 text-sm font-medium mb-6">
-              <Eye className="w-4 h-4" />
-              Design Inspiration
+        <div className="relative">
+          {/* Image Container */}
+          <div className="relative overflow-hidden">
+            <img
+              src="/homeimages/business-cards-sample.jpg"
+              alt="Business Card Examples"
+              className="w-full h-64 lg:h-72 object-cover transform group-hover:scale-110 transition-transform duration-700"
+            />
+            
+            {/* Floating Badge */}
+            <div className="absolute top-4 right-4 bg-white px-3 py-1 rounded-full text-xs font-semibold text-blue-600 border-2 border-blue-200">
+              <Sparkles className="w-3 h-3 inline mr-1" />
+              Featured
             </div>
-            <h2 className="text-4xl lg:text-5xl font-black text-gray-900 mb-4">
-              Creative <span className="text-blue-600">Showcase</span>
-            </h2>
-            <div className="w-24 h-1 bg-blue-600 rounded-full mx-auto" />
           </div>
 
-          {/* Cards Grid */}
-          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12">
+          {/* Content */}
+          <div className="p-6 lg:p-8">
+            <div className="flex items-start justify-between mb-4">
+              <h3 className="text-xl lg:text-2xl font-bold text-gray-900 leading-tight">
+                10 Business Card Design Examples
+              </h3>
+              <FileText className="w-6 h-6 text-blue-500 flex-shrink-0 mt-1" />
+            </div>
             
-            {/* Business Cards Card */}
-            <div 
-              className={`group relative bg-white rounded-3xl overflow-hidden border-2 border-blue-200 transform transition-all duration-500 hover:scale-105 ${
-                hoveredCard === 'business' ? 'scale-105' : ''
-              }`}
-              onMouseEnter={() => setHoveredCard('business')}
-              onMouseLeave={() => setHoveredCard(null)}
-            >
-              <div className="relative">
-                {/* Image Container */}
-                <div className="relative overflow-hidden">
-                  <img
-                    src="/homeimages/business-cards-sample.jpg"
-                    alt="Business Card Examples"
-                    className="w-full h-64 lg:h-72 object-cover transform group-hover:scale-110 transition-transform duration-700"
-                  />
-                  
-                  {/* Floating Badge */}
-                  <div className="absolute top-4 right-4 bg-white px-3 py-1 rounded-full text-xs font-semibold text-blue-600 border-2 border-blue-200">
-                    <Sparkles className="w-3 h-3 inline mr-1" />
-                    Featured
-                  </div>
-                </div>
-
-                {/* Content */}
-                <div className="p-6 lg:p-8">
-                  <div className="flex items-start justify-between mb-4">
-                    <h3 className="text-xl lg:text-2xl font-bold text-gray-900 leading-tight">
-                      10 Business Card Design Examples
-                    </h3>
-                    <FileText className="w-6 h-6 text-blue-500 flex-shrink-0 mt-1" />
-                  </div>
-                  
-                  <p className="text-gray-600 leading-relaxed mb-6">
-                    Blue Links's designers share 10 standout business cards from different industries with creative layouts and premium finishes.
-                  </p>
-                  
-                  {/* Stats */}
-                  <div className="flex items-center gap-6 mb-6">
-                    <div className="flex items-center gap-1">
-                      {[...Array(5)].map((_, i) => (
-                        <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                      ))}
-                      <span className="text-sm text-gray-600 ml-1">4.9</span>
-                    </div>
-                    <span className="text-sm text-gray-500">1.2k views</span>
-                  </div>
-
-                  {/* CTA */}
-                  <button className="group/btn w-full flex items-center justify-center gap-2 px-6 py-4 bg-blue-600 text-white font-semibold rounded-2xl transform transition-all duration-300 hover:scale-105">
-                    Read More
-                    <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
-                  </button>
-                </div>
+            <p className="text-gray-600 leading-relaxed mb-6">
+              Blue Links's designers share 10 standout business cards from different industries with creative layouts and premium finishes.
+            </p>
+            
+            {/* Stats */}
+            <div className="flex items-center gap-6 mb-6">
+              <div className="flex items-center gap-1">
+                {[...Array(5)].map((_, i) => (
+                  <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                ))}
+                <span className="text-sm text-gray-600 ml-1">4.9</span>
               </div>
+              <span className="text-sm text-gray-500">1.2k views</span>
             </div>
 
-            {/* Invites Card */}
-            <div 
-              className={`group relative bg-white rounded-3xl overflow-hidden border-2 border-blue-200 transform transition-all duration-500 hover:scale-105 ${
-                hoveredCard === 'invites' ? 'scale-105' : ''
-              }`}
-              onMouseEnter={() => setHoveredCard('invites')}
-              onMouseLeave={() => setHoveredCard(null)}
-            >
-              <div className="relative">
-                {/* Image Container */}
-                <div className="relative overflow-hidden">
-                  <img
-                    src="/homeimages/invites-sample.jpg"
-                    alt="Event Invitations"
-                    className="w-full h-64 lg:h-72 object-cover transform group-hover:scale-110 transition-transform duration-700"
-                  />
-                  
-                  {/* Floating Badge */}
-                  <div className="absolute top-4 right-4 bg-white px-3 py-1 rounded-full text-xs font-semibold text-blue-600 border-2 border-blue-200">
-                    <Heart className="w-3 h-3 inline mr-1" />
-                    Popular
-                  </div>
-                </div>
-
-                {/* Content */}
-                <div className="p-6 lg:p-8">
-                  <div className="flex items-start justify-between mb-4">
-                    <h3 className="text-xl lg:text-2xl font-bold text-gray-900 leading-tight">
-                      Invites They Won't Ignore
-                    </h3>
-                    <Heart className="w-6 h-6 text-blue-500 flex-shrink-0 mt-1" />
-                  </div>
-                  
-                  <p className="text-gray-600 leading-relaxed mb-6">
-                    Master the art of creating paper invites that actually get a "yes" with these proven design strategies and tips.
-                  </p>
-                  
-                  {/* Stats */}
-                  <div className="flex items-center gap-6 mb-6">
-                    <div className="flex items-center gap-1">
-                      {[...Array(5)].map((_, i) => (
-                        <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                      ))}
-                      <span className="text-sm text-gray-600 ml-1">4.8</span>
-                    </div>
-                    <span className="text-sm text-gray-500">850 views</span>
-                  </div>
-
-                  {/* CTA */}
-                  <button className="group/btn w-full flex items-center justify-center gap-2 px-6 py-4 bg-blue-600 text-white font-semibold rounded-2xl transform transition-all duration-300 hover:scale-105">
-                    Read More
-                    <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
-                  </button>
-                </div>
-              </div>
-            </div>
+            {/* CTA */}
+            <button className="group/btn w-full flex items-center justify-center gap-2 px-6 py-4 bg-blue-600 text-white font-semibold rounded-2xl transform transition-all duration-300 hover:scale-105">
+              Read More
+              <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
+            </button>
           </div>
         </div>
-      </section>
+      </div>
+
+      {/* Invites Card */}
+      <div 
+        className={`group relative bg-white rounded-3xl overflow-hidden border-2 border-blue-200 transform transition-all duration-500 hover:scale-105 ${
+          hoveredCard === 'invites' ? 'scale-105' : ''
+        }`}
+        onMouseEnter={() => setHoveredCard('invites')}
+        onMouseLeave={() => setHoveredCard(null)}
+      >
+        <div className="relative">
+          {/* Image Container */}
+          <div className="relative overflow-hidden">
+            <img
+              src="/homeimages/invites-sample.jpg"
+              alt="Event Invitations"
+              className="w-full h-64 lg:h-72 object-cover transform group-hover:scale-110 transition-transform duration-700"
+            />
+            
+            {/* Floating Badge */}
+            <div className="absolute top-4 right-4 bg-white px-3 py-1 rounded-full text-xs font-semibold text-blue-600 border-2 border-blue-200">
+              <Heart className="w-3 h-3 inline mr-1" />
+              Popular
+            </div>
+          </div>
+
+          {/* Content */}
+          <div className="p-6 lg:p-8">
+            <div className="flex items-start justify-between mb-4">
+              <h3 className="text-xl lg:text-2xl font-bold text-gray-900 leading-tight">
+                Invites They Won't Ignore
+              </h3>
+              <Heart className="w-6 h-6 text-blue-500 flex-shrink-0 mt-1" />
+            </div>
+            
+            <p className="text-gray-600 leading-relaxed mb-6">
+              Master the art of creating paper invites that actually get a "yes" with these proven design strategies and tips.
+            </p>
+            
+            {/* Stats */}
+            <div className="flex items-center gap-6 mb-6">
+              <div className="flex items-center gap-1">
+                {[...Array(5)].map((_, i) => (
+                  <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                ))}
+                <span className="text-sm text-gray-600 ml-1">4.8</span>
+              </div>
+              <span className="text-sm text-gray-500">850 views</span>
+            </div>
+
+            {/* CTA */}
+            <button className="group/btn w-full flex items-center justify-center gap-2 px-6 py-4 bg-blue-600 text-white font-semibold rounded-2xl transform transition-all duration-300 hover:scale-105">
+              Read More
+              <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 
       {/* Flyers Section */}
       <section 
@@ -181,7 +190,16 @@ const EnhancedHomeSections = () => {
         }`}
       >
         {/* Match header's container structure */}
-<div className="relative z-10 w-full px-[5%] lg:px-[11%]">
+{/* <div className="relative z-10 w-full px-[5%] lg:px-[18%]"> */}
+ <div
+    style={{
+      maxWidth: "65%",
+      margin: "0 auto",
+      padding: "0 1rem",
+      marginLeft:"18%",
+      marginRight:"21%"
+    }}
+  >
           <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
             
             {/* Image Side */}
@@ -270,7 +288,16 @@ const EnhancedHomeSections = () => {
         }`}
       >
         {/* Match header's container structure */}
-<div className="relative z-10 w-full px-[5%] lg:px-[11%]">
+{/* <div className="relative z-10 w-full px-[5%] lg:px-[18%]"> */}
+        <div
+    style={{
+      maxWidth: "65%",
+      margin: "0 auto",
+      padding: "0 1rem",
+      marginLeft:"18%",
+      marginRight:"21%"
+    }}
+  >
           <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
             
             {/* Content Side */}

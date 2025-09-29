@@ -697,9 +697,18 @@ onClick={(e) => {
       )}
 
       {/* Offer bar */}
-      <div style={styles.offerBar}>
+ <div
+  style={{
+    ...styles.offerBar,
+    width: isMobile ? "100%" : "80%",   // ✅ now works inside component
+    margin: isMobile ? "0" : "0 auto", // ✅ no error
+  }}
+>
+ 
+  
         🎉 New members get <strong>$5</strong> off their first order! <a href="/sign-in" style={{ color: "white" }}>Sign up now.</a>
       </div>
+      
     </header>
   );
 }
@@ -708,10 +717,10 @@ onClick={(e) => {
 const styles = {
   header: {
     fontFamily: "'Segoe UI', sans-serif",
-    borderBottom: "1px solid #eee",
-    boxShadow: "0 1px 4px rgba(0,0,0,0.05)",
+    //  borderBottom: "1px solid #eee",
+  //  boxShadow: "0 1px 4px rgba(0,0,0,0.05)",
     backgroundColor: "white",
-    width: "100%",
+    // width: "100%",
     position: "sticky",
     top: "0",
     zIndex: "100",
@@ -721,7 +730,7 @@ const styles = {
     justifyContent: "space-between",
     alignItems: "center",
     padding: "0.5rem 1rem",
-    maxWidth: "80%",
+    maxWidth: "65%",
     margin: "0 auto",
     width: "100%",
     minHeight: "3.75rem",
@@ -749,9 +758,9 @@ const styles = {
   topRightRow: { 
     display: "flex", 
     alignItems: "center", 
-    gap: "1.125rem", 
+    gap: "1.250rem", 
     marginLeft: "auto", 
-    marginRight: "3.75rem", 
+    marginRight: "0.85rem", 
   },
   topLink: { 
     cursor: "pointer", 
@@ -829,7 +838,7 @@ const styles = {
     gap: "0.0625rem", 
     flexWrap: "nowrap", 
     whiteSpace: "nowrap", 
-    maxWidth: "80%",
+    maxWidth: "66%",
     margin: "0 auto", 
     padding: "0 1rem",
     width: "100%",
@@ -1121,6 +1130,8 @@ const styles = {
     fontSize: "0.875rem", 
     fontWeight: "500", 
     lineHeight: "1.4", 
-    wordWrap: "break-word" 
+    wordWrap: "break-word" ,
+          
+    
   },
 };

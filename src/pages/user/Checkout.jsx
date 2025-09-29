@@ -824,7 +824,7 @@ const handleApplyCoupon = async () => {
       </h2> */}
 <div className="checkout-wrapper" 
   style={{ 
-    maxWidth: "80%",   // 👈 adjust this to match your marked lines
+    maxWidth: "65%",   // 👈 adjust this to match your marked lines
     margin: "0 auto",     // center horizontally
     padding: "20px"       // keep some breathing space
   }}

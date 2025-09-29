@@ -12,7 +12,7 @@ import { API_BASE_URL } from "../../../config";
 
 const Footer = () => {
   const [isMobile, setIsMobile] = useState(false);
-  const [expanded, setExpanded] = useState(null); // Accordion control
+  const [expanded, setExpanded] = useState(null);
   const [categories, setCategories] = useState([]);
 
   useEffect(() => {
@@ -52,7 +52,6 @@ const Footer = () => {
       title: "Products",
       links: [
         { label: "All Products", path: "/" },
-        // 👇 categories will be appended dynamically below
         ...categories.map((cat) => ({
           label: cat.name,
           path: `/allProducts/${cat._id}`,
@@ -93,7 +92,7 @@ const Footer = () => {
         color: "#333",
       }}
     >
-      {/* Top Bar - Aligned with header */}
+      {/* Top Bar - Aligned with header (65%) */}
       <div
         style={{
           backgroundColor: "#2c3e50",
@@ -103,9 +102,9 @@ const Footer = () => {
       >
         <div
           style={{
-            maxWidth: "80%", // Match header
+            maxWidth: "65%",
             margin: "0 auto",
-            padding: "0 1rem", // Match header padding
+            padding: "0 1rem",
             width: "100%",
             display: "flex",
             flexWrap: "wrap",
@@ -165,7 +164,7 @@ const Footer = () => {
         </div>
       </div>
 
-      {/* Translate - Aligned with header */}
+      {/* Translate - Aligned with header (65%) */}
       <div
         style={{
           borderBottom: "1px solid #ddd",
@@ -173,9 +172,9 @@ const Footer = () => {
       >
         <div
           style={{
-            maxWidth: "80%", // Match header
+            maxWidth: "65%",
             margin: "0 auto",
-            padding: isMobile ? "16px 1rem" : "16px 1rem", // Match header padding
+            padding: isMobile ? "16px 1rem" : "16px 1rem",
             width: "100%",
           }}
         >
@@ -183,7 +182,7 @@ const Footer = () => {
         </div>
       </div>
 
-      {/* Main Section - Aligned with header */}
+      {/* Main Section - Aligned with header (65%) */}
       <div
         style={{
           backgroundColor: "#f9f9f9",
@@ -191,9 +190,9 @@ const Footer = () => {
       >
         <div
           style={{
-            maxWidth: "80%", // Match header
+            maxWidth: "65%",
             margin: "0 auto",
-            padding: isMobile ? "0" : "40px 1rem", // Match header padding
+            padding: isMobile ? "0" : "40px 1rem",
             width: "100%",
           }}
         >
@@ -227,7 +226,6 @@ const Footer = () => {
                         color: "#555",
                         textDecoration: "none",
                         margin: "6px 0",
-                        
                       }}
                     >
                       {item.label}
@@ -289,7 +287,7 @@ const Footer = () => {
         </div>
       </div>
 
-      {/* Legal Section - Aligned with header */}
+      {/* Legal Section - NOW ALIGNED with header (65%) */}
       <div
         style={{
           borderTop: "1px solid #eee",
@@ -300,9 +298,9 @@ const Footer = () => {
       >
         <div
           style={{
-            maxWidth: "80%", // Match header
+            maxWidth: "65%", // Changed from 80% to 65% to match header
             margin: "0 auto",
-            padding: isMobile ? "20px 1rem" : "20px 1rem", // Match header padding
+            padding: isMobile ? "20px 1rem" : "20px 1rem",
             width: "100%",
           }}
         >

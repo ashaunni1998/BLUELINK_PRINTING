@@ -55,6 +55,7 @@ const [croppedImages, setCroppedImages] = useState({ front: null, back: null });
 
 
 
+
 // Quantity selector
 // const priceOptions = [
 //   { qty: 100, price: 39 },
@@ -83,7 +84,6 @@ const [uploadedUrl, setUploadedUrl] = useState(null);     // stores the final up
 
 
 
-
 const frameOverlays = {
   rhomboid: "https://i.ibb.co/k2xR06Fq/Bamboo-Photo-Frame-Printing-Rhomboid-Shape-Magnetic.png",
   rectangular: "https://i.ibb.co/d4cKP6j7/Bamboo-Rectangular-Shape-Photo-Frame.png",
@@ -96,8 +96,17 @@ const frameOverlays = {
   door :" https://i.ibb.co/93rMVXMF/Door-Shape.png",
   rectangularstone:"https://i.ibb.co/tTsVZMbz/Rectangular-Shape-stone-photo-frame.png",
 };
-const [selectedFrame, setSelectedFrame] = useState(""); // default
+
+
+// Get the frame type from product data (expects product.frameType to match one of the keys above)
+const productFrameType = product?.frameType?.toLowerCase().trim();
+const [selectedFrame, setSelectedFrame] = useState(productFrameType || ""); 
 const FRAME_URL = frameOverlays[selectedFrame];
+
+
+
+// const [selectedFrame, setSelectedFrame] = useState(""); // default
+// const FRAME_URL = frameOverlays[selectedFrame];
 // ✅ only run .find if product and priceTiers exist
 const [selectedTier, setSelectedTier] = useState(() => {
   if (product?.priceTiers) {
@@ -132,6 +141,10 @@ function useMediaQuery(query) {
   }, [query]);
   return matches;
 }
+
+
+
+
 
 // inside your component
 const isMobile = useMediaQuery("(max-width: 768px)");
@@ -918,7 +931,8 @@ const normalize = (str = "") =>
     .toLowerCase();
 
 const isPersonalisedGift = normalize(categoryName) === "personalized gifts";
-
+const isButtonBadge = normalize(product?.name || "").includes("button badge") || 
+                      normalize(categoryName).includes("button badge");
   return (
     <div style={styles.container}>
       <div className="responsive-container">
@@ -926,7 +940,7 @@ const isPersonalisedGift = normalize(categoryName) === "personalized gifts";
 
         {/* Main */}
         <div style={{
-           maxWidth: '1100px',
+           maxWidth: "68%",
   margin: '0 auto',
   padding: isMobile ? '20px 16px' : '40px 20px',
   width: '100%',
@@ -1951,137 +1965,226 @@ const isPersonalisedGift = normalize(categoryName) === "personalized gifts";
 {/* Replace the existing quantity/price selector section in your ProductDetail.jsx with this enhanced version */}
 
 {/* ===== Enhanced Quantity + Price Selector ===== */}
- <div style={{ marginTop: "40px" }}>
+ {/* ===== Enhanced Quantity + Price Selector ===== */}
+<div style={{ marginTop: "40px" }}>
+  
+  {/* Conditional rendering: Button Badge text input OR Design type selection */}
+  {isButtonBadge ? (
+    // Button Badge Content Input
+    <>
+      <h2 style={{ fontSize: "24px", fontWeight: "600", marginBottom: "20px", color: "#1f2937" }}>
+        Enter Your Button Badge Text
+      </h2>
+      
+      <div style={{
+        marginBottom: "24px",
+        padding: "20px",
+        border: "2px solid #e5e7eb",
+        borderRadius: "16px",
+        background: "linear-gradient(135deg, #f9fafb, #f3f4f6)",
+      }}>
+        <label style={{ 
+          display: "block",
+          fontSize: "15px", 
+          fontWeight: "600", 
+          marginBottom: "10px",
+          color: "#374151"
+        }}>
+          Your Text (up to 500 characters)
+        </label>
+        
+        <input
+          type="text"
+          value={customText}
+          onChange={(e) => {
+            if (e.target.value.length <= 500) {
+              setCustomText(e.target.value);
+            }
+          }}
+          placeholder="Enter text for your button badge..."
+          maxLength={500}
+          style={{
+            width: "100%",
+            padding: "14px 16px",
+            fontSize: "16px",
+            border: "2px solid #d1d5db",
+            borderRadius: "10px",
+            outline: "none",
+            transition: "all 0.2s ease",
+            fontFamily: "inherit",
+          }}
+          onFocus={(e) => {
+            e.target.style.borderColor = "#2563eb";
+            e.target.style.boxShadow = "0 0 0 3px rgba(37, 99, 235, 0.1)";
+          }}
+          onBlur={(e) => {
+            e.target.style.borderColor = "#d1d5db";
+            e.target.style.boxShadow = "none";
+          }}
+        />
+        
+        <div style={{
+          marginTop: "8px",
+          fontSize: "13px",
+          color: customText.length >= 450 ? "#ef4444" : "#6b7280",
+          textAlign: "right",
+          fontWeight: "500"
+        }}>
+          {customText.length}/500 characters
+        </div>
+        
+        {customText && (
+          <div style={{
+            marginTop: "16px",
+            padding: "16px",
+            background: "#ffffff",
+            borderRadius: "10px",
+            border: "1px solid #e5e7eb",
+          }}>
+            <div style={{ fontSize: "13px", color: "#6b7280", marginBottom: "8px" }}>
+              Preview:
+            </div>
+            <div style={{
+              fontSize: "18px",
+              fontWeight: "600",
+              color: "#1f2937",
+              textAlign: "center",
+              padding: "12px",
+              background: "#f9fafb",
+              borderRadius: "8px",
+            }}>
+              {customText}
+            </div>
+          </div>
+        )}
+      </div>
+    </>
+  ) : (
+    // Original Design Type Selection
+    <>
       <h2 style={{ fontSize: "24px", fontWeight: "600", marginBottom: "20px" }}>
         Choose your design type
       </h2>
 
-{/* Design type selection */}
-<div
-  style={{
-    display: "flex",
-    gap: "16px",
-    marginBottom: "24px",
-    justifyContent: "center",
-  }}
->
-  {[
-    { value: "single", label: "Single Side", icon: "🖼️" },
-    { value: "double", label: "Double Side", icon: "📖" },
-  ].map((option) => {
-    const isActive = selectedDesignType === option.value;
-    return (
-      <button
-        key={option.value}
-        type="button"
-        onClick={() => setSelectedDesignType(option.value)}
-        style={{
-          flex: 1,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: "8px",
-          padding: "14px 20px",
-          borderRadius: "9999px", // pill style
-          border: isActive ? "2px solid #2563eb" : "1px solid #d1d5db",
-          backgroundColor: isActive ? "#eff6ff" : "#fff",
-          color: isActive ? "#2563eb" : "#374151",
-          fontWeight: "600",
-          fontSize: "15px",
-          cursor: "pointer",
-          transition: "all 0.2s ease",
-          boxShadow: isActive
-            ? "0 2px 6px rgba(37,99,235,0.2)"
-            : "0 1px 3px rgba(0,0,0,0.05)",
-        }}
-      >
-        <span style={{ fontSize: "18px" }}>{option.icon}</span>
-        {option.label}
-      </button>
-    );
-  })}
-</div>
+      <div style={{
+        display: "flex",
+        gap: "16px",
+        marginBottom: "24px",
+        justifyContent: "center",
+      }}>
+        {[
+          { value: "single", label: "Single Side", icon: "🖼️" },
+          { value: "double", label: "Double Side", icon: "📖" },
+        ].map((option) => {
+          const isActive = selectedDesignType === option.value;
+          return (
+            <button
+              key={option.value}
+              type="button"
+              onClick={() => setSelectedDesignType(option.value)}
+              style={{
+                flex: 1,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "8px",
+                padding: "14px 20px",
+                borderRadius: "9999px",
+                border: isActive ? "2px solid #2563eb" : "1px solid #d1d5db",
+                backgroundColor: isActive ? "#eff6ff" : "#fff",
+                color: isActive ? "#2563eb" : "#374151",
+                fontWeight: "600",
+                fontSize: "15px",
+                cursor: "pointer",
+                transition: "all 0.2s ease",
+                boxShadow: isActive
+                  ? "0 2px 6px rgba(37,99,235,0.2)"
+                  : "0 1px 3px rgba(0,0,0,0.05)",
+              }}
+            >
+              <span style={{ fontSize: "18px" }}>{option.icon}</span>
+              {option.label}
+            </button>
+          );
+        })}
+      </div>
+    </>
+  )}
 
- <h2 style={{ fontSize: "24px", fontWeight: "600", marginBottom: "20px" }}>
-        Choose your Quantity
-      </h2>
+  <h2 style={{ fontSize: "24px", fontWeight: "600", marginBottom: "20px" }}>
+    Choose your Quantity
+  </h2>
 
-      {/* Pricing table */}
-   <table
-  style={{
+  {/* Pricing table */}
+  <table style={{
     width: "100%",
     borderCollapse: "collapse",
     fontSize: "16px",
-  }}
->
-  <thead>
-    <tr style={{ textAlign: "left", borderBottom: "2px solid #ddd" }}>
-      <th style={{ padding: "12px" }}>Quantity</th>
-      <th style={{ padding: "12px" }}>Price per card</th>
-      <th style={{ padding: "12px" }}>Pack price</th>
-    </tr>
-  </thead>
-  <tbody>
-    {product?.priceTiers?.map((tier, idx) => {
-      const isSelected = selectedTier?.qty === tier.qty;
-      const currentPrice = getPrice(tier);
+  }}>
+    <thead>
+      <tr style={{ textAlign: "left", borderBottom: "2px solid #ddd" }}>
+        <th style={{ padding: "12px" }}>Quantity</th>
+        <th style={{ padding: "12px" }}>Price per card</th>
+        <th style={{ padding: "12px" }}>Pack price</th>
+      </tr>
+    </thead>
+    <tbody>
+      {product?.priceTiers?.map((tier, idx) => {
+        const isSelected = selectedTier?.qty === tier.qty;
+        const currentPrice = getPrice(tier);
 
-      return (
-        <tr
-          key={idx}
-          onClick={() => setSelectedTier(tier)}
-          style={{
-            cursor: "pointer",
-            background: isSelected ? "#f0f9ff" : "transparent",
-            borderBottom: "1px solid #eee",
-            border: isSelected ? "2px solid #22c55e" : "1px solid #eee", // ✅ green border like Moo.com
-          }}
-        >
-          <td style={{ padding: "12px", fontWeight: isSelected ? "600" : "400" }}>
-            {tier.qty}
-          </td>
-          <td style={{ padding: "12px" }}>
-            ${(currentPrice / tier.qty).toFixed(2)}
-          </td>
-          <td style={{ padding: "12px", fontWeight: "600" }}>
-            ${currentPrice}
-            {tier.originalPrice && (
-              <span
-                style={{
+        return (
+          <tr
+            key={idx}
+            onClick={() => setSelectedTier(tier)}
+            style={{
+              cursor: "pointer",
+              background: isSelected ? "#f0f9ff" : "transparent",
+              borderBottom: "1px solid #eee",
+              border: isSelected ? "2px solid #22c55e" : "1px solid #eee",
+            }}
+          >
+            <td style={{ padding: "12px", fontWeight: isSelected ? "600" : "400" }}>
+              {tier.qty}
+            </td>
+            <td style={{ padding: "12px" }}>
+              ${(currentPrice / tier.qty).toFixed(2)}
+            </td>
+            <td style={{ padding: "12px", fontWeight: "600" }}>
+              ${currentPrice}
+              {tier.originalPrice && (
+                <span style={{
                   marginLeft: "8px",
                   color: "#999",
                   textDecoration: "line-through",
                   fontWeight: "400",
-                }}
-              >
-                ${tier.originalPrice}
-              </span>
-            )}
-          </td>
-        </tr>
-      );
-    })}
-  </tbody>
-</table>
+                }}>
+                  ${tier.originalPrice}
+                </span>
+              )}
+            </td>
+          </tr>
+        );
+      })}
+    </tbody>
+  </table>
 
-{/* Selection summary */}
-{selectedTier && (
-  <div
-    style={{
+  {/* Selection summary */}
+  {selectedTier && (
+    <div style={{
       marginTop: "20px",
       padding: "16px",
       border: "1px solid #ddd",
       borderRadius: "8px",
       background: "#fafafa",
-    }}
-  >
-    <strong>{selectedTier.qty}</strong> cards selected (
-    {selectedDesignType} side) — Total:{" "}
-    <strong>${getPrice(selectedTier)}</strong> (
-    {(getPrice(selectedTier) / selectedTier.qty).toFixed(2)} each)
-  </div>
-)}
+    }}>
+      <strong>{selectedTier.qty}</strong> cards selected (
+      {selectedDesignType} side) — Total:{" "}
+      <strong>${getPrice(selectedTier)}</strong> (
+      {(getPrice(selectedTier) / selectedTier.qty).toFixed(2)} each)
     </div>
+  )}
+</div>
 
 {/* Upload Your Design Button - Added after quantity selector */}
 {!(isPersonalisedGift && normalize(product.name).includes("photo frame")) && (

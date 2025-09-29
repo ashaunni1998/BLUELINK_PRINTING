@@ -246,9 +246,9 @@ console.log(products);
       justifyContent: "flex-start",
       alignItems: "stretch",
       flexWrap: "wrap",
-      gap: "10%",
+      gap: "1%",
       textAlign: "center",
-      maxWidth: "80%",
+      maxWidth: "65%",
       margin: "0 auto",
     }}
   >
@@ -340,424 +340,12 @@ console.log(products);
 </section>
 
 
-   <section
-      style={{
-        backgroundColor: "#f9fafb",
-        padding: "70px 0",
-        position: "relative"
-      }}
-    >
-      <div
-        style={{
-          maxWidth: "78%",
-          margin: "0 auto",
-          padding: "0",
-          textAlign: "center",
-        }}
-      >
-        <h2
-          style={{
-            fontSize: "32px",
-            marginBottom: "12px",
-            fontWeight: "700",
-            color: "#111",
-          }}
-        >
-          Popular Business Cards
-        </h2>
-        <p
-          style={{
-            fontSize: "17px",
-            color: "#555",
-            marginBottom: "50px",
-            maxWidth: "700px",
-            marginInline: "auto",
-            lineHeight: "1.6",
-          }}
-        >
-          Make a powerful first impression with professionally designed business
-          cards that reflect your brand and style.
-        </p>
-
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-            gap: "10px",
-            width: "100%",
-          }}
-        >
-          {products
-            .filter((product) => {
-              const category =
-                typeof product.category === "string"
-                  ? product.category.toLowerCase()
-                  : "";
-              const name =
-                typeof product.name === "string"
-                  ? product.name.toLowerCase()
-                  : "";
-              return (
-                category.includes("business card") ||
-                category.includes("business cards") ||
-                name.includes("business card") ||
-                name.includes("business cards")
-              );
-            })
-            .slice(0, 8)
-            .map((card) => (
-              <div
-                key={card._id}
-                style={{
-                  backgroundColor: "#fff",
-                  borderRadius: "10px",
-                  overflow: "hidden",
-                  boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
-                  transition: "transform 0.3s ease, box-shadow 0.3s ease",
-                  cursor: "pointer",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = "translateY(-6px)";
-                  e.currentTarget.style.boxShadow =
-                    "0 8px 25px rgba(0,0,0,0.12)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = "translateY(0)";
-                  e.currentTarget.style.boxShadow =
-                    "0 4px 20px rgba(0,0,0,0.08)";
-                }}
-              >
-                {/* Image wrapper */}
-                <div
-                  style={{
-                    width: "100%",
-                    aspectRatio: "4/3",
-                    overflow: "hidden",
-                    background: "#f3f4f6",
-                    display: "block",
-                    cursor: "pointer",
-                  }}
-                  onClick={() => console.log(`View product ${card._id}`)}
-                >
-                  <img
-                    src={card.images[0] || "https://via.placeholder.com/300"}
-                    alt={card.name}
-                    style={{
-                      width: "100%",
-                      height: "100%",
-                      objectFit: "cover",
-                      display: "block",
-                      transition: "transform 0.4s ease",
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.transform = "scale(1.08)";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.transform = "scale(1)";
-                    }}
-                  />
-                </div>
-
-                {/* Product details */}
-                <div
-                  style={{
-                    padding: "18px",
-                    textAlign: "center",
-                  }}
-                >
-                  <div
-                    style={{
-                      color: "#007bff",
-                      textDecoration: "none",
-                      fontWeight: "600",
-                      fontSize: "16px",
-                      display: "block",
-                      marginBottom: "8px",
-                      cursor: "pointer",
-                    }}
-                    onClick={() => console.log(`View product ${card._id}`)}
-                  >
-                    {card.name}
-                  </div>
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "center",
-                      alignItems: "center",
-                      gap: "12px",
-                      marginBottom: "12px",
-                    }}
-                  >
-                    <span
-                      style={{
-                        display: "inline-block",
-                        padding: "6px 16px",
-                        backgroundColor: "#eaf4ff",
-                        color: "#007bff",
-                        fontSize: "15px",
-                        fontWeight: "700",
-                        borderRadius: "30px",
-                        boxShadow: "0 2px 6px rgba(0,0,0,0.08)",
-                        minWidth: "60px",
-                      }}
-                    >
-                      ${card.price}
-                    </span>
-
-                    {/* View button */}
-                    <button
-                      style={{
-                        padding: "10px 18px",
-                        fontSize: "14px",
-                        fontWeight: "600",
-                        backgroundColor: "#007bff",
-                        color: "#fff",
-                        border: "none",
-                        borderRadius: "6px",
-                        cursor: "pointer",
-                        transition: "background 0.3s ease, transform 0.2s ease",
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = "#0056b3";
-                        e.currentTarget.style.transform = "translateY(-2px)";
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = "#007bff";
-                        e.currentTarget.style.transform = "translateY(0)";
-                      }}
-                      onClick={() => console.log(`View product ${card._id}`)}
-                    >
-                      View
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
-        </div>
-      </div>
-
-      {/* Align content to end exactly at search bar boundary */}
-      <style>
-        {`
-          @media (min-width: 1200px) {
-            section {
-              padding-right: 6% !important;
-            }
-          }
-        `}
-      </style>
-    </section>
-
-<section
-  style={{
-    backgroundColor: "#f9fafb",
-    padding: "70px 0",
-    position:"relative",
-  }}
->
-  <div
-    style={{
-      maxWidth: "78%",
-      margin: "0 auto",
-      padding: "0",
-      textAlign: "center",
-    }}
-  >
-    <h2
-      style={{
-        fontSize: "32px",
-        marginBottom: "12px",
-        fontWeight: "700",
-        color: "#111",
-      }}
-    >
-      Popular Flex & Banners
-    </h2>
-    <p
-      style={{
-        fontSize: "17px",
-        color: "#555",
-        marginBottom: "50px",
-        maxWidth: "700px",
-        marginInline: "auto",
-        lineHeight: "1.6",
-      }}
-    >
-      Promote your brand with high-quality flex prints and banners designed to
-      stand out and capture attention.
-    </p>
-
-    <div
-      style={{
-        display: "grid",
-        gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-        gap: "10px",
-        width: "100%",
-      }}
-    >
-      {products
-        .filter((product) => {
-          const category =
-            typeof product.category === "string"
-              ? product.category.toLowerCase()
-              : "";
-          const name =
-            typeof product.name === "string"
-              ? product.name.toLowerCase()
-              : "";
-          return category.includes("flex") ||
-                 category.includes("banner") ||
-                 name.includes("flex") ||
-                 name.includes("banner");
-        })
-        .slice(0, 8)
-        .map((item) => (
-          <div
-            key={item._id}
-            style={{
-              backgroundColor: "#fff",
-              borderRadius: "10px",
-              overflow: "hidden",
-              boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
-              transition: "transform 0.3s ease, box-shadow 0.3s ease",
-              cursor: "pointer",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = "translateY(-6px)";
-              e.currentTarget.style.boxShadow =
-                "0 8px 25px rgba(0,0,0,0.12)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = "translateY(0)";
-              e.currentTarget.style.boxShadow =
-                "0 4px 20px rgba(0,0,0,0.08)";
-            }}
-          >
-            {/* Image wrapper */}
-            <Link
-              to={`/product/${item._id}`}
-              style={{
-                width: "100%",
-                aspectRatio: "4/3",
-                overflow: "hidden",
-                background: "#f3f4f6",
-                display: "block",
-              }}
-            >
-              <img
-                src={item.images[0] || "https://via.placeholder.com/300"}
-                alt={item.name}
-                style={{
-                  width: "100%",
-                  height: "100%",
-                  objectFit: "cover",
-                  display: "block",
-                  transition: "transform 0.4s ease",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = "scale(1.08)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = "scale(1)";
-                }}
-              />
-            </Link>
-
-            {/* Product details */}
-            <div
-              style={{
-                padding: "18px",
-                textAlign: "center",
-              }}
-            >
-              <Link
-                to={`/product/${item._id}`}
-                style={{
-                  color: "#007bff",
-                  textDecoration: "none",
-                  fontWeight: "600",
-                  fontSize: "16px",
-                  display: "block",
-                  marginBottom: "8px",
-                }}
-              >
-                {item.name}
-              </Link>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  gap: "12px",
-                  marginBottom: "12px",
-                }}
-              >
-                <span
-                  style={{
-                    display: "inline-block",
-                    padding: "6px 16px",
-                    backgroundColor: "#eaf4ff",
-                    color: "#007bff",
-                    fontSize: "15px",
-                    fontWeight: "700",
-                    borderRadius: "30px",
-                    boxShadow: "0 2px 6px rgba(0,0,0,0.08)",
-                    minWidth: "60px",
-                  }}
-                >
-                  ${item.price}
-                </span>
-
-                {/* View button */}
-                <Link
-                  to={`/product/${item._id}`}
-                  style={{
-                    padding: "10px 18px",
-                    fontSize: "14px",
-                    fontWeight: "600",
-                    backgroundColor: "#007bff",
-                    color: "#fff",
-                    border: "none",
-                    borderRadius: "6px",
-                    cursor: "pointer",
-                    transition: "background 0.3s ease, transform 0.2s ease",
-                    textDecoration: "none",
-                    display: "inline-block",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = "#0056b3";
-                    e.currentTarget.style.transform = "translateY(-2px)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = "#007bff";
-                    e.currentTarget.style.transform = "translateY(0)";
-                  }}
-                >
-                  View
-                </Link>
-              </div>
-            </div>
-          </div>
-        ))}
-    </div>
-  </div>
-    {/* Align content to end exactly at search bar boundary */}
-      <style>
-        {`
-          @media (min-width: 1200px) {
-            section {
-              padding-right: 6% !important;
-            }
-          }
-        `}
-      </style>
-</section>
 
 
 
 
-      {/* Popular Products Section */}
- {/* <section style={{ backgroundColor: "#f5f8f6", padding: "1.875rem 0 2.5rem", textAlign: "center" }}>
+{/* Popular Products Section */}
+<section style={{ backgroundColor: "#f5f8f6", padding: "1.875rem 0 2.5rem", textAlign: "center" }}>
   <h2
     style={{
       fontSize: "1.625rem",
@@ -778,7 +366,6 @@ console.log(products);
         transform: "translateX(-50%)",
         width: "3.75rem",
         height: "0.25rem",
-       
         borderRadius: "0.125rem",
       }}
     ></span>
@@ -789,7 +376,7 @@ console.log(products);
       fontSize: "0.875rem",
       color: "#555",
       marginBottom: "1.875rem",
-      maxWidth: "90%",
+      maxWidth: "65%",
       marginInline: "auto",
       lineHeight: "1.5",
       textAlign: "center",
@@ -798,127 +385,91 @@ console.log(products);
     These are tried and true favorites that will have you set to get down to business.
   </p>
 
+  {/* Container matches header's topBar maxWidth of 65% */}
   <div
     style={{
-      display: "grid",
-      gridTemplateColumns: "repeat(auto-fit, minmax(12.5rem, 1fr))",
-      gap: "1.25rem",
-      maxWidth: "80%",
+      maxWidth: "65%",
       margin: "0 auto",
       padding: "0 1rem",
+      marginLeft:"18%",
+      marginRight:"21%"
     }}
   >
-    {products.map((product) => (
-      <div
-        key={product._id}
-        style={{
-          backgroundColor: "#fff",
-          borderRadius: "0.375rem",
-          overflow: "hidden",
-          boxShadow: "0 0.0625rem 0.375rem rgba(0,0,0,0.07)",
-          transition: "transform 0.2s ease",
-        }}
-      >
-       
-        <Link
-          to={`/product/${product._id}`}
-          style={{
-            width: "100%",
-            aspectRatio: "4/3",
-            overflow: "hidden",
-            display: "block",
-          }}
-        >
-          <img
-            src={product.images[0] || "https://via.placeholder.com/300"}
-            alt={product.name}
-            style={{
-              width: "100%",
-              height: "100%",
-              objectFit: "contain", 
-              display: "block",
-              backgroundColor: "#f9f9f9",
-            }}
-          />
-        </Link>
-
-       
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(4, 1fr)",
+        gap: "1.25rem",
+      }}
+    >
+      {products.map((product) => (
         <div
+          key={product._id}
           style={{
-            padding: "0.875rem",
-            borderTop: "1px solid #eee",
-            textAlign: "center",
+            backgroundColor: "#fff",
+            borderRadius: "0.375rem",
+            overflow: "hidden",
+            boxShadow: "0 0.0625rem 0.375rem rgba(0,0,0,0.07)",
+            transition: "transform 0.2s ease",
           }}
         >
           <Link
             to={`/product/${product._id}`}
             style={{
-              color: "#007abf",
-              textDecoration: "none",
-              fontWeight: "500",
-              fontSize: "0.9375rem",
+              width: "100%",
+              aspectRatio: "4/3",
+              overflow: "hidden",
               display: "block",
-              marginBottom: "0.375rem",
             }}
           >
-            {product.name}
+            <img
+              src={product.images[0] || "https://via.placeholder.com/300"}
+              alt={product.name}
+              style={{
+                width: "100%",
+                height: "100%",
+                objectFit: "contain",
+                display: "block",
+                backgroundColor: "#f9f9f9",
+              }}
+            />
           </Link>
-          <p style={{ fontSize: "0.875rem", color: "#444", margin: 0 }}>
-            ${product.price}
-          </p>
+
+          <div
+            style={{
+              padding: "0.875rem",
+              borderTop: "1px solid #eee",
+              textAlign: "center",
+            }}
+          >
+            <Link
+              to={`/product/${product._id}`}
+              style={{
+                color: "#007abf",
+                textDecoration: "none",
+                fontWeight: "500",
+                fontSize: "0.9375rem",
+                display: "block",
+                marginBottom: "0.375rem",
+              }}
+            >
+              {product.name}
+            </Link>
+            <p style={{ fontSize: "0.875rem", color: "#444", margin: 0 }}>
+              ${product.price}
+            </p>
+          </div>
         </div>
-      </div>
-    ))}
+      ))}
+    </div>
   </div>
-</section> */}
+</section>
 
 
 
 
 
-
-      {/* <section
-        style={{
-          display: "flex",
-          flexWrap: "wrap",
-          justifyContent: "center",
-          alignItems: "center",
-          padding: "40px 20px",
-          backgroundColor: "#f5f5f5",
-        }}
-      >
-        <div
-          style={{
-            flex: "1 1 300px",
-            minWidth: "300px",
-            maxWidth: "500px",
-            height: "300px",
-            backgroundImage: "url('/homeimages/flyer.jpeg')",
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-            borderRadius: "8px",
-          }}
-        />
-        <div
-          style={{
-            flex: "1 1 300px",
-            minWidth: "300px",
-            maxWidth: "500px",
-            backgroundColor: "#fff",
-            padding: "30px",
-            borderRadius: "8px",
-            boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
-            marginTop: "20px",
-          }}
-        >
-          <h1 style={{ fontSize: "24px", marginBottom: "10px" }}>Flyers & Leaflets.</h1>
-          <p style={{ fontSize: "16px", lineHeight: "1.5" }}>
-            Get creative with your Flyer printing.
-            <br />
-            Choose from fancy finishes and premium papers.
-          </p>
-        </div>
-      </section> */}
+    
 <FlyerSection/>
 
 {/*  */}
@@ -941,20 +492,9 @@ console.log(products);
 
 
 {/* Personalized Gifts Section - Aligned with Header */}
-<section
-  style={{
-    backgroundColor: "#f9fafb",
-    padding: "70px 0", // Remove horizontal padding from section
-  }}
->
-  <div
-    style={{
-      maxWidth: "78%", // Match header container
-      margin: "0 auto",
-      padding: "0 ", // Match header padding
-      textAlign: "center",
-    }}
-  >
+<section style={{ backgroundColor: "#f5f8f6", padding: "1.875rem 0 2.5rem", textAlign: "center" }}>
+
+
     <h2
       style={{
         fontSize: "32px",
@@ -978,7 +518,15 @@ console.log(products);
       Make every occasion special with personalized gifts designed to create
       lasting memories.
     </p>
-
+  <div
+    style={{
+      maxWidth: "65%", // Match header container
+      margin: "0 auto",
+      padding: "0 1rem ", // Match header padding
+      marginLeft:"18%",
+      marginRight:"21%"
+    }}
+  >
     <div
       style={{
         display: "grid",
@@ -1135,20 +683,9 @@ console.log(products);
 </section>
 
 {/* Flyers Section - Aligned with Header */}
-<section
-  style={{
-    backgroundColor: "#f9fafb",
-    padding: "70px 0", // Remove horizontal padding from section
-  }}
->
-  <div
-    style={{
-      maxWidth: "78%", // Match header container
-      margin: "0 auto",
-      padding: "0 ", // Match header padding
-      textAlign: "center",
-    }}
-  >
+<section style={{ backgroundColor: "#f5f8f6", padding: "1.875rem 0 2.5rem", textAlign: "center" }}>
+
+ 
     <h2
       style={{
         fontSize: "32px",
@@ -1172,7 +709,16 @@ console.log(products);
       Showcase your business with professional, eye-catching flyers designed to
       leave a lasting impression.
     </p>
-
+ <div
+    style={{
+      maxWidth: "65%", // Match header container
+      margin: "0 auto",
+      padding: "0  1rem", // Match header padding
+      textAlign: "center",
+      marginLeft:"18%",
+      marginRight:"21%"
+    }}
+  >
     <div
       style={{
         display: "grid",
@@ -1327,33 +873,45 @@ console.log(products);
 </section>
       {/* CTA Banner */}
       <section
+  style={{
+    padding: "60px 0",
+    backgroundColor: "#007bff",
+    color: "#ffffff",
+    textAlign: "center",
+  }}
+>
+  <div
+    style={{
+      maxWidth: "65%",
+      margin: "0 auto",
+      padding: "0 20px",
+      // width: "100%",
+      marginRight:"20%",
+    }}
+  >
+    <h2 style={{ fontSize: "28px", marginBottom: "15px" }}>
+      Let's Get Your Plans Printed!
+    </h2>
+    <p style={{ fontSize: "18px", marginBottom: "25px" }}>
+      Simple process. High-quality. Always on time.
+    </p>
+    <a href="/sign-in">
+      <button
         style={{
-          padding: "60px 20px",
-          backgroundColor: "#007bff",
-          color: "#ffffff",
-          textAlign: "center",
+          padding: "10px 28px",
+          fontSize: "16px",
+          backgroundColor: "#ffffff",
+          color: "#007bff",
+          border: "none",
+          borderRadius: "5px",
+          cursor: "pointer",
         }}
       >
-        <h2 style={{ fontSize: "28px", marginBottom: "15px" }}>
-          Let’s Get Your Plans Printed!
-        </h2>
-        <p style={{ fontSize: "18px", marginBottom: "25px" }}>
-          Simple process. High-quality. Always on time.
-        </p>
-        <a href="/sign-in" ><button
-          style={{
-            padding: "10px 28px",
-            fontSize: "16px",
-            backgroundColor: "#ffffff",
-            color: "#007bff",
-            border: "none",
-            borderRadius: "5px",
-            cursor: "pointer",
-          }}
-        >
-          Start Now
-        </button></a>
-      </section>
+        Start Now
+      </button>
+    </a>
+  </div>
+</section>
 
 
       <Footer />

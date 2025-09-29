@@ -461,7 +461,7 @@ const AccountPage = () => {
     flexDirection: isMobile ? "column" : "row",
     gap: isMobile ? "16px" : "22px",
     width: "100%",
-    maxWidth: isMobile ? "100%" : "81%",
+    maxWidth: isMobile ? "100%" : "65%",
     margin: "20px auto",
     padding: isMobile ? "0 12px" : "0 20px",
     boxSizing: "border-box",
