@@ -768,6 +768,7 @@ const styles = {
     fontSize: "0.875rem", 
     textDecoration: "none",
     whiteSpace: "nowrap",
+    fontWeight:"500",
   },
   accountContainer: { 
     position: "relative", 

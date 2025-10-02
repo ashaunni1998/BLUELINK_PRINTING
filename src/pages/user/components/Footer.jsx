@@ -203,15 +203,16 @@ const Footer = () => {
         >
           {!isMobile ? (
             <div
-              style={{
-                display: "flex",
-                justifyContent: "flex-start",
-                gap: "20%",
-                flexWrap: "wrap",
-              }}
-            >
+  style={{
+    display: "flex",
+    justifyContent: "space-between",
+    flexWrap: "wrap",
+    gap: "40px",
+  }}
+>
+
               {sections.map((section, index) => (
-                <div key={index} style={{ flex: "1 1 200px" }}>
+                <div key={index} style={{ flex: "1 1 250px" , minWidth: "200px"  }}>
                   <div
                     style={{
                       fontWeight: "bold",

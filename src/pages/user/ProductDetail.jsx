@@ -815,12 +815,13 @@ const handleUploadYourDesign = () => {
       top: isMobile ? 'auto' : '100px',
       height: 'fit-content'
     },
-    detailsSection: {
-      flex: 1.2,
-      backgroundColor: 'white',
-      borderRadius: '12px',
-     padding: isMobile ? '20px' : '30px'
-    },
+  detailsSection: {
+  flex: 1.2,
+  backgroundColor: "white",
+  borderRadius: isMobile ? "8px" : "12px",
+  padding: isMobile ? "12px" : "30px"
+},
+
     reviewsSection: {
       maxWidth: '800px',
       margin: '0 auto',
@@ -829,13 +830,14 @@ const handleUploadYourDesign = () => {
       borderRadius: '12px',
       marginBottom: '40px'
     },
-    thumbnailContainer: {
-      display: 'flex',
-      gap: '10px',
-      marginTop: '15px',
-     overflowX: isMobile ? 'auto' : 'visible',
-   padding: isMobile ? '0 0 10px 0' : '0'
-    },
+   thumbnailContainer: {
+  display: "flex",
+  gap: "10px",
+  marginTop: "12px",
+  overflowX: isMobile ? "scroll" : "visible",
+  paddingBottom: isMobile ? "8px" : "0"
+},
+
     thumbnail: {
       width: '60px',
       height: '60px',
@@ -939,20 +941,16 @@ const isButtonBadge = normalize(product?.name || "").includes("button badge") ||
         <Header onMenuStateChange={setMobileMenuOpen}/>
 
         {/* Main */}
-        <div style={{
-           maxWidth: "68%",
-  margin: '0 auto',
-  padding: isMobile ? '20px 16px' : '40px 20px',
-  width: '100%',
-        
-          // padding: isMobile ? '20px' : '40px',
-          // // maxWidth: '1200px',
-          // margin: '0 auto',
-          
-        }}>
+     <div style={{
+  maxWidth: isMobile ? "100%" : "65%",
+  margin: "0 auto",
+  padding: isMobile ? "16px" : "40px 20px",
+  width: "100%",
+}}>
+
            <div style={{
     display: 'flex',
-    gap: isMobile ? '20px' : '40px',
+    gap: isMobile ? '20px' : '30px',
     flexDirection: isMobile ? 'column' : 'row'
   }}>
           {/* Images */}
@@ -1760,13 +1758,12 @@ const isButtonBadge = normalize(product?.name || "").includes("button badge") ||
       Choose your corners
     </h3>
     
-    <div
-      style={{
-        display: "grid",
-        gridTemplateColumns: "1fr 1fr",
-        gap: "16px",
-      }}
-    >
+    <div style={{
+  display: "grid",
+  gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr",
+  gap: "16px",
+}}>
+
       {product.corner.map((c, i) => {
         // Map corner type to appropriate icon/image
         const cornerImages = {

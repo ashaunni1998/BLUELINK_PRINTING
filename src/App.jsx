@@ -51,7 +51,7 @@ import Checkout from "./pages/user/Checkout";
 import CheckoutForm from "./pages/user/CheckoutForm";
 import Success from "./pages/user/Success";
 import Cancel from "./pages/user/Cancel";
-import OrderDetails from "./pages/user/OrderDetails";
+import OrderDetail from "./pages/user/OrderDetail";
 import OrderConfirmation from "./pages/user/OrderConfirmation";
 import Returns from "./pages/user/Returns";
 
@@ -146,7 +146,7 @@ function App() {
             />
             <Route path="/success" element={<Success />} />
             <Route path="/cancel" element={<Cancel />} />
-            <Route path="/orders/:id" element={<OrderDetails />} />
+<Route path="/orders/:orderId" element={<OrderDetail />} />
             <Route path="/orderconfirmation" element={<OrderConfirmation />} />
             <Route path="/returns" element={<Returns />} />
 
