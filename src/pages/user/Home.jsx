@@ -412,7 +412,7 @@ console.log(products);
           }}
         >
           <Link
-            to={`/product/${product._id}`}
+            to={`/allProducts/${product.categoryId || product.category}`}
             style={{
               width: "100%",
               aspectRatio: "4/3",
@@ -441,7 +441,7 @@ console.log(products);
             }}
           >
             <Link
-              to={`/product/${product._id}`}
+              to={`/allProducts/${product.categoryId || product.category}`}
               style={{
                 color: "#007abf",
                 textDecoration: "none",
@@ -490,45 +490,42 @@ console.log(products);
 
 
 {/* Personalized Gifts Section - Aligned with Header */}
-<section style={{ backgroundColor: "#f5f8f6", padding: "1.875rem 0 2.5rem", textAlign: "center" ,marginLeft:"6%",marginRight:"6%"}}>
-
-
-    <h2
-      style={{
-        fontSize: "32px",
-        marginBottom: "12px",
-        fontWeight: "700",
-        color: "#111",
-      }}
-    >
-      Personalized Gifts
-    </h2>
-    <p
-      style={{
-        fontSize: "17px",
-        color: "#555",
-        marginBottom: "50px",
-        maxWidth: "700px",
-        marginInline: "auto",
-        lineHeight: "1.6",
-      }}
-    >
-      Make every occasion special with personalized gifts designed to create
-      lasting memories.
-    </p>
+<section style={{ backgroundColor: "#f5f8f6", padding: "1.875rem 0 2.5rem", textAlign: "center", marginLeft:"6%", marginRight:"6%"}}>
+  <h2
+    style={{
+      fontSize: "32px",
+      marginBottom: "12px",
+      fontWeight: "700",
+      color: "#111",
+    }}
+  >
+    Personalized Gifts
+  </h2>
+  <p
+    style={{
+      fontSize: "17px",
+      color: "#555",
+      marginBottom: "50px",
+      maxWidth: "700px",
+      marginInline: "auto",
+      lineHeight: "1.6",
+    }}
+  >
+    Make every occasion special with personalized gifts designed to create
+    lasting memories.
+  </p>
   <div
     style={{
-      maxWidth: "75%", // Match header container
+      maxWidth: "75%",
       margin: "0 16% 0 13%",
-      padding: "0 1rem "
+      padding: "0 1rem",
     }}
   >
     <div
       style={{
         display: "grid",
-        gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-        gap: "20px",
-        width: "100%", // Use full width within container
+        gridTemplateColumns: "repeat(5, 1fr)",
+        gap: "1.25rem",
       }}
     >
       {products
@@ -542,7 +539,6 @@ console.log(products);
               ? product.name.toLowerCase()
               : "";
           return category.includes("PhotoFrame") || name.includes("photo frame") || name.includes("mugs");
-         
         })
         .slice(0,8)
         .map((gift) => (
@@ -550,31 +546,18 @@ console.log(products);
             key={gift._id}
             style={{
               backgroundColor: "#fff",
-              borderRadius: "14px",
+              borderRadius: "0.375rem",
               overflow: "hidden",
-              boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
-              transition: "transform 0.3s ease, box-shadow 0.3s ease",
-              cursor: "pointer",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = "translateY(-6px)";
-              e.currentTarget.style.boxShadow =
-                "0 8px 25px rgba(0,0,0,0.12)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = "translateY(0)";
-              e.currentTarget.style.boxShadow =
-                "0 4px 20px rgba(0,0,0,0.08)";
+              boxShadow: "0 0.0625rem 0.375rem rgba(0,0,0,0.07)",
+              transition: "transform 0.2s ease",
             }}
           >
-            {/* Image wrapper */}
-             <Link
+            <Link
               to={`/product/${gift._id}`}
               style={{
                 width: "100%",
                 aspectRatio: "4/3",
                 overflow: "hidden",
-                background: "#f3f4f6",
                 display: "block",
               }}
             >
@@ -584,93 +567,36 @@ console.log(products);
                 style={{
                   width: "100%",
                   height: "100%",
-                  objectFit: "cover",
+                  objectFit: "contain",
                   display: "block",
-                  transition: "transform 0.4s ease",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = "scale(1.08)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = "scale(1)";
+                  backgroundColor: "#f9f9f9",
                 }}
               />
             </Link>
 
-            {/* Product details */}
             <div
               style={{
-                padding: "18px",
+                padding: "0.875rem",
+                borderTop: "1px solid #eee",
                 textAlign: "center",
               }}
             >
               <Link
                 to={`/product/${gift._id}`}
                 style={{
-                  color: "#007bff",
+                  color: "#007abf",
                   textDecoration: "none",
-                  fontWeight: "600",
-                  fontSize: "16px",
+                  fontWeight: "500",
+                  fontSize: "0.9375rem",
                   display: "block",
-                  marginBottom: "8px",
+                  marginBottom: "0.375rem",
                 }}
               >
                 {gift.name}
               </Link>
-
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  gap: "12px",
-                  marginBottom: "12px",
-                }}
-              >
-                <span
-                  style={{
-                    display: "inline-block",
-                    padding: "6px 16px",
-                    backgroundColor: "#eaf4ff",
-                    color: "#007bff",
-                    fontSize: "15px",
-                    fontWeight: "700",
-                    borderRadius: "30px",
-                    boxShadow: "0 2px 6px rgba(0,0,0,0.08)",
-                    minWidth: "60px",
-                  }}
-                >
-                  ${gift.price}
-                </span>
-
-                {/* Buy Now button */}
-         <Link
-                  to={`/product/${gift._id}`}
-                  style={{
-                    padding: "10px 18px",
-                    fontSize: "14px",
-                    fontWeight: "600",
-                    backgroundColor: "#007bff",
-                    color: "#fff",
-                    border: "none",
-                    borderRadius: "6px",
-                    cursor: "pointer",
-                    transition: "background 0.3s ease, transform 0.2s ease",
-                    textDecoration: "none",
-                    display: "inline-block",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = "#0056b3";
-                    e.currentTarget.style.transform = "translateY(-2px)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = "#007bff";
-                    e.currentTarget.style.transform = "translateY(0)";
-                  }}
-                >
-                  View
-                </Link>
-              </div>
+              <p style={{ fontSize: "0.875rem", color: "#444", margin: 0 }}>
+                ${gift.price}
+              </p>
             </div>
           </div>
         ))}
@@ -679,46 +605,43 @@ console.log(products);
 </section>
 
 {/* Flyers Section - Aligned with Header */}
-<section style={{ backgroundColor: "#f5f8f6", padding: "1.875rem 0 2.5rem", textAlign: "center",  marginLeft:"6%",marginRight:"6%"}}>
-
- 
-    <h2
-      style={{
-        fontSize: "32px",
-        marginBottom: "12px",
-        fontWeight: "700",
-        color: "#111",
-      }}
-    >
-      Our Flyers
-    </h2>
-    <p
-      style={{
-        fontSize: "17px",
-        color: "#555",
-        marginBottom: "50px",
-        maxWidth: "700px",
-        marginInline: "auto",
-        lineHeight: "1.6",
-      }}
-    >
-      Showcase your business with professional, eye-catching flyers designed to
-      leave a lasting impression.
-    </p>
- <div
+<section style={{ backgroundColor: "#f5f8f6", padding: "1.875rem 0 2.5rem", textAlign: "center", marginLeft:"6%", marginRight:"6%"}}>
+  <h2
     style={{
-      maxWidth: "75%", // Match header container
+      fontSize: "32px",
+      marginBottom: "12px",
+      fontWeight: "700",
+      color: "#111",
+    }}
+  >
+    Our Flyers
+  </h2>
+  <p
+    style={{
+      fontSize: "17px",
+      color: "#555",
+      marginBottom: "50px",
+      maxWidth: "700px",
+      marginInline: "auto",
+      lineHeight: "1.6",
+    }}
+  >
+    Showcase your business with professional, eye-catching flyers designed to
+    leave a lasting impression.
+  </p>
+  <div
+    style={{
+      maxWidth: "75%",
       margin: "0 16% 0 13%",
-      padding: "0  1rem", // Match header padding
+      padding: "0 1rem",
       textAlign: "center"
     }}
   >
     <div
       style={{
         display: "grid",
-        gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-        gap: "20px",
-        width: "100%", // Use full width within container
+        gridTemplateColumns: "repeat(5, 1fr)",
+        gap: "1.25rem",
       }}
     >
       {products
@@ -739,31 +662,18 @@ console.log(products);
             key={flyer._id}
             style={{
               backgroundColor: "#fff",
-              borderRadius: "14px",
+              borderRadius: "0.375rem",
               overflow: "hidden",
-              boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
-              transition: "transform 0.3s ease, box-shadow 0.3s ease",
-              cursor: "pointer",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = "translateY(-6px)";
-              e.currentTarget.style.boxShadow =
-                "0 8px 25px rgba(0,0,0,0.12)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = "translateY(0)";
-              e.currentTarget.style.boxShadow =
-                "0 4px 20px rgba(0,0,0,0.08)";
+              boxShadow: "0 0.0625rem 0.375rem rgba(0,0,0,0.07)",
+              transition: "transform 0.2s ease",
             }}
           >
-            {/* Image wrapper */}
             <Link
               to={`/product/${flyer._id}`}
               style={{
                 width: "100%",
                 aspectRatio: "4/3",
                 overflow: "hidden",
-                background: "#f3f4f6",
                 display: "block",
               }}
             >
@@ -773,92 +683,36 @@ console.log(products);
                 style={{
                   width: "100%",
                   height: "100%",
-                  objectFit: "cover",
+                  objectFit: "contain",
                   display: "block",
-                  transition: "transform 0.4s ease",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = "scale(1.08)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = "scale(1)";
+                  backgroundColor: "#f9f9f9",
                 }}
               />
             </Link>
 
-            {/* Product details */}
             <div
               style={{
-                padding: "18px",
+                padding: "0.875rem",
+                borderTop: "1px solid #eee",
                 textAlign: "center",
               }}
             >
               <Link
                 to={`/product/${flyer._id}`}
                 style={{
-                  color: "#007bff",
+                  color: "#007abf",
                   textDecoration: "none",
-                  fontWeight: "600",
-                  fontSize: "16px",
+                  fontWeight: "500",
+                  fontSize: "0.9375rem",
                   display: "block",
-                  marginBottom: "8px",
+                  marginBottom: "0.375rem",
                 }}
               >
                 {flyer.name}
               </Link>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  gap: "12px",
-                  marginBottom: "12px",
-                }}
-              >
-                <span
-                  style={{
-                    display: "inline-block",
-                    padding: "6px 16px",
-                    backgroundColor: "#eaf4ff",
-                    color: "#007bff",
-                    fontSize: "15px",
-                    fontWeight: "700",
-                    borderRadius: "30px",
-                    boxShadow: "0 2px 6px rgba(0,0,0,0.08)",
-                    minWidth: "60px",
-                  }}
-                >
-                  ${flyer.price}
-                </span>
-
-                {/* Buy Now button */}
-                <Link
-                  to={`/product/${flyer._id}`}
-                  style={{
-                    padding: "10px 18px",
-                    fontSize: "14px",
-                    fontWeight: "600",
-                    backgroundColor: "#007bff",
-                    color: "#fff",
-                    border: "none",
-                    borderRadius: "6px",
-                    cursor: "pointer",
-                    transition: "background 0.3s ease, transform 0.2s ease",
-                    textDecoration: "none",
-                    display: "inline-block",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = "#0056b3";
-                    e.currentTarget.style.transform = "translateY(-2px)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = "#007bff";
-                    e.currentTarget.style.transform = "translateY(0)";
-                  }}
-                >
-                  View
-                </Link>
-              </div>
+              <p style={{ fontSize: "0.875rem", color: "#444", margin: 0 }}>
+                ${flyer.price}
+              </p>
             </div>
           </div>
         ))}

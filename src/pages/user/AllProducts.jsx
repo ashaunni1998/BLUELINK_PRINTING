@@ -221,8 +221,9 @@ const arrowButtonStyle = (position) => ({
           {`
           .all-products-container {
             padding: 30px;
-            max-width: 1300px;
-            margin: auto;
+            max-width: 88%;
+             margin-left: 6%;
+  margin-right: 6%;
           }
 
           .page-title {
@@ -364,172 +365,100 @@ const arrowButtonStyle = (position) => ({
           {/* Slide Content */}
           
 
-      <style>
-        
-        {`
-          .all-products-container {
-            padding: 30px;
-            max-width: 1300px;
-            margin: auto;
-          }
-
-          .page-title {
-            font-size: 28px;
-            font-weight: 700;
-            margin-bottom: 24px;
-            text-align: center;
-            color: #222;
-          }
-
-          .products-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 28px;
-          }
-
-          .product-card {
-            background: #fff;
-            border-radius: 14px;
-            overflow: hidden;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.08);
-            transition: transform 0.25s ease, box-shadow 0.25s ease;
-            display: flex;
-            flex-direction: column;
-          }
-
-          .product-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 10px 24px rgba(0,0,0,0.18);
-          }
-
-          .product-image {
-            width: 100%;
-            height: 240px;
-            object-fit: cover;
-            background: #f9f9f9;
-          }
-
-          .product-info {
-            padding: 18px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            flex-grow: 1;
-          }
-
-          .product-name {
-            font-size: 18px;
-            font-weight: 600;
-            margin: 0 0 6px;
-            color: #222;
-          }
-
-          .product-subtitle {
-            font-size: 14px;
-            color: #666;
-            margin: 0 0 12px;
-            min-height: 18px;
-          }
-
-          .product-price {
-            font-size: 18px;
-            font-weight: 700;
-            color: #007bff;
-            margin: 12px 0;
-          }
-
-          .product-actions {
-            margin-top: auto;
-          }
-
-          .btn {
-            width: 100%;
-            padding: 12px;
-            border: none;
-            border-radius: 8px;
-            font-size: 15px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.25s ease, transform 0.1s ease;
-          }
-
-          .btn:active {
-            transform: scale(0.97);
-          }
-
-          .btn-primary {
-            background: #007bff;
-            color: #fff;
-          }
-          .btn-primary:hover {
-            background: #0056b3;
-          }
-
-          /* Responsive */
-          @media (max-width: 768px) {
-            .all-products-container {
-              padding: 16px;
-            }
-            .page-title {
-              font-size: 22px;
-            }
-            .product-image {
-              height: 200px;
-            }
-          }
-
-          @media (max-width: 480px) {
-            .product-name {
-              font-size: 16px;
-            }
-            .product-price {
-              font-size: 16px;
-            }
-          }
-        `}
-      </style>
-
-      <div className="all-products-container">
-        <h2 className="page-title">
-          {categoryName ? `All ${categoryName}` : "All Products"}
-        </h2>
-        {products.length === 0 ? (
-          <p style={{ textAlign: "center", color: "#666" }}>No products found for this category.</p>
-        ) : (
-          <div className="products-grid">
-            {products.map((product) => (
-              <div className="product-card" key={product._id}>
-                <img
-                  src={product.images?.[0]}
-                  alt={product.name}
-                  className="product-image"
-
-                  onClick={() => navigate(`/product/${product._id}`)} // 👈 image clickable
-            style={{ cursor: "pointer" }}
-                />
-                <div className="product-info">
-                  <div>
-                    <h3 className="product-name"  onClick={() => navigate(`/product/${product._id}`)} // 👈 name clickable
-                style={{ cursor: "pointer" }}>{product.name}</h3>
-                    <p className="product-subtitle">{product.subtitle}</p>
-                    <p className="product-price">${product.price}</p>
-                  </div>
-                  <div className="product-actions">
-                    <button
-                      className="btn btn-primary"
-                      onClick={() => navigate(`/product/${product._id}`)}
-                    >
-                      View
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
+   <div className="all-products-container">
+  <h2 className="page-title">
+    {categoryName ? `All ${categoryName}` : "All Products"}
+  </h2>
+  {products.length === 0 ? (
+    <p style={{ textAlign: "center", color: "#666" }}>
+      No products found for this category.
+    </p>
+  ) : (
+    <div 
+      className="products-grid"
+      style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(5, 1fr)",
+        gap: "1.25rem",
+        maxWidth: "75%",
+        margin: "0 auto",
+        padding: "0 1rem",
+      }}
+    >
+      {products.map((product) => (
+        <div 
+          className="product-card" 
+          key={product._id}
+          style={{
+            backgroundColor: "#fff",
+            borderRadius: "0.375rem",
+            overflow: "hidden",
+            boxShadow: "0 0.0625rem 0.375rem rgba(0,0,0,0.07)",
+            transition: "transform 0.2s ease",
+          }}
+        >
+          <div
+            style={{
+              width: "100%",
+              aspectRatio: "4/3",
+              overflow: "hidden",
+              display: "block",
+              cursor: "pointer",
+            }}
+            onClick={() => navigate(`/product/${product._id}`)}
+          >
+            <img
+              src={product.images?.[0] || "https://via.placeholder.com/300"}
+              alt={product.name}
+              className="product-image"
+              style={{
+                width: "100%",
+                height: "100%",
+                objectFit: "contain",
+                display: "block",
+                backgroundColor: "#f9f9f9",
+              }}
+            />
           </div>
-        )}
-        {/* <BusinessCardOptions/> */}
-       
-      </div>
+
+          <div 
+            className="product-info"
+            style={{
+              padding: "0.875rem",
+              borderTop: "1px solid #eee",
+              textAlign: "center",
+            }}
+          >
+            <h3 
+              className="product-name"
+              onClick={() => navigate(`/product/${product._id}`)}
+              style={{
+                color: "#007abf",
+                textDecoration: "none",
+                fontWeight: "500",
+                fontSize: "0.9375rem",
+                marginBottom: "0.375rem",
+                cursor: "pointer",
+              }}
+            >
+              {product.name}
+            </h3>
+            <p 
+              className="product-price"
+              style={{
+                fontSize: "0.875rem",
+                color: "#444",
+                margin: 0,
+              }}
+            >
+              ${product.price}
+            </p>
+          </div>
+        </div>
+      ))}
+    </div>
+  )}
+</div>
       
 
       <Footer />

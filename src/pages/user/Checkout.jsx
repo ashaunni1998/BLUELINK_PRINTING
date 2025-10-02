@@ -830,26 +830,26 @@ const handleApplyCoupon = async () => {
   return (
     // <div style={{ maxWidth: "1000px", margin: "0 auto", padding: "20px" }}>
      <div className="responsive-container">
-      <style>
-        {`
-          @media (max-width: 768px) {
-            .checkout-grid {
-              display: block !important;
-            }
-            .checkout-card {
-              margin-bottom: 20px !important;
-            }
-            .place-order-btn {
-              width: 100% !important;
-            }
-          }
-        `}
-      </style>
+      
 
       <Header />
       {/* <h2 style={{ fontSize: "28px", fontWeight: "bold", marginBottom: "20px" ,color:"#007bff",fontFamily:"monospace"}}>
         Checkout
       </h2> */}
+
+    
+    
+    <div 
+  className="checkout-wrapper"
+  style={{
+    maxWidth: "75%",
+    margin: "0 20% 0 18%",
+    padding: "2rem 1rem",
+  }}
+>
+
+
+
 
       <div
         className="checkout-grid"
@@ -1520,10 +1520,26 @@ const handleApplyCoupon = async () => {
     </button>
   </div>
 </div>
-
+</div>
 {/* responsive tweak (keeps everything in same file) */}
 <style>
 {`
+  @media (max-width: 768px) {
+    .checkout-wrapper {
+      max-width: 100% !important;
+      margin: 0 !important;
+      padding: 1rem !important;
+    }
+    .checkout-grid {
+      display: block !important;
+    }
+    .checkout-card {
+      margin-bottom: 20px !important;
+    }
+    .place-order-inline-btn {
+      width: 100% !important;
+    }
+  }
   @media (max-width: 520px) {
     .place-order-inline-btn {
       width: 100% !important;
