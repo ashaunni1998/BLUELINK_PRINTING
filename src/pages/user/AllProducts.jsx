@@ -192,6 +192,9 @@ const arrowButtonStyle = (position) => ({
             alignItems: "center",
             justifyContent: "center",
             transition: "background-image 0.5s ease-in-out",
+            maxWidth: isMobile ? "100%" : "88%",
+    margin: "0 auto",
+    width: isMobile ? "100%" : "calc(100% - 2rem)",
           }}
         >
           {/* <div
