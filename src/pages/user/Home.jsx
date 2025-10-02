@@ -209,7 +209,41 @@ const handleBuyNow = (productId) => {
   );
 console.log(products);
 
+const getFilteredProducts = (products) => {
+  console.log('Total products received:', products.length);
+  
+  const categoryMap = {};
+  
+  // First, group all products by category
+  products.forEach((product) => {
+    // Get the first category from the categories array
+    const catId = product.categories && product.categories[0] ? product.categories[0] : 'uncategorized';
+    
+    console.log('Product:', product.name, 'Category ID:', catId);
+    
+    if (!categoryMap[catId]) {
+      categoryMap[catId] = [];
+    }
+    
+    categoryMap[catId].push(product);
+  });
+  
+  console.log('Categories found:', Object.keys(categoryMap));
+  console.log('Products per category:', Object.keys(categoryMap).map(cat => `${cat}: ${categoryMap[cat].length}`));
+  
+  // Then, take first 2 products from each category
+  const result = [];
+  Object.keys(categoryMap).forEach((categoryId) => {
+    const categoryProducts = categoryMap[categoryId].slice(0, 2);
+    result.push(...categoryProducts);
+  });
+  
+  console.log('Filtered products count:', result.length);
+  
+  return result;
+};
 
+const filteredProducts = getFilteredProducts(products);
   return (
     <div className="responsive-container">
       {/* <nav
@@ -400,7 +434,7 @@ console.log(products);
         gap: "1.25rem",
       }}
     >
-      {products.map((product) => (
+      {filteredProducts.map((product) => (
         <div
           key={product._id}
           style={{
@@ -411,15 +445,15 @@ console.log(products);
             transition: "transform 0.2s ease",
           }}
         >
-          <Link
-            to={`/allProducts/${product.categoryId || product.category}`}
-            style={{
-              width: "100%",
-              aspectRatio: "4/3",
-              overflow: "hidden",
-              display: "block",
-            }}
-          >
+         <Link
+  to={`/allProducts/${product.categories && product.categories[0] ? product.categories[0] : ''}`}
+  style={{
+    width: "100%",
+    aspectRatio: "4/3",
+    overflow: "hidden",
+    display: "block",
+  }}
+>
             <img
               src={product.images[0] || "https://via.placeholder.com/300"}
               alt={product.name}
@@ -440,19 +474,19 @@ console.log(products);
               textAlign: "center",
             }}
           >
-            <Link
-              to={`/allProducts/${product.categoryId || product.category}`}
-              style={{
-                color: "#007abf",
-                textDecoration: "none",
-                fontWeight: "500",
-                fontSize: "0.9375rem",
-                display: "block",
-                marginBottom: "0.375rem",
-              }}
-            >
-              {product.name}
-            </Link>
+        <Link
+  to={`/allProducts/${product.categories && product.categories[0] ? product.categories[0] : ''}`}
+  style={{
+    color: "#007abf",
+    textDecoration: "none",
+    fontWeight: "500",
+    fontSize: "0.9375rem",
+    display: "block",
+    marginBottom: "0.375rem",
+  }}
+>
+  {product.name}
+</Link>
             <p style={{ fontSize: "0.875rem", color: "#444", margin: 0 }}>
               ${product.price}
             </p>
