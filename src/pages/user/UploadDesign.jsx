@@ -564,8 +564,8 @@ const handleSubmit = async (e) => {
 
         .ud-container {
           width:100%;
-          max-width:1200px;
-          margin: 14px auto;
+          max-width:62%;
+          margin: 14px 15% 14px 18%;
           padding: 12px;
           box-sizing:border-box;
           flex:1 0 auto;

@@ -835,14 +835,14 @@ const styles = {
   },
   navLinks: { 
     display: "flex", 
-    gap: "0.0625rem", 
+    gap: "0rem", 
     flexWrap: "nowrap", 
-    whiteSpace: "nowrap", 
+    // whiteSpace: "nowrap", 
     maxWidth: "66%",
     margin: "0 auto", 
     padding: "0 1.3rem",
     width: "100%",
-    alignItems: "flex-start",
+    // alignItems: "flex-start",
   },
   navItem: { 
     position: "relative" 
