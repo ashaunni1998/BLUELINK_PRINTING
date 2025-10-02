@@ -700,7 +700,7 @@ onClick={(e) => {
  <div
   style={{
     ...styles.offerBar,
-    width: isMobile ? "100%" : "89%",   // ✅ now works inside component
+    width: isMobile ? "100%" : "88%",   // ✅ now works inside component
     margin: isMobile ? "0" : "0 auto", // ✅ no error
   }}
 >
@@ -840,7 +840,7 @@ const styles = {
     whiteSpace: "nowrap", 
     maxWidth: "66%",
     margin: "0 auto", 
-    padding: "0 1rem",
+    padding: "0 1.3rem",
     width: "100%",
     alignItems: "flex-start",
   },

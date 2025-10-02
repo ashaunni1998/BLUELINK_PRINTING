@@ -109,7 +109,7 @@ export default function HomeSlider() {
           backgroundSize: "cover",
           backgroundPosition: "center",
           height: isMobile ? "200px" : "340px",
-          width: isMobile ? "100%" : "89%",
+          width: isMobile ? "100%" : "88%",
            margin: isMobile ? "0" : "0 auto",
           position: "relative",
           display: "flex",
@@ -138,7 +138,7 @@ export default function HomeSlider() {
   style={{
     position: "absolute",   // ⬅️ new
     top: "40%",             // ⬅️ new
-    left: "11%",            // ⬅️ adjust this to move left/right
+    left: "14%",            // ⬅️ adjust this to move left/right
     transform: "translateY(-50%)", // ⬅️ vertically centered
     color: "black",
     maxWidth: "500px",
@@ -181,7 +181,7 @@ export default function HomeSlider() {
         >
           {/* Progress Bars (Desktop Only) */}
           {!isMobile && (
-            <div style={{ display: "flex", justifyContent: "flex-start", gap: "6px", marginTop: "15px", marginBottom: "50px",marginLeft:"10%", }}>
+            <div style={{ display: "flex", justifyContent: "flex-start", gap: "6px", marginTop: "15px", marginBottom: "50px",marginLeft:"12.8%", }}>
               {homeSlides.map((_, index) => (
                 <div
                   key={index}

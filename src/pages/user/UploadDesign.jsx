@@ -357,8 +357,8 @@ const handleSubmit = async (e) => {
   return (
     <div className="responsive-container">
       <Header />
-  
-      <main className="ud-container" style={{maxWidth:"65%"}}>
+
+      <main className="ud-container">
         <div className="ud-card">
           <header className="ud-card-header">
             <div>

@@ -98,15 +98,15 @@ const Footer = () => {
           backgroundColor: "#2c3e50",
           color: "#fff",
           padding: "12px 0",
-          marginRight:"5%",
-          marginLeft:"5%",
+          marginRight:"6%",
+          marginLeft:"6%",
         }}
       >
         <div
           style={{
-            maxWidth: "65%",
+            maxWidth: "75%",
             margin: "0 auto",
-            padding: "0 1rem",
+            padding: "0 1.5rem",
             width: "100%",
             display: "flex",
             flexWrap: "wrap",
@@ -195,8 +195,8 @@ const Footer = () => {
       >
         <div
           style={{
-            maxWidth: "65%",
-            margin: "0 auto",
+            maxWidth: "75%",
+            margin: "0 16% 0 13%",
             padding: isMobile ? "0" : "40px 1rem",
             width: "100%",
           }}

@@ -42,9 +42,8 @@ const EnhancedHomeSections = () => {
   {/* <div className="relative z-10 w-full max-w-[65%] mx-auto px-4"> */}
    <div
     style={{
-      maxWidth: "65%",
+      maxWidth: "75%",
       margin: "0 auto",
-      padding: "0 1rem",
       marginLeft:"18%",
       marginRight:"21%"
     }}
@@ -196,11 +195,9 @@ const EnhancedHomeSections = () => {
 {/* <div className="relative z-10 w-full px-[5%] lg:px-[18%]"> */}
  <div
     style={{
-      maxWidth: "65%",
-      margin: "0 auto",
+      maxWidth: "75%",
+      margin: "0 16% 0 13%",
       padding: "0 1rem",
-      marginLeft:"18%",
-      marginRight:"21%"
     }}
   >
           <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
@@ -294,9 +291,8 @@ const EnhancedHomeSections = () => {
 {/* <div className="relative z-10 w-full px-[5%] lg:px-[18%]"> */}
         <div
     style={{
-      maxWidth: "65%",
+      maxWidth: "75%",
       margin: "0 auto",
-      padding: "0 1rem",
       marginLeft:"18%",
       marginRight:"21%"
     }}

@@ -388,11 +388,9 @@ console.log(products);
   {/* Container matches header's topBar maxWidth of 65% */}
   <div
     style={{
-      maxWidth: "65%",
-      margin: "0 auto",
+      maxWidth: "75%",
+      margin: "0 16% 0 13%",
       padding: "0 1rem",
-      marginLeft:"18%",
-      marginRight:"21%"
     }}
   >
     <div
@@ -520,11 +518,9 @@ console.log(products);
     </p>
   <div
     style={{
-      maxWidth: "65%", // Match header container
-      margin: "0 auto",
-      padding: "0 1rem ", // Match header padding
-      marginLeft:"18%",
-      marginRight:"21%"
+      maxWidth: "75%", // Match header container
+      margin: "0 16% 0 13%",
+      padding: "0 1rem "
     }}
   >
     <div
@@ -711,12 +707,10 @@ console.log(products);
     </p>
  <div
     style={{
-      maxWidth: "65%", // Match header container
-      margin: "0 auto",
+      maxWidth: "75%", // Match header container
+      margin: "0 16% 0 13%",
       padding: "0  1rem", // Match header padding
-      textAlign: "center",
-      marginLeft:"18%",
-      marginRight:"21%"
+      textAlign: "center"
     }}
   >
     <div
