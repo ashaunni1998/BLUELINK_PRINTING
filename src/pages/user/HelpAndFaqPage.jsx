@@ -10,7 +10,7 @@ const HelpAndFaqPage = () => {
     {
       question: "How do I place an order?",
       answer:
-        "To place an order, browse our products, customize your item, and proceed to checkout. You’ll need to create an account or sign in before completing your purchase.",
+        "To place an order, browse our products, customize your item, and proceed to checkout. You'll need to create an account or sign in before completing your purchase.",
     },
     {
       question: "Can I cancel or modify my order?",
@@ -25,7 +25,7 @@ const HelpAndFaqPage = () => {
     {
       question: "How do I track my order?",
       answer:
-        "Once your order ships, you’ll receive a tracking link via email or under 'My Orders' in your account dashboard.",
+        "Once your order ships, you'll receive a tracking link via email or under 'My Orders' in your account dashboard.",
     },
     {
       question: "What is your return policy?",
@@ -40,10 +40,13 @@ const HelpAndFaqPage = () => {
 
   return (
     <div className="responsive-container">
-              <Header/>
+      <Header/>
 
       <div style={styles.container}>
         <h2 style={styles.heading}>Help & FAQs</h2>
+        <p style={styles.subheading}>
+          Find answers to common questions about ordering, shipping, and our services.
+        </p>
 
         <div style={styles.faqSection}>
           {faqs.map((faq, index) => (
@@ -65,16 +68,18 @@ const HelpAndFaqPage = () => {
         </div>
 
         <div style={styles.contactBox}>
-          <h3>Still need help?</h3>
-          <p>Contact our customer service team—we're happy to assist you.</p>
-          <p>
+          <h3 style={styles.contactHeading}>Still need help?</h3>
+          <p style={styles.contactText}>Contact our customer service team—we're happy to assist you.</p>
+          <p style={styles.contactInfo}>
             <strong>Email:</strong>{" "}
-            <a href="mailto:support@bluelinkprinting.com">support@bluelinkprinting.com</a>
+            <a href="mailto:support@bluelinkprinting.com" style={styles.link}>
+              support@bluelinkprinting.com
+            </a>
           </p>
-          <p>
+          <p style={styles.contactInfo}>
             <strong>Phone:</strong> +91 98765 43210
           </p>
-          <p>
+          <p style={styles.contactInfo}>
             <strong>Live Chat:</strong> Available Mon–Fri, 9am–6pm IST
           </p>
         </div>
@@ -82,28 +87,42 @@ const HelpAndFaqPage = () => {
 
       <Footer />
     </div>
-    
   );
 };
 
 const styles = {
   container: {
-    padding: "30px 20px",
-    maxWidth: "900px",
-    margin: "auto",
-    fontFamily: "Arial, sans-serif",
+    // backgroundColor: "#f5f8f6",
+    padding: "1.875rem 0 2.5rem",
+    marginLeft: "6%",
+    marginRight: "9%",
   },
   heading: {
     fontSize: "32px",
-    fontWeight: "bold",
-    marginBottom: "20px",
+    marginBottom: "12px",
+    fontWeight: "700",
+    color: "#111",
+    textAlign: "center",
+  },
+  subheading: {
+    fontSize: "17px",
+    color: "#555",
+    marginBottom: "50px",
+    maxWidth: "700px",
+    marginInline: "auto",
+    lineHeight: "1.6",
     textAlign: "center",
   },
   faqSection: {
-    marginBottom: "40px",
+    maxWidth: "72%",
+    margin: "0 auto 40px",
+    backgroundColor: "#fff",
+    borderRadius: "0.375rem",
+    padding: "20px",
+    boxShadow: "0 0.0625rem 0.375rem rgba(0,0,0,0.07)",
   },
   faqItem: {
-    borderBottom: "1px solid #ddd",
+    borderBottom: "1px solid #eee",
     padding: "15px 0",
   },
   question: {
@@ -113,20 +132,47 @@ const styles = {
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
+    color: "#111",
   },
   answer: {
     marginTop: "10px",
     fontSize: "16px",
     color: "#555",
+    lineHeight: "1.6",
   },
   arrow: {
     fontSize: "14px",
+    color: "#007abf",
   },
   contactBox: {
-    backgroundColor: "#f9f9f9",
-    padding: "20px",
-    borderRadius: "8px",
-    border: "1px solid #ddd",
+    backgroundColor: "#fff",
+    padding: "30px",
+    borderRadius: "0.375rem",
+    boxShadow: "0 0.0625rem 0.375rem rgba(0,0,0,0.07)",
+    maxWidth: "72%",
+    margin: "0 auto",
+  },
+  contactHeading: {
+    fontSize: "24px",
+    fontWeight: "700",
+    color: "#111",
+    marginBottom: "12px",
+  },
+  contactText: {
+    fontSize: "17px",
+    color: "#555",
+    marginBottom: "20px",
+    lineHeight: "1.6",
+  },
+  contactInfo: {
+    fontSize: "16px",
+    color: "#444",
+    marginBottom: "10px",
+    lineHeight: "1.6",
+  },
+  link: {
+    color: "#007abf",
+    textDecoration: "none",
   },
 };
 

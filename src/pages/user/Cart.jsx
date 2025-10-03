@@ -543,55 +543,120 @@ export default function Cart() {
                     const keyId = cartItemId ? cartItemId : `${item.id}-${idx}`;
 
                     return (
-                      <div key={keyId} className="cart-item-card">
-                        <div className="cart-item-image" style={{ background: item.image ? '#fff' : '#f3f4f6' }}>
-                          {item.image ? (
-                            <img src={item.image} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                          ) : (
-                            <div style={{ textAlign: 'center', color: '#9ca3af', fontSize: '0.8125rem' }}>No image</div>
-                          )}
-                        </div>
+                     <div key={keyId} className="cart-item-card">
+  {/*
+    Resolve uploadedImage from multiple possible shapes:
+    - item.images (preferred)
+    - item.userImage (alternate)
+    - item.raw.images (maybe nested from API)
+    - item.image (existing product image fallback)
+  */}
+  {(() => {
+    const uploadedImage =
+  (item?.images && item.images.length > 0 && item.images[0]) ||
+  (item?.userImage && item.userImage.length > 0 && item.userImage[0]) ||
+  (item?.raw?.images && item.raw.images.length > 0 && item.raw.images[0]) ||
+  item?.image ||
+  null;
 
-                        <div className="cart-item-details">
-                          <h3 style={{ margin: '0 0 0.375rem', fontSize: '1rem', fontWeight: '600' }}>{item.name}</h3>
+    return (
+      <>
+        <div
+          className="cart-item-image"
+          style={{ background: uploadedImage ? "#fff" : "#f3f4f6" }}
+        >
+          {uploadedImage ? (
+            // Use an <img> so objectFit works — keep sizing consistent with your original styles
+            <img
+              src={uploadedImage}
+              alt={item.name || item.product?.name || "Product"}
+              style={{ width: "100%", height: "100%", objectFit: "cover" }}
+            />
+          ) : (
+            <div style={{ textAlign: "center", color: "#9ca3af", fontSize: "0.8125rem" }}>
+              No image
+            </div>
+          )}
+        </div>
 
-                          <div className="cart-item-options">
-                            <div><span style={{ color: '#6b7280' }}>Design:</span> <strong style={{ textTransform: 'capitalize' }}>{item.designType}</strong></div>
+        <div className="cart-item-details">
+          <h3 style={{ margin: "0 0 0.375rem", fontSize: "1rem", fontWeight: "600" }}>
+            {item.name}
+          </h3>
 
-                            <div>
-                              <span style={{ color: '#6b7280' }}>Qty:</span>
-                              <select
-                                value={item.qty}
-                                onChange={(e) => {
-                                  const newQty = e.target.value;
-                                  const cartItemIdToSend = item.raw?._id ?? item.id;
-                                  updateCartQty(cartItemIdToSend, newQty);
-                                }}
-                                disabled={!!updatingMap[item.raw?._id ?? item.id] || !cartId}
-                                className="quantity-select"
-                              >
-                                {item.allowedQtyOptions.map((q) => (
-                                  <option key={`${item.id}-qty-${q}`} value={q}>{q}</option>
-                                ))}
-                              </select>
-                            </div>
+          <div className="cart-item-options">
+            <div>
+              <span style={{ color: "#6b7280" }}>Design:</span>{" "}
+              <strong style={{ textTransform: "capitalize" }}>{item.designType}</strong>
+            </div>
 
-                            {item.selectedSize && <div><span style={{ color: '#6b7280' }}>Size:</span> <strong>{item.selectedSize}</strong></div>}
-                            {item.selectedPaper && <div><span style={{ color: '#6b7280' }}>Paper:</span> <strong>{item.selectedPaper}</strong></div>}
-                            {item.selectedFinish && <div><span style={{ color: '#6b7280' }}>Finish:</span> <strong>{item.selectedFinish}</strong></div>}
-                            {item.selectedCorner && <div><span style={{ color: '#6b7280' }}>Corner:</span> <strong>{item.selectedCorner}</strong></div>}
-                          </div>
-                        </div>
+            <div>
+              <span style={{ color: "#6b7280" }}>Qty:</span>
+              <select
+                value={item.qty}
+                onChange={(e) => {
+                  const newQty = e.target.value;
+                  const cartItemIdToSend = item.raw?._id ?? item.id;
+                  updateCartQty(cartItemIdToSend, newQty);
+                }}
+                disabled={!!updatingMap[item.raw?._id ?? item.id] || !cartId}
+                className="quantity-select"
+              >
+                {item.allowedQtyOptions.map((q) => (
+                  <option key={`${item.id}-qty-${q}`} value={q}>
+                    {q}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-                        <div className="cart-item-price">
-                          <div style={{ fontWeight: '700', fontSize: '1.125rem', color: '#111827', marginBottom: '0.5rem' }}>
-                            {currencySymbol(currency)}{formatMoney(item.unitPrice)}
-                          </div>
-                          <button onClick={() => removeItem(item.id)} style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', textDecoration: 'underline', fontSize: '0.875rem' }}>
-                            Remove
-                          </button>
-                        </div>
-                      </div>
+            {item.selectedSize && (
+              <div>
+                <span style={{ color: "#6b7280" }}>Size:</span> <strong>{item.selectedSize}</strong>
+              </div>
+            )}
+            {item.selectedPaper && (
+              <div>
+                <span style={{ color: "#6b7280" }}>Paper:</span> <strong>{item.selectedPaper}</strong>
+              </div>
+            )}
+            {item.selectedFinish && (
+              <div>
+                <span style={{ color: "#6b7280" }}>Finish:</span> <strong>{item.selectedFinish}</strong>
+              </div>
+            )}
+            {item.selectedCorner && (
+              <div>
+                <span style={{ color: "#6b7280" }}>Corner:</span> <strong>{item.selectedCorner}</strong>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="cart-item-price">
+          <div style={{ fontWeight: "700", fontSize: "1.125rem", color: "#111827", marginBottom: "0.5rem" }}>
+            {currencySymbol(currency)}
+            {formatMoney(item.unitPrice)}
+          </div>
+          <button
+            onClick={() => removeItem(item.id)}
+            style={{
+              background: "transparent",
+              border: "none",
+              color: "#ef4444",
+              cursor: "pointer",
+              textDecoration: "underline",
+              fontSize: "0.875rem",
+            }}
+          >
+            Remove
+          </button>
+        </div>
+      </>
+    );
+  })()}
+</div>
+
                     );
                   })}
                 </div>

@@ -132,7 +132,31 @@ export default function OrderConfirmation() {
                   {items.length === 0 ? <div style={{ color:"#6b7280" }}>No items available</div> : items.map((it, idx) => (
                     <div key={idx} style={{ display:"flex", gap:16, alignItems:"center", padding:"12px 0", borderBottom: idx < items.length - 1 ? "1px solid #f3f4f6" : "none" }}>
                       <div style={{ width:86, height:86, borderRadius:8, overflow:"hidden", background:"#f9fafb", display:"flex", alignItems:"center", justifyContent:"center" }}>
-                        {it.image ? <img src={it.image} alt={it.name} style={{ width:"100%", height:"100%", objectFit:"cover" }} /> : <div style={{ color:"#9ca3af" }}>No image</div>}
+                        {(() => {
+  let imageUrl = null;
+
+  // ✅ Prefer user uploaded images
+  if (it?.userImage && Array.isArray(it.userImage) && it.userImage.length) {
+    imageUrl = it.userImage[0];
+  } else if (it?.images && Array.isArray(it.images) && it.images.length) {
+    imageUrl = it.images[0];
+  } else if (it?.image) {
+    imageUrl = it.image;
+  } else if (it?.product?.image) {
+    imageUrl = it.product.image;
+  }
+
+  return imageUrl ? (
+    <img
+      src={imageUrl}
+      alt={it.name || "Product"}
+      style={{ width: "100%", height: "100%", objectFit: "cover" }}
+    />
+  ) : (
+    <div style={{ color: "#9ca3af" }}>No image</div>
+  );
+})()}
+
                       </div>
 
                       <div style={{ flex:1 }}>

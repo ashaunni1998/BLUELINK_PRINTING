@@ -807,7 +807,7 @@ const handleUploadYourDesign = () => {
 
   // ---- STYLES ----
   const styles = {
-    container: { backgroundColor: "#f8f9fa", minHeight: "100vh" },
+    container: {  minHeight: "100vh" },
     imageSection: {
       flex: 1,
       maxWidth: isMobile ? '100%' : '500px',
@@ -938,7 +938,7 @@ const isButtonBadge = normalize(product?.name || "").includes("button badge") ||
   return (
     <div style={styles.container}>
       <div className="responsive-container">
-        <Header onMenuStateChange={setMobileMenuOpen}/>
+      <Header onMenuStateChange={setMobileMenuOpen}/>
 
         {/* Main */}
      <div style={{
@@ -1765,30 +1765,25 @@ const isButtonBadge = normalize(product?.name || "").includes("button badge") ||
 }}>
 
       {product.corner.map((c, i) => {
-        // Map corner type to appropriate icon/image
-        const cornerImages = {
-          square: "https://shorturl.at/NvRK3",
-          rounded: "https://static.vecteezy.com/system/resources/previews/042/983/171/non_2x/round-corner-skined-filled-icon-vector.jpg",
-        };
-        
-        const imgUrl = cornerImages[c.name.toLowerCase()];
+        const isSelected = selectedCorner?.name === c.name;
+        const isSquare = c.name.toLowerCase() === "square";
         
         return (
           <div
             key={i}
             onClick={() => setSelectedCorner(c)}
             style={{
-              border: selectedCorner?.name === c.name 
+              border: isSelected 
                 ? "2px solid #007bff" 
                 : "2px solid #e5e5e5",
               borderRadius: "12px",
               padding: "20px",
               cursor: "pointer",
-              backgroundColor: selectedCorner?.name === c.name 
+              backgroundColor: isSelected 
                 ? "#f8f9ff" 
                 : "#ffffff",
               transition: "all 0.2s ease-in-out",
-              boxShadow: selectedCorner?.name === c.name 
+              boxShadow: isSelected 
                 ? "0 4px 12px rgba(0, 123, 255, 0.15)" 
                 : "0 2px 8px rgba(0, 0, 0, 0.05)",
               display: "flex",
@@ -1819,53 +1814,82 @@ const isButtonBadge = normalize(product?.name || "").includes("button badge") ||
               </div>
             </div>
             
-            {/* Right side icon */}
+            {/* Corner Icon - Simple L-shape like screenshot */}
             <div style={{ 
               marginLeft: "16px",
               display: "flex",
               alignItems: "center",
               justifyContent: "center"
             }}>
-              {imgUrl ? (
-                <img
-                  src={imgUrl}
-                  alt={c.name}
-                  style={{
-                    width: "40px",
-                    height: "40px",
-                    objectFit: "contain",
-                    filter: selectedCorner?.name === c.name 
-                      ? "brightness(1.1)" 
-                      : "brightness(0.8)",
-                  }}
-                />
+              {isSquare ? (
+                // Square Corner - Sharp 90° L-shape
+                <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+                  <path 
+                    d="M12 12 L12 20 M12 12 L20 12"
+                    stroke={isSelected ? "#007bff" : "#1f2937"}
+                    strokeWidth="3"
+                    strokeLinecap="square"
+                    strokeLinejoin="miter"
+                  />
+                  <path 
+                    d="M36 12 L36 20 M36 12 L28 12"
+                    stroke={isSelected ? "#007bff" : "#1f2937"}
+                    strokeWidth="3"
+                    strokeLinecap="square"
+                    strokeLinejoin="miter"
+                  />
+                  <path 
+                    d="M12 36 L12 28 M12 36 L20 36"
+                    stroke={isSelected ? "#007bff" : "#1f2937"}
+                    strokeWidth="3"
+                    strokeLinecap="square"
+                    strokeLinejoin="miter"
+                  />
+                  <path 
+                    d="M36 36 L36 28 M36 36 L28 36"
+                    stroke={isSelected ? "#007bff" : "#1f2937"}
+                    strokeWidth="3"
+                    strokeLinecap="square"
+                    strokeLinejoin="miter"
+                  />
+                </svg>
               ) : (
-                // Fallback SVG icons if images don't load
-                <div style={{
-                  width: "40px",
-                  height: "40px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  backgroundColor: "#f0f0f0",
-                  borderRadius: c.name.toLowerCase() === "square" ? "4px" : "50%",
-                  border: "2px solid #ddd"
-                }}>
-                  {c.name.toLowerCase() === "square" ? (
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-                    </svg>
-                  ) : (
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <rect x="3" y="3" width="18" height="18" rx="9" ry="9"/>
-                    </svg>
-                  )}
-                </div>
+                // Rounded Corner - Smooth curved arcs at corners
+                <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+                  <path 
+                    d="M12 18 C12 14 14 12 18 12"
+                    stroke={isSelected ? "#007bff" : "#1f2937"}
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    fill="none"
+                  />
+                  <path 
+                    d="M36 18 C36 14 34 12 30 12"
+                    stroke={isSelected ? "#007bff" : "#1f2937"}
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    fill="none"
+                  />
+                  <path 
+                    d="M12 30 C12 34 14 36 18 36"
+                    stroke={isSelected ? "#007bff" : "#1f2937"}
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    fill="none"
+                  />
+                  <path 
+                    d="M36 30 C36 34 34 36 30 36"
+                    stroke={isSelected ? "#007bff" : "#1f2937"}
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    fill="none"
+                  />
+                </svg>
               )}
             </div>
             
             {/* Selection indicator */}
-            {selectedCorner?.name === c.name && (
+            {isSelected && (
               <div style={{
                 position: "absolute",
                 top: "12px",
@@ -1879,7 +1903,7 @@ const isButtonBadge = normalize(product?.name || "").includes("button badge") ||
                 justifyContent: "center"
               }}>
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="white">
-                  <polyline points="20,6 9,17 4,12"></polyline>
+                  <polyline points="20,6 9,17 4,12" stroke="white" strokeWidth="3" fill="none"/>
                 </svg>
               </div>
             )}
@@ -1889,7 +1913,6 @@ const isButtonBadge = normalize(product?.name || "").includes("button badge") ||
     </div>
   </div>
 )}
-
 {/* <div style={{ 
   marginBottom: "30px",
   padding: "25px",

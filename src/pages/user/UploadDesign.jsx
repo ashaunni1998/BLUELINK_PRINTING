@@ -4,6 +4,7 @@ import { useParams, useNavigate, useLocation } from "react-router-dom";
 import Cropper from "react-easy-crop";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
+
 /**
  * UploadDesign.jsx
  * - Mobile-first, responsive upload + crop UI
@@ -43,7 +44,9 @@ const productId = param.get("productId");
   const [backPreview, setBackPreview] = useState(null);
   const [fullPreview, setFullPreview] = useState(null);
   const [prevPreview, setPrevPreview] = useState({ front: null, back: null, full: null });
-
+const [frontFile, setFrontFile] = useState(null);
+const [backFile, setBackFile] = useState(null);
+const [fullFile, setFullFile] = useState(null);
   // file meta
   const [fileMeta, setFileMeta] = useState({ front: null, back: null, full: null });
 
@@ -90,25 +93,30 @@ const productId = param.get("productId");
     return new File([blob], filename, { type: blob.type || "image/jpeg" });
   };
 
-  // Open file for cropping
-  const openFileForCrop = async (file, side) => {
-    if (!file) return;
-    if (!file.type.startsWith("image/")) {
-      alert("Only images allowed (PNG/JPG/GIF).");
-      return;
-    }
-    if (file.size > MAX_FILE_SIZE) {
-      alert("File too large (max 6MB).");
-      return;
-    }
-    const dataUrl = await fileToDataUrl(file);
-    setCroppingImage(dataUrl);
-    setCroppingSide(side);
-    setCrop({ x: 0, y: 0 });
-    setZoom(1);
-    setCroppedAreaPixels(null);
-    setFileMeta((m) => ({ ...m, [side]: { name: file.name, size: file.size } }));
-  };
+const openFileForCrop = async (file, side) => {
+  if (!file) return;
+  if (!file.type.startsWith("image/")) {
+    alert("Only images allowed (PNG/JPG/GIF).");
+    return;
+  }
+  if (file.size > MAX_FILE_SIZE) {
+    alert("File too large (max 6MB).");
+    return;
+  }
+
+  // NEW: store raw File in state (used later in FormData)
+  if (side === "front") setFrontFile(file);
+  if (side === "back") setBackFile(file);
+  if (side === "full") setFullFile(file);
+
+  const dataUrl = await fileToDataUrl(file);
+  setCroppingImage(dataUrl);
+  setCroppingSide(side);
+  setCrop({ x: 0, y: 0 });
+  setZoom(1);
+  setCroppedAreaPixels(null);
+  setFileMeta((m) => ({ ...m, [side]: { name: file.name, size: file.size } }));
+};
 
   // Input change handler
   const handleFileChange = (e, side) => {
@@ -165,34 +173,39 @@ const productId = param.get("productId");
       image.onerror = (err) => reject(err);
     });
 
-  // Save cropped image (only top Save crop button will call this)
-  const handleSaveCrop = async () => {
-    try {
-      if (!croppingImage || !croppedAreaPixels || !croppingSide) return;
-      const cropped = await getCroppedImg(croppingImage, croppedAreaPixels);
+ const handleSaveCrop = async () => {
+  try {
+    if (!croppingImage || !croppedAreaPixels || !croppingSide) return;
+    const croppedDataUrl = await getCroppedImg(croppingImage, croppedAreaPixels);
 
-      // store previous preview for one-step revert
-      setPrevPreview((p) => ({
-        ...p,
-        [croppingSide]: croppingSide === "front" ? frontPreview : croppingSide === "back" ? backPreview : fullPreview,
-      }));
+    // Convert cropped DataURL -> File for upload
+    const croppedFile = await dataURLtoFile(croppedDataUrl, `${croppingSide}-cropped.jpg`);
 
-      // set new preview
-      if (croppingSide === "front") setFrontPreview(cropped);
-      if (croppingSide === "back") setBackPreview(cropped);
-      if (croppingSide === "full") setFullPreview(cropped);
-
-      // close modal
-      setCroppingImage(null);
-      setCroppingSide(null);
-      setCroppedAreaPixels(null);
-      setCrop({ x: 0, y: 0 });
-      setZoom(1);
-    } catch (err) {
-      console.error("Crop save error:", err);
-      alert("Failed to save crop.");
+    // Save both preview and real file
+    if (croppingSide === "front") {
+      setFrontPreview(croppedDataUrl);
+      setFrontFile(croppedFile);
     }
-  };
+    if (croppingSide === "back") {
+      setBackPreview(croppedDataUrl);
+      setBackFile(croppedFile);
+    }
+    if (croppingSide === "full") {
+      setFullPreview(croppedDataUrl);
+      setFullFile(croppedFile);
+    }
+
+    // close modal
+    setCroppingImage(null);
+    setCroppingSide(null);
+    setCroppedAreaPixels(null);
+    setCrop({ x: 0, y: 0 });
+    setZoom(1);
+  } catch (err) {
+    console.error("Crop save error:", err);
+    alert("Failed to save crop.");
+  }
+};
 
   // Clear preview (delete)
   const handleClear = (side) => {
@@ -230,94 +243,46 @@ const productId = param.get("productId");
 const handleSubmit = async (e) => {
   e.preventDefault();
   try {
-    // Read query string
     const qs = new URLSearchParams(window.location.search || "");
 
-    // 1) Resolve productId from route param OR query param
-    // routeParams is created at component top (see step 1)
-    const productIdFromRoute = (routeParams && (routeParams.id || routeParams.productId || routeParams.product)) || null;
+    const productIdFromRoute =
+      (routeParams && (routeParams.id || routeParams.productId || routeParams.product)) || null;
     const productIdFromQuery = qs.get("productId") || qs.get("id") || null;
     const productId = productIdFromRoute || productIdFromQuery;
 
-    // 2) Read quantity/designType/options from querystring (or fallbacks)
     const quantity = Number(qs.get("quantity") || qs.get("qty") || 1) || 1;
     const designType = qs.get("designType") || "single";
-
     const sizeRaw = qs.get("size") || "";
     const finishRaw = qs.get("finish") || "";
     const cornerRaw = qs.get("corner") || "";
     const paperRaw = qs.get("paper") || "";
 
-    // Debug - show resolved values
-    console.log("UploadDesign QUERY:", {
-      productIdFromRoute,
-      productIdFromQuery,
-      resolvedProductId: productId,
-      quantity,
-      designType,
-      sizeRaw,
-      finishRaw,
-      cornerRaw,
-      paperRaw,
-      locationSearch: window.location.search,
-    });
-
-    // Validate productId
     if (!productId) {
-      console.error("Missing productId in upload design form. ProductDetail must include ?productId=... or route must be /upload-design/:id");
       alert("Product info missing. Please go back and try again.");
       return;
     }
 
-    // Resolve files — update these names to the actual state var used in your component if needed
+    // ✅ FIX: Collect files from state
     let resolvedFiles = [];
-    try {
-      if (typeof files !== "undefined" && files) {
-        resolvedFiles = Array.isArray(files) ? files : Array.from(files);
-      } else if (typeof images !== "undefined" && images) {
-        resolvedFiles = Array.isArray(images) ? images : Array.from(images);
-      } else if (typeof uploadedFilesState !== "undefined" && uploadedFilesState) {
-        resolvedFiles = Array.isArray(uploadedFilesState) ? uploadedFilesState : [];
-      } else {
-        // fallback: check for input element with id uploadInput
-        const domIn = document.getElementById("uploadInput");
-        if (domIn && domIn.files && domIn.files.length) {
-          resolvedFiles = Array.from(domIn.files);
-        }
-      }
-    } catch (err) {
-      console.warn("Error resolving files:", err);
-      resolvedFiles = [];
-    }
+    if (frontFile) resolvedFiles.push(frontFile);
+    if (backFile) resolvedFiles.push(backFile);
+    if (fullFile) resolvedFiles.push(fullFile);
 
     console.log("Resolved files to upload:", resolvedFiles.map(f => f?.name || "(file)"));
 
-    // Build FormData
     const formData = new FormData();
-    if (Array.isArray(resolvedFiles) && resolvedFiles.length) {
-      for (const f of resolvedFiles) {
-        if (f instanceof File || (typeof f === "object" && (f.name || f.filename))) {
-          formData.append("images", f, f.name || f.filename || "upload.png");
-        }
-      }
-    }
-
+    resolvedFiles.forEach(f => formData.append("images", f, f.name || "upload.jpg"));
     formData.append("productId", String(productId));
     formData.append("quantity", String(quantity));
     formData.append("designType", String(designType));
-
-    const options = {
+    formData.append("options", JSON.stringify({
       designType,
       size: sizeRaw || null,
       finish: finishRaw || null,
       corner: cornerRaw || null,
       paper: paperRaw || null,
-    };
-    formData.append("options", JSON.stringify(options));
+    }));
 
-    console.log("Final form payload summary:", { productId, quantity, designType, options, filesCount: resolvedFiles.length });
-
-    // Send to backend (include credentials so cookie gets sent)
     const res = await fetch(`${API_BASE_URL}/addToCartWithDesign`, {
       method: "POST",
       credentials: "include",
@@ -338,6 +303,7 @@ const handleSubmit = async (e) => {
     alert("Unexpected error uploading design. See console for details.");
   }
 };
+
 
 
 

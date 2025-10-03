@@ -14,13 +14,13 @@ const blogPosts = [
   {
     id: 2,
     title: 'How to Design the Perfect Business Card',
-    snippet: 'Business cards still matter in 2025. Here’s how to make yours unforgettable...',
+    snippet: 'Business cards still matter in 2025. Here is how to make yours unforgettable...',
     date: 'August 3, 2025',
   },
   {
     id: 3,
     title: 'Choosing the Right Paper for Your Flyers',
-    snippet: 'Matte or gloss? Thin or thick? Let’s help you pick the right flyer paper...',
+    snippet: 'Matte or gloss? Thin or thick? Lets help you pick the right flyer paper...',
     date: 'August 5, 2025',
   },
 ];
@@ -28,34 +28,28 @@ const blogPosts = [
 const Blog = () => {
   return (
     <div className="responsive-container">
-              <Header/>
-      <div style={{ width: '90%', maxWidth: '1200px', margin: '0 auto', padding: '40px 0' }}>
-        <h2 style={{ textAlign: 'center' }}>📚 Blue Link Blog</h2>
-        <p style={{ textAlign: 'center', marginBottom: '40px', color: '#666' }}>
+      <Header/>
+      
+      <div style={styles.container}>
+        <h2 style={styles.heading}>📚 Blue Link Blog</h2>
+        <p style={styles.subheading}>
           Get tips, inspiration, and updates about printing and promotions.
         </p>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '30px' }}>
+        <div style={styles.blogGrid}>
           {blogPosts.map((post) => (
             <div
               key={post.id}
-              style={{
-                border: '1px solid #ddd',
-                borderRadius: '8px',
-                padding: '20px',
-                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)',
-                backgroundColor: '#fff',
-                transition: 'transform 0.2s',
-              }}
+              style={styles.blogCard}
               onMouseEnter={(e) => (e.currentTarget.style.transform = 'translateY(-5px)')}
               onMouseLeave={(e) => (e.currentTarget.style.transform = 'translateY(0)')}
             >
-              <h3>{post.title}</h3>
-              <p style={{ color: '#999', fontSize: '14px' }}>{post.date}</p>
-              <p style={{ marginTop: '10px', color: '#444' }}>{post.snippet}</p>
+              <h3 style={styles.blogTitle}>{post.title}</h3>
+              <p style={styles.blogDate}>{post.date}</p>
+              <p style={styles.blogSnippet}>{post.snippet}</p>
               <Link
                 to={`/blog/${post.id}`}
-                style={{ color: '#007BFF', fontWeight: 'bold', textDecoration: 'none', marginTop: '10px', display: 'inline-block' }}
+                style={styles.readMoreLink}
               >
                 Read More →
               </Link>
@@ -63,10 +57,74 @@ const Blog = () => {
           ))}
         </div>
       </div>
+      
       <Footer />
     </div>
-    
   );
+};
+
+const styles = {
+  container: {
+    
+    padding: "1.875rem 0 2.5rem",
+    marginLeft: "6%",
+    marginRight: "8%",
+  },
+  heading: {
+    fontSize: "32px",
+    marginBottom: "12px",
+    fontWeight: "700",
+    color: "#111",
+    textAlign: "center",
+  },
+  subheading: {
+    fontSize: "17px",
+    color: "#555",
+    marginBottom: "50px",
+    maxWidth: "700px",
+    marginInline: "auto",
+    lineHeight: "1.6",
+    textAlign: "center",
+  },
+  blogGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
+    gap: "1.875rem",
+    maxWidth: "75%",
+    margin: "0 auto",
+  },
+  blogCard: {
+    backgroundColor: "#fff",
+    borderRadius: "0.375rem",
+    padding: "1.5rem",
+    boxShadow: "0 0.0625rem 0.375rem rgba(0,0,0,0.07)",
+    transition: "transform 0.2s ease",
+  },
+  blogTitle: {
+    fontSize: "20px",
+    fontWeight: "600",
+    color: "#111",
+    marginBottom: "8px",
+  },
+  blogDate: {
+    color: "#999",
+    fontSize: "14px",
+    marginBottom: "12px",
+  },
+  blogSnippet: {
+    marginTop: "10px",
+    color: "#555",
+    fontSize: "16px",
+    lineHeight: "1.6",
+    marginBottom: "15px",
+  },
+  readMoreLink: {
+    color: "#007abf",
+    fontWeight: "600",
+    textDecoration: "none",
+    display: "inline-block",
+    fontSize: "15px",
+  },
 };
 
 export default Blog;

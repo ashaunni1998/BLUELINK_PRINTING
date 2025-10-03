@@ -12,6 +12,7 @@ import FlyerSection from "./FlyerSection";
 import EnhancedHomeSections from "./EnhancedHomeSections";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const Home = () => {
 
@@ -208,42 +209,17 @@ const handleBuyNow = (productId) => {
     </svg>
   );
 console.log(products);
+ const [currentIndex, setCurrentIndex] = useState(0);
+  const itemsPerView = 5;
+  const maxIndex = Math.max(0, products.length - itemsPerView);
 
-const getFilteredProducts = (products) => {
-  console.log('Total products received:', products.length);
-  
-  const categoryMap = {};
-  
-  // First, group all products by category
-  products.forEach((product) => {
-    // Get the first category from the categories array
-    const catId = product.categories && product.categories[0] ? product.categories[0] : 'uncategorized';
-    
-    console.log('Product:', product.name, 'Category ID:', catId);
-    
-    if (!categoryMap[catId]) {
-      categoryMap[catId] = [];
-    }
-    
-    categoryMap[catId].push(product);
-  });
-  
-  console.log('Categories found:', Object.keys(categoryMap));
-  console.log('Products per category:', Object.keys(categoryMap).map(cat => `${cat}: ${categoryMap[cat].length}`));
-  
-  // Then, take first 2 products from each category
-  const result = [];
-  Object.keys(categoryMap).forEach((categoryId) => {
-    const categoryProducts = categoryMap[categoryId].slice(0, 2);
-    result.push(...categoryProducts);
-  });
-  
-  console.log('Filtered products count:', result.length);
-  
-  return result;
-};
+  const handlePrev = () => {
+    setCurrentIndex(prev => Math.max(0, prev - 1));
+  };
 
-const filteredProducts = getFilteredProducts(products);
+  const handleNext = () => {
+    setCurrentIndex(prev => Math.min(maxIndex, prev + 1));
+  };
   return (
     <div className="responsive-container">
       {/* <nav
@@ -378,125 +354,253 @@ const filteredProducts = getFilteredProducts(products);
 
 
 
-{/* Popular Products Section */}
-<section style={{ backgroundColor: "#f5f8f6", padding: "1.875rem 0 2.5rem", marginLeft:"6%",marginRight:"6%",textAlign: "center" }}>
-  <h2
-    style={{
-      fontSize: "1.625rem",
-      marginBottom: "0.625rem",
-      fontWeight: "700",
-      color: "#111",
-      textAlign: "center",
-      position: "relative",
-      display: "inline-block",
-    }}
-  >
-    Popular Products
-    <span
-      style={{
-        position: "absolute",
-        left: "50%",
-        bottom: "-0.375rem",
-        transform: "translateX(-50%)",
-        width: "3.75rem",
-        height: "0.25rem",
-        borderRadius: "0.125rem",
-      }}
-    ></span>
-  </h2>
-
-  <p
-    style={{
-      fontSize: "0.875rem",
-      color: "#555",
-      marginBottom: "1.875rem",
-      maxWidth: "65%",
-      marginInline: "auto",
-      lineHeight: "1.5",
-      textAlign: "center",
-    }}
-  >
-    These are tried and true favorites that will have you set to get down to business.
-  </p>
-
-  {/* Container matches header's topBar maxWidth of 65% */}
-  <div
-    style={{
-      maxWidth: "75%",
-      margin: "0 16% 0 13%",
-      padding: "0 1rem",
-    }}
-  >
-    <div
-      style={{
-        display: "grid",
-        gridTemplateColumns: "repeat(5, 1fr)",
-        gap: "1.25rem",
-      }}
-    >
-      {filteredProducts.map((product) => (
-        <div
-          key={product._id}
+  <section style={{ backgroundColor: "#f5f8f6", padding: "1.875rem 0 2.5rem", marginLeft: "6%", marginRight: "6%", textAlign: "center" }}>
+      <h2
+        style={{
+          fontSize: "1.625rem",
+          marginBottom: "0.625rem",
+          fontWeight: "700",
+          color: "#111",
+          textAlign: "center",
+          position: "relative",
+          display: "inline-block",
+        }}
+      >
+        Popular Products
+        <span
           style={{
-             backgroundColor: "#fff",
-            borderRadius: "0.375rem",
-            overflow: "hidden",
-            boxShadow: "0 0.0625rem 0.375rem rgba(0,0,0,0.07)",
-            transition: "transform 0.2s ease",
+            position: "absolute",
+            left: "50%",
+            bottom: "-0.375rem",
+            transform: "translateX(-50%)",
+            width: "3.75rem",
+            height: "0.25rem",
+            backgroundColor: "#007abf",
+            borderRadius: "0.125rem",
+          }}
+        ></span>
+      </h2>
+
+      <p
+        style={{
+          fontSize: "0.875rem",
+          color: "#555",
+          marginBottom: "1.875rem",
+          maxWidth: "65%",
+          marginInline: "auto",
+          lineHeight: "1.5",
+          textAlign: "center",
+        }}
+      >
+        These are tried and true favorites that will have you set to get down to business.
+      </p>
+
+      {/* Carousel Container */}
+      <div
+        style={{
+          maxWidth: "75%",
+          margin: "0 auto",
+          padding: "0 1rem",
+          position: "relative",
+        }}
+      >
+        {/* Previous Button */}
+        <button
+          onClick={handlePrev}
+          disabled={currentIndex === 0}
+          style={{
+            position: "absolute",
+            left: "-2.5rem",
+            top: "50%",
+            transform: "translateY(-50%)",
+            backgroundColor: "#fff",
+            border: "1px solid #ddd",
+            borderRadius: "50%",
+            width: "2.5rem",
+            height: "2.5rem",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            cursor: currentIndex === 0 ? "not-allowed" : "pointer",
+            opacity: currentIndex === 0 ? 0.5 : 1,
+            transition: "all 0.2s ease",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+            zIndex: 10,
+          }}
+          onMouseEnter={(e) => {
+            if (currentIndex !== 0) {
+              e.currentTarget.style.backgroundColor = "#007abf";
+              e.currentTarget.style.borderColor = "#007abf";
+              e.currentTarget.style.transform = "translateY(-50%) scale(1.1)";
+            }
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = "#fff";
+            e.currentTarget.style.borderColor = "#ddd";
+            e.currentTarget.style.transform = "translateY(-50%) scale(1)";
           }}
         >
-         <Link
-  to={`/allProducts/${product.categories && product.categories[0] ? product.categories[0] : ''}`}
-  style={{
-    width: "100%",
-    aspectRatio: "4/3",
-    overflow: "hidden",
-    display: "block",
-  }}
->
-            <img
-              src={product.images[0] || "https://via.placeholder.com/300"}
-              alt={product.name}
-              style={{
-                width: "100%",
-                height: "100%",
-                objectFit: "contain",
-                display: "block",
-                backgroundColor: "#f9f9f9",
-              }}
-            />
-          </Link>
+          <ChevronLeft size={20} color={currentIndex === 0 ? "#ccc" : "#007abf"} />
+        </button>
 
+        {/* Carousel Track */}
+        <div style={{ overflow: "hidden" }}>
           <div
             style={{
-              padding: "0.875rem",
-              borderTop: "1px solid #eee",
-              textAlign: "center",
+              display: "flex",
+              transition: "transform 0.4s ease-in-out",
+              transform: `translateX(-${currentIndex * (100 / itemsPerView)}%)`,
             }}
           >
-        <Link
-  to={`/allProducts/${product.categories && product.categories[0] ? product.categories[0] : ''}`}
-  style={{
-    color: "#007abf",
-    textDecoration: "none",
-    fontWeight: "500",
-    fontSize: "0.9375rem",
-    display: "block",
-    marginBottom: "0.375rem",
-  }}
->
-  {product.name}
-</Link>
-            <p style={{ fontSize: "0.875rem", color: "#444", margin: 0 }}>
-              ${product.price}
-            </p>
+            {products.map((product) => (
+              <div
+                key={product._id}
+                style={{
+                  flex: `0 0 ${100 / itemsPerView}%`,
+                  padding: "0 0.625rem",
+                  boxSizing: "border-box",
+                }}
+              >
+                <div
+                  style={{
+                    backgroundColor: "#fff",
+                    borderRadius: "0.375rem",
+                    overflow: "hidden",
+                    boxShadow: "0 0.0625rem 0.375rem rgba(0,0,0,0.07)",
+                    transition: "transform 0.2s ease, box-shadow 0.2s ease",
+                    cursor: "pointer",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = "translateY(-0.25rem)";
+                    e.currentTarget.style.boxShadow = "0 0.375rem 0.75rem rgba(0,0,0,0.15)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = "translateY(0)";
+                    e.currentTarget.style.boxShadow = "0 0.0625rem 0.375rem rgba(0,0,0,0.07)";
+                  }}
+                >
+                  <a
+                    href={`/allProducts/${product.categories && product.categories[0] ? product.categories[0] : ''}`}
+                    style={{
+                      width: "100%",
+                      aspectRatio: "4/3",
+                      overflow: "hidden",
+                      display: "block",
+                      textDecoration: "none",
+                    }}
+                  >
+                    <img
+                      src={product.images[0] || "https://via.placeholder.com/300"}
+                      alt={product.name}
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "contain",
+                        display: "block",
+                        backgroundColor: "#f9f9f9",
+                      }}
+                    />
+                  </a>
+
+                  <div
+                    style={{
+                      padding: "0.875rem",
+                      borderTop: "1px solid #eee",
+                      textAlign: "center",
+                    }}
+                  >
+                    <a
+                      href={`/allProducts/${product.categories && product.categories[0] ? product.categories[0] : ''}`}
+                      style={{
+                        color: "#007abf",
+                        textDecoration: "none",
+                        fontWeight: "500",
+                        fontSize: "0.9375rem",
+                        display: "block",
+                        marginBottom: "0.375rem",
+                      }}
+                    >
+                      {product.name}
+                    </a>
+                    <p style={{ fontSize: "0.875rem", color: "#444", margin: 0 }}>
+                      ${product.price}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
-      ))}
-    </div>
-  </div>
-</section>
 
+        {/* Next Button */}
+        <button
+          onClick={handleNext}
+          disabled={currentIndex === maxIndex}
+          style={{
+            position: "absolute",
+            right: "-2.5rem",
+            top: "50%",
+            transform: "translateY(-50%)",
+            backgroundColor: "#fff",
+            border: "1px solid #ddd",
+            borderRadius: "50%",
+            width: "2.5rem",
+            height: "2.5rem",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            cursor: currentIndex === maxIndex ? "not-allowed" : "pointer",
+            opacity: currentIndex === maxIndex ? 0.5 : 1,
+            transition: "all 0.2s ease",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+            zIndex: 10,
+          }}
+          onMouseEnter={(e) => {
+            if (currentIndex !== maxIndex) {
+              e.currentTarget.style.backgroundColor = "#007abf";
+              e.currentTarget.style.borderColor = "#007abf";
+              e.currentTarget.style.transform = "translateY(-50%) scale(1.1)";
+            }
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = "#fff";
+            e.currentTarget.style.borderColor = "#ddd";
+            e.currentTarget.style.transform = "translateY(-50%) scale(1)";
+          }}
+        >
+          <ChevronRight size={20} color={currentIndex === maxIndex ? "#ccc" : "#007abf"} />
+        </button>
+
+        {/* Dots Indicator */}
+        {/* <div style={{ display: "flex", justifyContent: "center", gap: "0.5rem", marginTop: "1.5rem" }}>
+          {Array.from({ length: maxIndex + 1 }).map((_, idx) => (
+            <button
+              key={idx}
+              onClick={() => setCurrentIndex(idx)}
+              style={{
+                width: "0.625rem",
+                height: "0.625rem",
+                borderRadius: "50%",
+                border: "none",
+                backgroundColor: currentIndex === idx ? "#007abf" : "#ddd",
+                cursor: "pointer",
+                transition: "all 0.3s ease",
+              }}
+              onMouseEnter={(e) => {
+                if (currentIndex !== idx) {
+                  e.currentTarget.style.backgroundColor = "#888";
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (currentIndex !== idx) {
+                  e.currentTarget.style.backgroundColor = "#ddd";
+                }
+              }}
+            />
+          ))}
+        </div> */}
+      </div>
+    </section>
 
 
 
