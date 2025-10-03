@@ -758,7 +758,7 @@ const styles = {
   topRightRow: { 
     display: "flex", 
     alignItems: "center", 
-    gap: "1.250rem", 
+    gap: "1.5rem", 
     marginLeft: "auto", 
     marginRight: "0.99rem", 
   },
@@ -769,6 +769,7 @@ const styles = {
     textDecoration: "none",
     whiteSpace: "nowrap",
     fontWeight:"500",
+     fontFamily: "'Segoe UI', sans-serif",
   },
   accountContainer: { 
     position: "relative", 

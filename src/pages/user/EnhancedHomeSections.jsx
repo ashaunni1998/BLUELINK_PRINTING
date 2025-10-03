@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowRight, Sparkles, Heart, FileText, Gift, Star, Zap, Eye } from 'lucide-react';
-
+import { Link } from "react-router-dom";
 const EnhancedHomeSections = () => {
   const [visibleSections, setVisibleSections] = useState({});
   const [hoveredCard, setHoveredCard] = useState(null);
@@ -112,10 +112,15 @@ const EnhancedHomeSections = () => {
             </div>
 
             {/* CTA */}
-            <button className="group/btn w-full flex items-center justify-center gap-2 px-6 py-4 bg-blue-600 text-white font-semibold rounded-2xl transform transition-all duration-300 hover:scale-105">
-              Read More
-              <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
-            </button>
+           {/* Business Card CTA */}
+<Link
+  to="/blog/4"
+  state={{ from: "home" }}
+  className="group/btn w-full flex items-center justify-center gap-2 px-6 py-4 bg-blue-600 text-white font-semibold rounded-2xl transform transition-all duration-300 hover:scale-105"
+>
+  Read More
+  <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
+</Link>
           </div>
         </div>
       </div>
@@ -169,10 +174,14 @@ const EnhancedHomeSections = () => {
             </div>
 
             {/* CTA */}
-            <button className="group/btn w-full flex items-center justify-center gap-2 px-6 py-4 bg-blue-600 text-white font-semibold rounded-2xl transform transition-all duration-300 hover:scale-105">
-              Read More
-              <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
-            </button>
+            <Link
+  to="/blog/5"
+  state={{ from: "home" }}
+  className="group/btn w-full flex items-center justify-center gap-2 px-6 py-4 bg-blue-600 text-white font-semibold rounded-2xl transform transition-all duration-300 hover:scale-105"
+>
+  Read More
+  <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
+</Link>
           </div>
         </div>
       </div>

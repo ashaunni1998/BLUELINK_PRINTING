@@ -585,30 +585,33 @@ export default function Cart() {
           </h3>
 
           <div className="cart-item-options">
-            <div>
-              <span style={{ color: "#6b7280" }}>Design:</span>{" "}
-              <strong style={{ textTransform: "capitalize" }}>{item.designType}</strong>
-            </div>
+           <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+  <div>
+    <span style={{ color: "#6b7280" }}>Design:</span>{" "}
+    <strong style={{ textTransform: "capitalize" }}>{item.designType}</strong>
+  </div>
 
-            <div>
-              <span style={{ color: "#6b7280" }}>Qty:</span>
-              <select
-                value={item.qty}
-                onChange={(e) => {
-                  const newQty = e.target.value;
-                  const cartItemIdToSend = item.raw?._id ?? item.id;
-                  updateCartQty(cartItemIdToSend, newQty);
-                }}
-                disabled={!!updatingMap[item.raw?._id ?? item.id] || !cartId}
-                className="quantity-select"
-              >
-                {item.allowedQtyOptions.map((q) => (
-                  <option key={`${item.id}-qty-${q}`} value={q}>
-                    {q}
-                  </option>
-                ))}
-              </select>
-            </div>
+  <div>
+    <span style={{ color: "#6b7280" }}>Qty:</span>
+    <select
+      value={item.qty}
+      onChange={(e) => {
+        const newQty = e.target.value;
+        const cartItemIdToSend = item.raw?._id ?? item.id;
+        updateCartQty(cartItemIdToSend, newQty);
+      }}
+      disabled={!!updatingMap[item.raw?._id ?? item.id] || !cartId}
+      className="quantity-select"
+    >
+      {item.allowedQtyOptions.map((q) => (
+        <option key={`${item.id}-qty-${q}`} value={q}>
+          {q}
+        </option>
+      ))}
+    </select>
+  </div>
+</div>
+
 
             {item.selectedSize && (
               <div>

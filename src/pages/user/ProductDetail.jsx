@@ -943,9 +943,11 @@ const isButtonBadge = normalize(product?.name || "").includes("button badge") ||
         {/* Main */}
      <div style={{
   maxWidth: isMobile ? "100%" : "65%",
-  margin: "0 auto",
+   margin: "0 auto",
   padding: isMobile ? "16px" : "40px 20px",
   width: "100%",
+  marginLeft:"17%",
+  marginRight:"9%",
 }}>
 
            <div style={{

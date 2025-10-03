@@ -16,7 +16,6 @@ const languages = [
   { code: "fr", label: "United States (Français)", flag: "https://flagcdn.com/w40/us.png" },
 ];
 
-
 const GoogleTranslateDropdown = () => {
   const { selectedLang, setSelectedLang } = useContext(TranslateContext);
   const [open, setOpen] = useState(false);
@@ -35,7 +34,16 @@ const GoogleTranslateDropdown = () => {
     <div ref={dropdownRef} style={{ position: "relative", display: "inline-block" }}>
       <div
         onClick={() => setOpen(!open)}
-        style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}
+        style={{ 
+          display: "flex", 
+          alignItems: "center", 
+          gap: "8px", 
+          cursor: "pointer",
+          fontSize: "0.875rem",
+          fontWeight: "500",
+          fontFamily: "'Segoe UI', sans-serif",
+          color: "#333",
+        }}
       >
         <img src={current.flag} alt="" style={{ width: "20px" }} />
         <span>{current.label}</span>
@@ -67,6 +75,8 @@ const GoogleTranslateDropdown = () => {
                 alignItems: "center",
                 cursor: "pointer",
                 backgroundColor: lang.label === selectedLang ? "#f0f0f0" : "transparent",
+                fontSize: "0.875rem",
+                fontFamily: "'Segoe UI', sans-serif",
               }}
             >
               <img src={lang.flag} alt={lang.label} style={{ width: "20px", marginRight: "10px" }} />

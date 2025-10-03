@@ -56,6 +56,7 @@ import OrderConfirmation from "./pages/user/OrderConfirmation";
 import Returns from "./pages/user/Returns";
 
 import Blog from "./pages/user/Blog";
+import BlogDetail from './pages/user/BlogDetail.jsx';
 import HelpAndFaqPage from "./pages/user/HelpAndFaqPage";
 import Contact from "./pages/user/Contact";
 import Aboutus from "./pages/user/Aboutus";
@@ -78,6 +79,7 @@ import AllProducts from './pages/user/AllProducts.jsx';
 
 import { AuthProvider } from './context/AuthContext.jsx';
 import { TranslateProvider } from './context/TranslateProvider.jsx';
+
 
 const stripePromise = loadStripe("pk_test_51SBJuxCJSue85a5PyEGb1wMz4IxhMDda5ZtNgcwQeeFf0eb5Y0QS8b0ZDybTQlNlGUH2IKQbC9k3fQ6HGvANnd4600RY0Yju3T");
 
@@ -151,6 +153,7 @@ function App() {
             <Route path="/returns" element={<Returns />} />
 
             <Route path="/blog" element={<Blog />} />
+             <Route path="/blog/:id" element={<BlogDetail />} />
             <Route path="/help-faq" element={<HelpAndFaqPage />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/about" element={<Aboutus />} />

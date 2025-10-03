@@ -47,8 +47,8 @@ const Blog = () => {
               <h3 style={styles.blogTitle}>{post.title}</h3>
               <p style={styles.blogDate}>{post.date}</p>
               <p style={styles.blogSnippet}>{post.snippet}</p>
-              <Link
-                to={`/blog/${post.id}`}
+            <Link to={`/blog/${post.id}`}state={{ from: "blog" }}
+
                 style={styles.readMoreLink}
               >
                 Read More →
