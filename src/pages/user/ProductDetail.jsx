@@ -946,8 +946,8 @@ const isButtonBadge = normalize(product?.name || "").includes("button badge") ||
    margin: "0 auto",
   padding: isMobile ? "16px" : "40px 20px",
   width: "100%",
-  marginLeft:"17%",
-  marginRight:"9%",
+  marginLeft: isMobile ? "0" : "17%",
+  marginRight: isMobile ? "0" : "9%",
 }}>
 
            <div style={{
@@ -990,10 +990,10 @@ const isButtonBadge = normalize(product?.name || "").includes("button badge") ||
           {/* Details */}
  <div style={styles.detailsSection}>
   {/* Product Title */}
-  <h1 style={{ fontSize: "28px", fontWeight: "600", marginBottom: "8px" ,color:"#007bff" }}>
+<h1 style={{ fontSize: window.innerWidth <= 768 ? "20px" : "28px", fontWeight: "600", marginBottom: "8px" ,color:"#007bff" }}>
     {product.name}
   </h1>
-   <h3 style={{ fontSize: "28px", fontWeight: "400", marginBottom: "8px" ,color:"#111316ff" }}>
+   <h3 style={{ fontSize: window.innerWidth <= 768 ? "18px" : "28px", fontWeight: "400", marginBottom: "8px" ,color:"#111316ff" }}>
     {product.subtitle}
   </h3>
 
@@ -1002,9 +1002,9 @@ const isButtonBadge = normalize(product?.name || "").includes("button badge") ||
 
 
   {/* Rating */}
-  <div style={{ display: "flex", alignItems: "center", marginBottom: "20px" }}>
-    <span style={{ color: "#007bff", fontSize: "20px", marginRight: "8px" }}>★★★★★</span>
-    <span style={{ fontSize: "15px", color: "#555" }}>
+  <div style={{ display: "flex", alignItems: "center", marginBottom: "20px", flexWrap: "wrap", gap: "4px" }}>
+    <span style={{ color: "#007bff", fontSize: window.innerWidth <= 768 ? "16px" : "20px", marginRight: "8px" }}>★★★★★</span>
+    <span style={{ fontSize: window.innerWidth <= 768 ? "13px" : "15px", color: "#555" }}>
   {product?.rating?.count > 0
     ? `${product.rating.count} reviews`
     : "No reviews yet"}
@@ -1016,13 +1016,13 @@ const isButtonBadge = normalize(product?.name || "").includes("button badge") ||
 
 <p
   style={{
-    fontSize: "16px",
+    fontSize: window.innerWidth <= 768 ? "14px" : "16px",
     fontWeight: "500",
     color: "#444",
     marginBottom: "16px",
  
     // backgroundColor: "#a5a7c1ff", // soft yellow highlight
-    padding: "12px 16px",
+    padding: window.innerWidth <= 768 ? "10px 12px" : "12px 16px",
     // borderLeft: "4px solid #ff9800", // orange accent bar
     borderRadius: "6px",
     boxShadow: "0 2px 5px rgba(0,0,0,0.08)",
@@ -1042,15 +1042,21 @@ const isButtonBadge = normalize(product?.name || "").includes("button badge") ||
 {/* Sizes */}
 {product.sizes?.length > 0 && (
   <div style={{ marginBottom: "16px" }}>
-    <h3 style={{ fontSize: "18px", fontWeight: "600", marginBottom: "12px" }}>
+    <h3 style={{ 
+      fontSize: isMobile ? "16px" : "18px", 
+      fontWeight: "600", 
+      marginBottom: "12px" 
+    }}>
       Available Sizes
     </h3>
 
     <div
       style={{
-        display: "flex",
-        gap: "16px",
-        flexWrap: "wrap",
+        display: "grid",
+        gridTemplateColumns: isMobile 
+          ? "repeat(auto-fit, minmax(140px, 1fr))" 
+          : "repeat(auto-fit, minmax(160px, 1fr))",
+        gap: isMobile ? "12px" : "16px",
       }}
     >
       {product.sizes.map((s, i) => {
@@ -1076,10 +1082,9 @@ const isButtonBadge = normalize(product?.name || "").includes("button badge") ||
                   ? "2px solid #007bff"
                   : "1px solid #ccc",
               borderRadius: "8px",
-              padding: "10px",
+              padding: isMobile ? "8px" : "10px",
               cursor: "pointer",
               textAlign: "center",
-              width: "160px",
               transition: "all 0.2s ease-in-out",
               boxShadow:
                 selectedSize?.name === s.name
@@ -1093,17 +1098,23 @@ const isButtonBadge = normalize(product?.name || "").includes("button badge") ||
                 alt={s.name}
                 style={{
                   width: "100%",
-                  height: "100px",
+                  height: isMobile ? "80px" : "100px",
                   objectFit: "contain",
                   marginBottom: "8px",
                   borderRadius: "6px",
                 }}
               />
             )}
-            <div style={{ fontSize: "14px", fontWeight: "500" }}>
+            <div style={{ 
+              fontSize: isMobile ? "13px" : "14px", 
+              fontWeight: "500" 
+            }}>
               {s.name}
             </div>
-            <div style={{ fontSize: "13px", color: "#555" }}>
+            <div style={{ 
+              fontSize: isMobile ? "12px" : "13px", 
+              color: "#555" 
+            }}>
               {s.size.width} × {s.size.height}
             </div>
           </div>
