@@ -309,180 +309,188 @@ export default function Cart() {
       <style>{`
         * {
           box-sizing: border-box;
+          margin: 0;
+          padding: 0;
         }
 
-        .cart-container {
-          width: 100%;
-          padding: 1rem;
-          max-width: 65%;
-          margin: 0 auto;
+        body {
+          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+          background: #f9fafb;
         }
 
-        /* Mobile First - Default styles for mobile */
-        @media (max-width: 768px) {
-          .cart-container {
-            padding: 0.75rem;
+        .page-container {
+          padding: 0 !important;
+          margin: 0 !important;
+          width: 100% !important;
+        }
+
+        .responsive-container {
+          padding: 0 !important;
+          margin: 0 !important;
+          width: 100% !important;
+        }
+
+        .unified-cart-container {
+          max-width: 75%;
+          margin: 0 20% 0 17%;
+          padding: 1.5rem 1rem;
+          min-height: calc(100vh - 200px);
+        }
+
+        @media (max-width: 1023px) {
+          .unified-cart-container {
+            max-width: 100%;
+            margin: 0;
+            padding: 1.5rem 1rem;
           }
         }
 
-        /* Tablet and Desktop */
-        @media (min-width: 769px) {
-          .cart-container {
+        @media (min-width: 768px) and (max-width: 1023px) {
+          .unified-cart-container {
             padding: 2rem 1rem;
-            width: 90%;
           }
-        }
-
-        @media (min-width: 1200px) {
-          .cart-container {
-            width: 75%;
-          }
-        }
-
-        .cart-grid {
-          display: flex;
-          flex-direction: column;
-          gap: 1.5rem;
         }
 
         @media (min-width: 1024px) {
-          .cart-grid {
-            display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 2rem;
+          .unified-cart-container {
+            padding: 2rem 1.5rem;
           }
         }
 
-        .cart-item-card {
-          display: flex;
-          flex-direction: column;
-          gap: 1rem;
-          padding: 1rem;
-          border: 1px solid #e5e7eb;
+        .cart-header {
+          margin-bottom: 1.5rem;
+        }
+
+        .cart-title {
+          font-size: 1.75rem;
+          font-weight: 700;
+          color: #111827;
+          margin-bottom: 0.5rem;
+        }
+
+        .cart-subtitle {
+          color: #6b7280;
+          font-size: 0.9375rem;
+        }
+
+        .unified-cart-content {
           background: white;
-          border-radius: 0.75rem;
-          margin-bottom: 0.75rem;
-          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+          border: 1px solid #e5e7eb;
+          border-radius: 1rem;
+          overflow: hidden;
         }
 
-        @media (min-width: 641px) {
-          .cart-item-card {
+        .cart-item {
+          padding: 1.25rem;
+          border-bottom: 1px solid #e5e7eb;
+          display: flex;
+          gap: 1rem;
+          flex-direction: column;
+        }
+
+        @media (min-width: 640px) {
+          .cart-item {
             flex-direction: row;
-            gap: 1.25rem;
-            padding: 1.25rem;
+            gap: 1.5rem;
+            padding: 1.5rem;
           }
         }
 
-        .cart-item-image {
-          width: 100%;
-          height: 200px;
-          border-radius: 0.5rem;
-          overflow: hidden;
+        .cart-item:last-of-type {
+          border-bottom: 2px solid #e5e7eb;
+        }
+
+        .item-image-wrapper {
           flex-shrink: 0;
+          width: 100%;
+          height: 180px;
+          border-radius: 0.75rem;
+          overflow: hidden;
+          background: #f3f4f6;
           display: flex;
           align-items: center;
           justify-content: center;
         }
 
-        @media (min-width: 641px) {
-          .cart-item-image {
+        @media (min-width: 640px) {
+          .item-image-wrapper {
             width: 120px;
             height: 120px;
           }
         }
 
-        @media (min-width: 1024px) {
-          .cart-item-image {
-            width: 140px;
-            height: 140px;
-          }
-        }
-
-        .cart-item-image img {
+        .item-image {
           width: 100%;
           height: 100%;
           object-fit: cover;
         }
 
-        .cart-item-details {
+        .item-details {
           flex: 1;
-          min-width: 0;
-        }
-
-        .cart-item-title {
-          margin: 0 0 0.75rem;
-          fontSize: 1.125rem;
-          fontWeight: 600;
-          color: #111827;
-          line-height: 1.4;
-        }
-
-        @media (max-width: 640px) {
-          .cart-item-title {
-            fontSize: 1rem;
-          }
-        }
-
-        .cart-item-options {
-          display: grid;
-          grid-template-columns: 1fr;
-          gap: 0.75rem;
-          font-size: 0.875rem;
-          color: #374151;
-          margin-top: 0.75rem;
-        }
-
-        @media (min-width: 480px) {
-          .cart-item-options {
-            grid-template-columns: repeat(2, 1fr);
-          }
-        }
-
-        @media (min-width: 768px) {
-          .cart-item-options {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 1rem;
-          }
-        }
-
-        .cart-item-option {
           display: flex;
-          align-items: center;
-          gap: 0.5rem;
+          flex-direction: column;
+          gap: 0.75rem;
         }
 
-        .cart-item-price-section {
+        .item-header {
           display: flex;
           justify-content: space-between;
-          align-items: center;
-          padding-top: 1rem;
-          border-top: 1px solid #e5e7eb;
-          margin-top: 1rem;
+          align-items: flex-start;
+          gap: 1rem;
         }
 
-        @media (min-width: 641px) {
-          .cart-item-price-section {
-            flex-direction: column;
-            justify-content: flex-start;
-            align-items: flex-end;
-            border-top: none;
-            padding-top: 0;
-            margin-top: 0;
-            min-width: 120px;
-          }
-        }
-
-        .cart-item-price {
-          font-weight: 700;
-          font-size: 1.25rem;
+        .item-name {
+          font-size: 1.125rem;
+          font-weight: 600;
           color: #111827;
+          margin: 0;
         }
 
-        @media (min-width: 641px) {
-          .cart-item-price {
-            margin-bottom: 0.75rem;
-          }
+        .item-price {
+          font-size: 1.25rem;
+          font-weight: 700;
+          color: #111827;
+          white-space: nowrap;
+        }
+
+        .item-options {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 1rem;
+          font-size: 0.875rem;
+          color: #6b7280;
+        }
+
+        .item-option {
+          display: flex;
+          align-items: center;
+          gap: 0.375rem;
+        }
+
+        .item-option strong {
+          color: #374151;
+          text-transform: capitalize;
+        }
+
+        .quantity-select {
+          padding: 0.375rem 0.625rem;
+          border-radius: 0.375rem;
+          border: 1px solid #d1d5db;
+          font-size: 0.875rem;
+          background: white;
+          cursor: pointer;
+          color: #374151;
+        }
+
+        .quantity-select:focus {
+          outline: none;
+          border-color: #007abf;
+          box-shadow: 0 0 0 3px rgba(0, 122, 191, 0.1);
+        }
+
+        .quantity-select:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
         }
 
         .remove-btn {
@@ -490,254 +498,178 @@ export default function Cart() {
           border: none;
           color: #ef4444;
           cursor: pointer;
-          text-decoration: underline;
           font-size: 0.875rem;
-          padding: 0.5rem 0;
+          padding: 0.25rem 0;
+          text-decoration: underline;
+          margin-top: 0.25rem;
+          align-self: flex-start;
         }
 
         .remove-btn:hover {
           color: #dc2626;
         }
 
-        .summary-card {
-          background: white;
-          border-radius: 1rem;
-          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-          border: 1px solid #e5e7eb;
-          padding: 1.25rem;
+        .cart-summary {
+          padding: 1.5rem 1.25rem;
+          background: #f9fafb;
         }
 
-        @media (min-width: 768px) {
-          .summary-card {
-            padding: 1.5rem;
+        @media (min-width: 640px) {
+          .cart-summary {
+            padding: 2rem 1.5rem;
           }
         }
 
-        @media (min-width: 1024px) {
-          .summary-card {
-            position: sticky;
-            top: 2rem;
-          }
-        }
-
-        .summary-title {
-          font-size: 1.25rem;
-          font-weight: 600;
-          color: #111827;
-          margin: 0 0 1.5rem;
-        }
-
-        @media (max-width: 640px) {
-          .summary-title {
-            font-size: 1.125rem;
-          }
+        .summary-rows {
+          margin-bottom: 1.5rem;
         }
 
         .summary-row {
           display: flex;
           justify-content: space-between;
-          color: #6b7280;
-          margin-bottom: 1rem;
-          font-size: 0.875rem;
+          align-items: center;
+          margin-bottom: 0.75rem;
+          font-size: 0.9375rem;
         }
 
-        @media (min-width: 768px) {
-          .summary-row {
-            font-size: 0.9375rem;
-          }
+        .summary-row-label {
+          color: #6b7280;
+        }
+
+        .summary-row-value {
+          color: #374151;
+          font-weight: 500;
         }
 
         .summary-total {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          font-size: 1.125rem;
-          font-weight: 600;
-          color: #111827;
           padding-top: 1rem;
-          border-top: 1px solid #e5e7eb;
-        }
-
-        @media (min-width: 768px) {
-          .summary-total {
-            font-size: 1.25rem;
-          }
-        }
-
-        .btn-primary {
-          width: 100%;
-          background-color: #007abf;
-          color: white;
-          font-weight: 600;
-          padding: 1rem 1.5rem;
-          border-radius: 0.75rem;
-          border: none;
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 0.5rem;
-          transition: all 0.2s;
-          text-decoration: none;
-          font-size: 1rem;
-        }
-
-        @media (max-width: 640px) {
-          .btn-primary {
-            padding: 0.875rem 1.25rem;
-            font-size: 0.9375rem;
-          }
-        }
-
-        .btn-primary:hover {
-          background-color: #006599;
-          transform: scale(1.02);
-          box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-        }
-
-        .btn-secondary {
-          width: 100%;
-          background: white;
-          color: #374151;
-          font-weight: 600;
-          padding: 1rem 1.5rem;
-          border-radius: 0.75rem;
-          border: 2px solid #e5e7eb;
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 0.5rem;
-          transition: all 0.2s;
-          text-decoration: none;
-          font-size: 1rem;
-        }
-
-        @media (max-width: 640px) {
-          .btn-secondary {
-            padding: 0.875rem 1.25rem;
-            font-size: 0.9375rem;
-          }
-        }
-
-        .btn-secondary:hover {
-          border-color: #d1d5db;
-          background: #f9fafb;
-        }
-
-        .empty-cart {
-          background: white;
-          border-radius: 1rem;
-          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-          border: 1px solid #e5e7eb;
-          padding: 2rem 1.5rem;
-          text-align: center;
-        }
-
-        @media (min-width: 768px) {
-          .empty-cart {
-            padding: 3rem 1.5rem;
-          }
-        }
-
-        .empty-cart-icon {
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          width: 4rem;
-          height: 4rem;
-          background: #f3f4f6;
-          border-radius: 50%;
+          border-top: 2px solid #e5e7eb;
           margin-bottom: 1.5rem;
         }
 
-        @media (min-width: 768px) {
-          .empty-cart-icon {
-            width: 5rem;
-            height: 5rem;
-          }
-        }
-
-        .empty-cart-title {
+        .summary-total-label {
           font-size: 1.25rem;
-          font-weight: 600;
+          font-weight: 700;
           color: #111827;
-          margin-bottom: 1rem;
         }
 
-        @media (min-width: 768px) {
-          .empty-cart-title {
-            font-size: 1.5rem;
+        .summary-total-value {
+          font-size: 1.5rem;
+          font-weight: 700;
+          color: #111827;
+        }
+
+        .action-buttons {
+          display: flex;
+          flex-direction: column;
+          gap: 0.75rem;
+        }
+
+        @media (min-width: 640px) {
+          .action-buttons {
+            flex-direction: row;
+            gap: 1rem;
           }
         }
 
-        .empty-cart-text {
-          color: #6b7280;
-          margin-bottom: 2rem;
-          max-width: 28rem;
-          margin-left: auto;
-          margin-right: auto;
-          font-size: 0.9375rem;
-        }
-
-        @media (min-width: 768px) {
-          .empty-cart-text {
-            font-size: 1rem;
-          }
-        }
-
-        .quantity-select {
-          margin-left: 0.375rem;
-          padding: 0.5rem 0.75rem;
-          border-radius: 0.375rem;
-          border: 1px solid #d1d5db;
-          font-size: 0.875rem;
-          background: white;
+        .btn {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 0.5rem;
+          padding: 0.875rem 1.5rem;
+          border-radius: 0.75rem;
+          font-weight: 600;
+          font-size: 1rem;
           cursor: pointer;
+          transition: all 0.2s;
+          text-decoration: none;
+          border: none;
+          flex: 1;
         }
 
-        @media (max-width: 640px) {
-          .quantity-select {
-            padding: 0.5rem 0.625rem;
-            font-size: 0.8125rem;
-          }
+        .btn-primary {
+          background: #007abf;
+          color: white;
+        }
+
+        .btn-primary:hover {
+          background: #006599;
+          transform: translateY(-1px);
+          box-shadow: 0 4px 12px rgba(0, 122, 191, 0.3);
+        }
+
+        .btn-secondary {
+          background: white;
+          color: #374151;
+          border: 2px solid #e5e7eb;
+        }
+
+        .btn-secondary:hover {
+          background: #f9fafb;
+          border-color: #d1d5db;
         }
 
         .trust-badges {
           display: flex;
           align-items: center;
           justify-content: center;
-          gap: 1rem;
-          font-size: 0.8125rem;
-          color: #6b7280;
-          flex-wrap: wrap;
+          gap: 1.5rem;
           margin-top: 1.5rem;
           padding-top: 1.5rem;
           border-top: 1px solid #e5e7eb;
-        }
-
-        @media (min-width: 768px) {
-          .trust-badges {
-            font-size: 0.875rem;
-          }
+          flex-wrap: wrap;
         }
 
         .trust-badge {
           display: flex;
           align-items: center;
-          gap: 0.375rem;
+          gap: 0.5rem;
+          font-size: 0.875rem;
+          color: #6b7280;
         }
 
-        .trust-badge-dot {
-          width: 0.5rem;
-          height: 0.5rem;
+        .trust-badge-icon {
+          width: 0.625rem;
+          height: 0.625rem;
           border-radius: 50%;
         }
 
-        .button-group {
+        .empty-state {
+          text-align: center;
+          padding: 4rem 1.5rem;
+          background: white;
+          border-radius: 1rem;
+          border: 1px solid #e5e7eb;
+        }
+
+        .empty-icon {
+          width: 5rem;
+          height: 5rem;
+          margin: 0 auto 1.5rem;
+          background: #f3f4f6;
+          border-radius: 50%;
           display: flex;
-          flex-direction: column;
-          gap: 0.75rem;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .empty-title {
+          font-size: 1.5rem;
+          font-weight: 600;
+          color: #111827;
+          margin-bottom: 0.75rem;
+        }
+
+        .empty-text {
+          color: #6b7280;
+          margin-bottom: 2rem;
+          max-width: 28rem;
+          margin-left: auto;
+          margin-right: auto;
         }
       `}</style>
 
@@ -745,24 +677,30 @@ export default function Cart() {
         <div className="page-container"> 
           <Header />
 
-          <div className="cart-container">
+          <div className="unified-cart-container">
             {items.length === 0 ? (
-              <div className="empty-cart">
-                <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '5rem', height: '5rem', background: '#f3f4f6', borderRadius: '50%', marginBottom: '1.5rem' }}>
+              <div className="empty-state">
+                <div className="empty-icon">
                   <ShoppingCart style={{ width: '2.5rem', height: '2.5rem', color: '#9ca3af' }} />
                 </div>
-                <h2 style={{ fontSize: '1.5rem', fontWeight: '600', color: '#111827', marginBottom: '1rem' }}>Your cart is empty</h2>
-                <p style={{ color: '#6b7280', marginBottom: '2rem', maxWidth: '28rem', marginLeft: 'auto', marginRight: 'auto' }}>
+                <h2 className="empty-title">Your cart is empty</h2>
+                <p className="empty-text">
                   Looks like you haven't added any items to your cart yet. Start shopping to fill it up!
                 </p>
-                <a href="/" className="btn-primary" style={{ display: 'inline-flex', width: 'auto', padding: '0.75rem 1.5rem' }}>
+                <a href="/" className="btn btn-primary" style={{ display: 'inline-flex', flex: 'none' }}>
                   <ArrowLeft style={{ width: '1.25rem', height: '1.25rem' }} />
                   <span>Continue Shopping</span>
                 </a>
               </div>
             ) : (
-              <div className="cart-grid">
-                <div>
+              <>
+                <div className="cart-header">
+                  <h1 className="cart-title">Shopping Cart</h1>
+                  <p className="cart-subtitle">{items.length} {items.length === 1 ? 'item' : 'items'} in your cart</p>
+                </div>
+
+                <div className="unified-cart-content">
+                  {/* Cart Items */}
                   {items.map((item, idx) => {
                     const cartItemId = item.raw?._id ?? null;
                     const keyId = cartItemId ? cartItemId : `${item.id}-${idx}`;
@@ -774,16 +712,13 @@ export default function Cart() {
                       null;
 
                     return (
-                      <div key={keyId} className="cart-item-card">
-                        <div
-                          className="cart-item-image"
-                          style={{ background: uploadedImage ? "#fff" : "#f3f4f6" }}
-                        >
+                      <div key={keyId} className="cart-item">
+                        <div className="item-image-wrapper">
                           {uploadedImage ? (
                             <img
                               src={uploadedImage}
-                              alt={item.name || item.product?.name || "Product"}
-                              style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                              alt={item.name || "Product"}
+                              className="item-image"
                             />
                           ) : (
                             <div style={{ textAlign: "center", color: "#9ca3af", fontSize: "0.8125rem" }}>
@@ -792,77 +727,72 @@ export default function Cart() {
                           )}
                         </div>
 
-                        <div className="cart-item-details">
-                          <h3 style={{ margin: "0 0 0.375rem", fontSize: "1rem", fontWeight: "600" }}>
-                            {item.name}
-                          </h3>
+                        <div className="item-details">
+                          <div className="item-header">
+                            <h3 className="item-name">{item.name}</h3>
+                            <div className="item-price">
+                              {currencySymbol(currency)}{formatMoney(item.unitPrice)}
+                            </div>
+                          </div>
 
-                          <div className="cart-item-options">
-                            <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-                              <div>
-                                <span style={{ color: "#6b7280" }}>Design:</span>{" "}
-                                <strong style={{ textTransform: "capitalize" }}>{item.designType}</strong>
-                              </div>
-
-                              <div>
-                                <span style={{ color: "#6b7280" }}>Qty:</span>
-                                <select
-                                  value={item.qty}
-                                  onChange={(e) => {
-                                    const newQty = e.target.value;
-                                    const cartItemIdToSend = item.raw?._id ?? item.id;
-                                    updateCartQty(cartItemIdToSend, newQty);
-                                  }}
-                                  disabled={!!updatingMap[item.raw?._id ?? item.id] || !cartId}
-                                  className="quantity-select"
-                                >
-                                  {item.allowedQtyOptions.map((q) => (
-                                    <option key={`${item.id}-qty-${q}`} value={q}>
-                                      {q}
-                                    </option>
-                                  ))}
-                                </select>
-                              </div>
+                          <div className="item-options">
+                            <div className="item-option">
+                              <span>Design:</span>
+                              <strong>{item.designType}</strong>
                             </div>
 
-                            {item.selectedSize && (
-                              <div>
-                                <span style={{ color: "#6b7280" }}>Size:</span> <strong>{item.selectedSize}</strong>
-                              </div>
-                            )}
-                            {item.selectedPaper && (
-                              <div>
-                                <span style={{ color: "#6b7280" }}>Paper:</span> <strong>{item.selectedPaper}</strong>
-                              </div>
-                            )}
-                            {item.selectedFinish && (
-                              <div>
-                                <span style={{ color: "#6b7280" }}>Finish:</span> <strong>{item.selectedFinish}</strong>
-                              </div>
-                            )}
-                            {item.selectedCorner && (
-                              <div>
-                                <span style={{ color: "#6b7280" }}>Corner:</span> <strong>{item.selectedCorner}</strong>
-                              </div>
-                            )}
-                          </div>
-                        </div>
+                            <div className="item-option">
+                              <span>Qty:</span>
+                              <select
+                                value={item.qty}
+                                onChange={(e) => {
+                                  const newQty = e.target.value;
+                                  const cartItemIdToSend = item.raw?._id ?? item.id;
+                                  updateCartQty(cartItemIdToSend, newQty);
+                                }}
+                                disabled={!!updatingMap[item.raw?._id ?? item.id] || !cartId}
+                                className="quantity-select"
+                              >
+                                {item.allowedQtyOptions.map((q) => (
+                                  <option key={`${item.id}-qty-${q}`} value={q}>
+                                    {q}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
 
-                        <div className="cart-item-price-section">
-                          <div style={{ fontWeight: "700", fontSize: "1.125rem", color: "#111827", marginBottom: "0.5rem" }}>
-                            {currencySymbol(currency)}
-                            {formatMoney(item.unitPrice)}
+                            {item.size?.name && (
+                              <div className="item-option">
+                                <span>Size:</span>
+                                <strong>{item.size.name}</strong>
+                              </div>
+                            )}
+
+                            {item.paper?.name && (
+                              <div className="item-option">
+                                <span>Paper:</span>
+                                <strong>{item.paper.name}</strong>
+                              </div>
+                            )}
+
+                            {item.finish?.name && (
+                              <div className="item-option">
+                                <span>Finish:</span>
+                                <strong>{item.finish.name}</strong>
+                              </div>
+                            )}
+
+                            {item.corner?.name && (
+                              <div className="item-option">
+                                <span>Corner:</span>
+                                <strong>{item.corner.name}</strong>
+                              </div>
+                            )}
                           </div>
+
                           <button
                             onClick={() => removeItem(item.id)}
-                            style={{
-                              background: "transparent",
-                              border: "none",
-                              color: "#ef4444",
-                              cursor: "pointer",
-                              textDecoration: "underline",
-                              fontSize: "0.875rem",
-                            }}
+                            className="remove-btn"
                           >
                             Remove
                           </button>
@@ -870,38 +800,40 @@ export default function Cart() {
                       </div>
                     );
                   })}
-                </div>
 
-                <div>
-                  <div className="summary-card">
-                    <h2 className="summary-title">Order Summary</h2>
-                    
-                    <div>
+                  {/* Order Summary */}
+                  <div className="cart-summary">
+                    <div className="summary-rows">
                       <div className="summary-row">
-                        <span>Subtotal ({items.length} items)</span>
-                        <span>{currencySymbol(currency)}{formatMoney(subtotal)}</span>
+                        <span className="summary-row-label">Subtotal ({items.length} {items.length === 1 ? 'item' : 'items'})</span>
+                        <span className="summary-row-value">
+                          {currencySymbol(currency)}{formatMoney(subtotal)}
+                        </span>
                       </div>
-                      
+
                       {shippingTotal > 0 && (
                         <div className="summary-row">
-                          <span>Shipping</span>
-                          <span>{currencySymbol(currency)}{formatMoney(shippingTotal)}</span>
+                          <span className="summary-row-label">Shipping</span>
+                          <span className="summary-row-value">
+                            {currencySymbol(currency)}{formatMoney(shippingTotal)}
+                          </span>
                         </div>
                       )}
-                      
-                      <div className="summary-total">
-                        <span>Total</span>
-                        <span>{currencySymbol(currency)}{formatMoney(total)}</span>
-                      </div>
                     </div>
 
-                    <div className="button-group">
-                      <a href="/checkout" className="btn-primary">
+                    <div className="summary-total">
+                      <span className="summary-total-label">Total</span>
+                      <span className="summary-total-value">
+                        {currencySymbol(currency)}{formatMoney(total)}
+                      </span>
+                    </div>
+
+                    <div className="action-buttons">
+                      <a href="/checkout" className="btn btn-primary">
                         <CreditCard style={{ width: '1.25rem', height: '1.25rem' }} />
                         <span>Proceed to Checkout</span>
                       </a>
-                      
-                      <a href="/" className="btn-secondary">
+                      <a href="/" className="btn btn-secondary">
                         <ArrowLeft style={{ width: '1.25rem', height: '1.25rem' }} />
                         <span>Continue Shopping</span>
                       </a>
@@ -909,17 +841,17 @@ export default function Cart() {
 
                     <div className="trust-badges">
                       <div className="trust-badge">
-                        <div className="trust-badge-dot" style={{ background: '#10b981' }}></div>
+                        <div className="trust-badge-icon" style={{ background: '#10b981' }}></div>
                         <span>Secure Checkout</span>
                       </div>
                       <div className="trust-badge">
-                        <div className="trust-badge-dot" style={{ background: '#3b82f6' }}></div>
+                        <div className="trust-badge-icon" style={{ background: '#3b82f6' }}></div>
                         <span>Free Returns</span>
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
+              </>
             )}
           </div>
 
