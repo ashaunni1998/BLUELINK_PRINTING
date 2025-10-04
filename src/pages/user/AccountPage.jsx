@@ -26,6 +26,7 @@ const AccountPage = () => {
   const defaultTab = normalizeTab(queryParams.get("tab"));
   const [activeSection, setActiveSection] = useState(defaultTab);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  const [isTablet, setIsTablet] = useState(window.innerWidth > 768 && window.innerWidth <= 1024);
 
   // Address state
   const [addresses, setAddresses] = useState([]);
@@ -53,7 +54,11 @@ const AccountPage = () => {
   });
 
   useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    const handleResize = () => {
+      const width = window.innerWidth;
+      setIsMobile(width <= 768);
+      setIsTablet(width > 768 && width <= 1024);
+    };
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
@@ -70,21 +75,17 @@ const AccountPage = () => {
     try {
       setLoadingOrders(true);
       setOrdersError("");
-      console.log("📤 Sending GET /order/all with cookies");
       const res = await axios.get(`${API_BASE_URL}/order/all`, {
         withCredentials: true,
       });
-      console.log("📥 Orders response:", res.data);
       
-      // Handle different response structures
       const orderData = res.data.orders || res.data.data || res.data || [];
       setOrders(Array.isArray(orderData) ? orderData : []);
     } catch (err) {
-      console.error("❌ Error fetching orders:", err);
+      console.error("Error fetching orders:", err);
       const errorMessage = err.response?.data?.message || "Failed to fetch orders";
       setOrdersError(errorMessage);
       
-      // Show error only if it's not a simple "no orders found" case
       if (err.response?.status !== 404) {
         Swal.fire("Error", errorMessage, "error");
       }
@@ -97,35 +98,30 @@ const AccountPage = () => {
   const fetchAddresses = async () => {
     try {
       setLoadingAddresses(true);
-      console.log("📤 Sending GET /address/addresses with cookies");
       const res = await axios.get(`${API_BASE_URL}/address/addresses`, {
         withCredentials: true,
       });
-      console.log("📥 Addresses response:", res.data);
       setAddresses(res.data.addresses || []);
     } catch (err) {
-      console.error("❌ Error fetching addresses:", err);
+      console.error("Error fetching addresses:", err);
       Swal.fire("Error", "Failed to fetch addresses", "error");
     } finally {
       setLoadingAddresses(false);
     }
   };
 
-  // Load orders only when Order History tab is active
   useEffect(() => {
     if (activeSection === "orderhistory") {
       fetchOrders();
     }
   }, [activeSection]);
 
-  // Load addresses only when Address tab is active
   useEffect(() => {
     if (activeSection === "address") {
       fetchAddresses();
     }
   }, [activeSection]);
 
-  // Format date helper
   const formatDate = (dateString) => {
     try {
       const date = new Date(dateString);
@@ -139,7 +135,6 @@ const AccountPage = () => {
     }
   };
 
-  // Format currency helper
   const formatCurrency = (amount) => {
     if (typeof amount === 'number') {
       return `$${amount.toFixed(2)}`;
@@ -150,7 +145,6 @@ const AccountPage = () => {
     return amount;
   };
 
-  // Get order status color
   const getStatusColor = (status) => {
     const statusColors = {
       'pending': '#ffc107',
@@ -163,11 +157,9 @@ const AccountPage = () => {
     return statusColors[status?.toLowerCase()] || '#6c757d';
   };
 
-  // Add address handler
   const handleAddAddress = async (e) => {
     e.preventDefault();
 
-    // Try to read the logged-in user id from localStorage
     let userId = null;
     try {
       const stored = JSON.parse(localStorage.getItem("user") || "{}");
@@ -176,7 +168,6 @@ const AccountPage = () => {
       userId = null;
     }
 
-    // Build base payload (no user info) – backend may use session cookies
     const basePayload = {
       fullName: newAddress.fullName,
       phone: newAddress.phone,
@@ -190,13 +181,11 @@ const AccountPage = () => {
       isDefault: !!newAddress.isDefault,
     };
 
-    // Helper to post and return response/error
     const postAddress = async (payload) => {
       try {
         const res = await axios.post(`${API_BASE_URL}/address/add`, payload, { withCredentials: true });
         return { ok: true, data: res.data };
       } catch (err) {
-        // Normalize axios error shape
         const resp = err?.response;
         const body = resp?.data ?? null;
         const status = resp?.status ?? null;
@@ -204,14 +193,9 @@ const AccountPage = () => {
       }
     };
 
-    // 1) Try posting base payload (no userId) – good when backend uses session
-    console.log("Posting address payload (attempt 1, no user):", basePayload);
     let result = await postAddress(basePayload);
 
-    // If success, finish
     if (result.ok) {
-      console.log("Address saved (attempt 1):", result.data);
-      // reset and fetch addresses
       setNewAddress({
         fullName: "",
         phone: "",
@@ -231,21 +215,14 @@ const AccountPage = () => {
       return;
     }
 
-    // Clear previous error display
     setAddressError("");
 
-    // 2) If failed, inspect server body for hints
-    console.warn("Attempt 1 failed:", result.status, result.body, result.raw?.message ?? result.raw);
-
-    // If server tells that userId is required, try again with userId included
     const bodyMsg = JSON.stringify(result.body || "");
     if (userId && /userId|user id|userId.*required/i.test(bodyMsg)) {
       const payload2 = { ...basePayload, userId };
-      console.log("Retrying with userId (attempt 2):", payload2);
       result = await postAddress(payload2);
 
       if (result.ok) {
-        console.log("Address saved (attempt 2):", result.data);
         setNewAddress({
           fullName: "",
           phone: "",
@@ -264,11 +241,8 @@ const AccountPage = () => {
         Swal.fire("Success", "Address added successfully!", "success");
         return;
       }
-
-      console.warn("Attempt 2 failed:", result.status, result.body, result.raw?.message ?? result.raw);
     }
 
-    // 3) Some backends expect an object like { user: userId } or { user: { _id: userId } }
     if (userId) {
       const tryShapes = [
         { ...basePayload, user: userId },
@@ -276,10 +250,8 @@ const AccountPage = () => {
       ];
 
       for (let i = 0; i < tryShapes.length; i++) {
-        console.log(`Retrying with alternate user shape (attempt ${3 + i}):`, tryShapes[i]);
         result = await postAddress(tryShapes[i]);
         if (result.ok) {
-          console.log("Address saved (alternate shape):", result.data);
           setNewAddress({
             fullName: "",
             phone: "",
@@ -298,11 +270,9 @@ const AccountPage = () => {
           Swal.fire("Success", "Address added successfully!", "success");
           return;
         }
-        console.warn(`Attempt ${3 + i} failed:`, result.status, result.body, result.raw?.message ?? result.raw);
       }
     }
 
-    // 4) Still failed – show server error to user and log details
     const serverMessage =
       (result.body && (result.body.message || result.body.error || JSON.stringify(result.body))) ||
       "Failed to save address. See console for details.";
@@ -311,7 +281,6 @@ const AccountPage = () => {
     Swal.fire("Error", "Failed to add address (see error message)", "error");
   };
 
-  // Delete address with confirmation
   const handleDeleteAddress = async (id) => {
     Swal.fire({
       title: "Are you sure?",
@@ -337,12 +306,6 @@ const AccountPage = () => {
     });
   };
 
-  const sections = {
-    orderhistory: "Here you can view and track your orders.",
-    address: "Manage your shipping and billing addresses.",
-  };
-
-  // ✅ Updated Logout Handler
   const handleLogout = () => {
     Swal.fire({
       title: "Are you sure?",
@@ -354,26 +317,18 @@ const AccountPage = () => {
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          // Call backend logout API
           await fetch(`${API_BASE_URL}/user/logout`, {
             method: "POST",
-            credentials: "include", // ensure cookies/session cleared
+            credentials: "include",
           });
         } catch (err) {
           console.error("Logout error:", err);
         }
 
-        // Use AuthContext's logout if available
-        if (typeof logout === "function") {
-          logout(); // clears user + localStorage
-        } else {
-          // fallback cleanup if no logout() in context
-          localStorage.removeItem("token");
-          localStorage.removeItem("user");
-          setUser(null);
-        }
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        setUser(null);
 
-        // Show success and redirect
         Swal.fire({
           icon: "success",
           title: "Logged Out",
@@ -386,41 +341,76 @@ const AccountPage = () => {
     });
   };
 
-  // Styles
+  // Responsive Styles
+  const containerStyle = {
+    display: "flex",
+    flexDirection: isMobile ? "column" : "row",
+    gap: isMobile ? "16px" : isTablet ? "20px" : "24px",
+    width: "100%",
+    maxWidth: isMobile ? "100%" : isTablet ? "90%" : "65%",
+    margin: isMobile ? "16px auto" : "24px auto",
+    padding: isMobile ? "0 16px" : isTablet ? "0 20px" : "0 24px",
+    boxSizing: "border-box",
+    alignItems: "flex-start"
+  };
+
+  const sidebarStyle = {
+    background: "#fff",
+    border: "1px solid #e5e7eb",
+    borderRadius: "12px",
+    padding: isMobile ? "16px" : "20px",
+    width: isMobile ? "100%" : isTablet ? "200px" : "240px",
+    boxShadow: "0 2px 6px rgba(0,0,0,0.08)",
+    display: "flex",
+    flexDirection: "column",
+    gap: "12px",
+    flexShrink: 0
+  };
+
   const buttonStyle = {
-    padding: "12px 16px",
+    padding: isMobile ? "14px 16px" : "12px 16px",
     borderRadius: "8px",
     border: "1px solid #ddd",
     backgroundColor: "#fff",
     color: "#333",
     cursor: "pointer",
     whiteSpace: "nowrap",
-    width: isMobile ? "100%" : "auto",
+    width: "100%",
     textAlign: "center",
     transition: "all 0.2s ease-in-out",
+    fontSize: isMobile ? "15px" : "14px",
+    fontWeight: "500"
   };
 
   const activeButtonStyle = {
     ...buttonStyle,
     backgroundColor: "#007BFF",
     color: "#fff",
-    fontWeight: "bold",
+    fontWeight: "600",
     border: "none",
     boxShadow: "0 2px 6px rgba(0, 123, 255, 0.3)",
   };
 
+  const mainContentStyle = {
+    flex: 1,
+    padding: isMobile ? "20px 0" : isTablet ? "24px" : "30px",
+    minWidth: 0,
+    width: "100%"
+  };
+
   const viewButtonStyle = {
-    padding: "8px 16px",
+    padding: isMobile ? "10px 16px" : "8px 16px",
     backgroundColor: "#007BFF",
     color: "white",
     border: "none",
     borderRadius: "6px",
     cursor: "pointer",
-    fontSize: "14px",
+    fontSize: isMobile ? "15px" : "14px",
     fontWeight: "500",
     textDecoration: "none",
     display: "inline-flex",
     alignItems: "center",
+    justifyContent: "center",
     gap: "6px",
     transition: "all 0.2s ease-in-out",
   };
@@ -429,17 +419,17 @@ const AccountPage = () => {
     backgroundColor: '#fff',
     border: '1px solid #e9ecef',
     borderRadius: '12px',
-    padding: '24px',
+    padding: isMobile ? '20px' : '24px',
     marginBottom: '24px',
     boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
   };
 
   const inputStyle = {
     width: '100%',
-    padding: '12px 16px',
+    padding: isMobile ? '14px' : '12px 16px',
     border: '1px solid #ddd',
     borderRadius: '8px',
-    fontSize: '14px',
+    fontSize: isMobile ? '16px' : '14px',
     marginBottom: '16px',
     boxSizing: 'border-box',
   };
@@ -449,40 +439,15 @@ const AccountPage = () => {
     marginBottom: '8px',
     fontWeight: '500',
     color: '#333',
-    fontSize: '14px',
+    fontSize: isMobile ? '15px' : '14px',
   };
 
   return (
     <div className="responsive-container">
       <Header />
-     <div
-  style={{
-    display: "flex",
-    flexDirection: isMobile ? "column" : "row",
-    gap: isMobile ? "16px" : "22px",
-    width: "100%",
-    maxWidth: isMobile ? "100%" : "65%",
-    margin: "20px auto",
-    padding: isMobile ? "0 12px" : "0 20px",
-    boxSizing: "border-box",
-    alignItems: "flex-start"
-  }}
->
-
+      <div style={containerStyle}>
         {/* Sidebar */}
-        <nav
-          style={{
-            background: "#fff",
-            border: "1px solid #e5e7eb",
-            borderRadius: "12px",
-            padding: "20px",
-            width: isMobile ? "100%" : "220px",
-            boxShadow: "0 2px 6px rgba(0,0,0,0.08)",
-            display: "flex",
-            flexDirection: "column",
-            gap: "12px"
-          }}
-        >
+        <nav style={sidebarStyle}>
           <button
             style={activeSection === "overview" ? activeButtonStyle : buttonStyle}
             onClick={() => setActiveSection("overview")}
@@ -507,45 +472,47 @@ const AccountPage = () => {
         </nav>
 
         {/* Content */}
-        <main style={{ flex: 1, padding: "30px",marginRight:"5%" }}>
-          <h2 style={{ fontSize: "24px", marginBottom: "20px", textTransform: "capitalize" }}>
+        <main style={mainContentStyle}>
+          <h2 style={{ 
+            fontSize: isMobile ? "22px" : "24px", 
+            marginBottom: "20px", 
+            textTransform: "capitalize",
+            fontWeight: "600"
+          }}>
             {activeSection.replace("-", " ")}
           </h2>
           
-          <main style={{ flex: 1 }}>
-            {activeSection === "overview" && (
-              <div
-                style={{
-                  background: "#fff",
-                  border: "1px solid #e5e7eb",
-                  borderRadius: "12px",
-                  padding: "30px",
-                  boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
-                  marginLeft:"10px",
-                }}
-              >
-                <h2 style={{ fontSize: "22px", marginBottom: "16px", color: "#111827" }}>
-                  👋 Welcome back!
-                </h2>
-                <p style={{ fontSize: "16px", lineHeight: "1.6", color: "#374151" }}>
-                  From your account dashboard you can easily view your{" "}
-                  <strong>recent orders</strong>, manage{" "}
-                  <strong>shipping & billing addresses</strong>, track{" "}
-                  <strong>returns</strong>, and update your{" "}
-                  <strong>account details</strong>.
-                </p>
-              </div>
-            )}
-          </main>
+          {activeSection === "overview" && (
+            <div
+              style={{
+                background: "#fff",
+                border: "1px solid #e5e7eb",
+                borderRadius: "12px",
+                padding: isMobile ? "24px" : "30px",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+              }}
+            >
+              <h2 style={{ fontSize: isMobile ? "20px" : "22px", marginBottom: "16px", color: "#111827" }}>
+                👋 Welcome back!
+              </h2>
+              <p style={{ fontSize: isMobile ? "15px" : "16px", lineHeight: "1.6", color: "#374151" }}>
+                From your account dashboard you can easily view your{" "}
+                <strong>recent orders</strong>, manage{" "}
+                <strong>shipping & billing addresses</strong>, track{" "}
+                <strong>returns</strong>, and update your{" "}
+                <strong>account details</strong>.
+              </p>
+            </div>
+          )}
           
-          {activeSection === "orderhistory" ? (
+          {activeSection === "orderhistory" && (
             <div>
               {loadingOrders ? (
                 <div style={{
                   display: 'flex',
                   justifyContent: 'center',
                   alignItems: 'center',
-                  padding: '60px',
+                  padding: isMobile ? '40px 20px' : '60px',
                   backgroundColor: '#f8f9fa',
                   borderRadius: '12px'
                 }}>
@@ -556,14 +523,14 @@ const AccountPage = () => {
                     gap: '16px'
                   }}>
                     <div style={{
-                      width: '48px',
-                      height: '48px',
+                      width: isMobile ? '40px' : '48px',
+                      height: isMobile ? '40px' : '48px',
                       border: '4px solid #f3f3f3',
                       borderTop: '4px solid #007BFF',
                       borderRadius: '50%',
                       animation: 'spin 1s linear infinite'
                     }}></div>
-                    <p style={{ margin: 0, color: '#666', fontSize: '16px' }}>
+                    <p style={{ margin: 0, color: '#666', fontSize: isMobile ? '15px' : '16px' }}>
                       Loading your orders...
                     </p>
                   </div>
@@ -571,23 +538,23 @@ const AccountPage = () => {
               ) : ordersError ? (
                 <div style={{
                   textAlign: 'center',
-                  padding: '60px 20px',
+                  padding: isMobile ? '40px 20px' : '60px 20px',
                   backgroundColor: '#fff3cd',
                   borderRadius: '12px',
                   border: '1px solid #ffeaa7'
                 }}>
-                  <div style={{ fontSize: '48px', color: '#856404', marginBottom: '16px' }}>⚠️</div>
-                  <h3 style={{ color: '#856404', marginBottom: '8px' }}>Unable to Load Orders</h3>
-                  <p style={{ color: '#856404', margin: '0 0 20px 0' }}>{ordersError}</p>
+                  <div style={{ fontSize: isMobile ? '40px' : '48px', color: '#856404', marginBottom: '16px' }}>⚠️</div>
+                  <h3 style={{ color: '#856404', marginBottom: '8px', fontSize: isMobile ? '18px' : '20px' }}>Unable to Load Orders</h3>
+                  <p style={{ color: '#856404', margin: '0 0 20px 0', fontSize: isMobile ? '14px' : '15px' }}>{ordersError}</p>
                   <button 
                     style={{
-                      padding: '12px 24px',
+                      padding: isMobile ? '14px 24px' : '12px 24px',
                       backgroundColor: '#007BFF',
                       color: 'white',
                       border: 'none',
                       borderRadius: '8px',
                       cursor: 'pointer',
-                      fontSize: '14px',
+                      fontSize: isMobile ? '15px' : '14px',
                       fontWeight: '500'
                     }}
                     onClick={fetchOrders}
@@ -598,28 +565,28 @@ const AccountPage = () => {
               ) : orders.length === 0 ? (
                 <div style={{
                   textAlign: 'center',
-                  padding: '60px 20px',
+                  padding: isMobile ? '40px 20px' : '60px 20px',
                   backgroundColor: '#f8f9fa',
                   borderRadius: '12px',
                   border: '2px dashed #dee2e6'
                 }}>
-                  <div style={{ fontSize: '64px', color: '#6c757d', marginBottom: '20px' }}>📦</div>
-                  <h3 style={{ color: '#495057', marginBottom: '12px', fontSize: '24px' }}>
+                  <div style={{ fontSize: isMobile ? '56px' : '64px', color: '#6c757d', marginBottom: '20px' }}>📦</div>
+                  <h3 style={{ color: '#495057', marginBottom: '12px', fontSize: isMobile ? '20px' : '24px' }}>
                     No Orders Yet
                   </h3>
-                  <p style={{ color: '#6c757d', margin: '0 0 24px 0', fontSize: '16px' }}>
+                  <p style={{ color: '#6c757d', margin: '0 0 24px 0', fontSize: isMobile ? '15px' : '16px' }}>
                     You haven't placed any orders yet. Start shopping to see your order history here!
                   </p>
                   <Link 
                     to="/"
                     style={{
-                      padding: '12px 24px',
+                      padding: isMobile ? '14px 24px' : '12px 24px',
                       backgroundColor: '#007BFF',
                       color: 'white',
                       border: 'none',
                       borderRadius: '8px',
                       textDecoration: 'none',
-                      fontSize: '16px',
+                      fontSize: isMobile ? '15px' : '16px',
                       fontWeight: '500',
                       display: 'inline-flex',
                       alignItems: 'center',
@@ -633,7 +600,7 @@ const AccountPage = () => {
                 <div>
                   <div style={{
                     marginBottom: '24px',
-                    padding: '20px',
+                    padding: isMobile ? '16px' : '20px',
                     backgroundColor: '#f8f9fa',
                     borderRadius: '12px',
                     border: '1px solid #dee2e6'
@@ -641,7 +608,7 @@ const AccountPage = () => {
                     <h3 style={{
                       margin: '0 0 8px 0',
                       color: '#212529',
-                      fontSize: '20px',
+                      fontSize: isMobile ? '18px' : '20px',
                       fontWeight: '600'
                     }}>
                       📋 Your Order History
@@ -649,55 +616,59 @@ const AccountPage = () => {
                     <p style={{
                       margin: 0,
                       color: '#6c757d',
-                      fontSize: '14px'
+                      fontSize: isMobile ? '13px' : '14px'
                     }}>
                       You have <strong>{orders.length}</strong> order{orders.length !== 1 ? 's' : ''} in total
                     </p>
                   </div>
 
-                  {isMobile ? (
-                    // Mobile Card Layout
+                  {isMobile || isTablet ? (
+                    // Mobile/Tablet Card Layout
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                       {orders.map((order) => (
                         <div key={order._id || order.id} style={{
                           backgroundColor: '#ffffff',
                           border: '1px solid #e9ecef',
                           borderRadius: '12px',
-                          padding: '20px',
+                          padding: isMobile ? '16px' : '20px',
                           boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
                         }}>
                           <div style={{
                             display: 'flex',
                             justifyContent: 'space-between',
                             alignItems: 'flex-start',
-                            marginBottom: '16px'
+                            marginBottom: '16px',
+                            gap: '12px'
                           }}>
-                            <div>
+                            <div style={{ flex: 1, minWidth: 0 }}>
                               <h4 style={{
                                 margin: '0 0 4px 0',
-                                fontSize: '16px',
+                                fontSize: isMobile ? '15px' : '16px',
                                 fontWeight: '600',
-                                color: '#212529'
+                                color: '#212529',
+                                wordBreak: 'break-word'
                               }}>
                                 #{order.orderNumber || order._id?.slice(-8) || 'N/A'}
                               </h4>
                               <p style={{
                                 margin: '0',
-                                fontSize: '14px',
+                                fontSize: isMobile ? '13px' : '14px',
                                 color: '#6c757d'
                               }}>
                                 {formatDate(order.createdAt || order.orderDate)}
                               </p>
                             </div>
                             <span style={{
-                              padding: '4px 12px',
+                              padding: '6px 12px',
                               borderRadius: '20px',
-                              fontSize: '12px',
+                              fontSize: isMobile ? '11px' : '12px',
                               fontWeight: '600',
                               textTransform: 'capitalize',
                               backgroundColor: getStatusColor(order.status) + '20',
                               color: getStatusColor(order.status),
-                              border: `1px solid ${getStatusColor(order.status)}40`
+                              border: `1px solid ${getStatusColor(order.status)}40`,
+                              whiteSpace: 'nowrap',
+                              flexShrink: 0
                             }}>
                               {order.status || 'Pending'}
                             </span>
@@ -710,14 +681,14 @@ const AccountPage = () => {
                           }}>
                             <p style={{
                               margin: '0 0 8px 0',
-                              fontSize: '14px',
+                              fontSize: isMobile ? '13px' : '14px',
                               color: '#6c757d'
                             }}>
                               Items: {order.items?.length || order.products?.length || 'N/A'}
                             </p>
                             <p style={{
                               margin: '0',
-                              fontSize: '18px',
+                              fontSize: isMobile ? '17px' : '18px',
                               fontWeight: '700',
                               color: '#212529'
                             }}>
@@ -880,9 +851,10 @@ const AccountPage = () => {
                 </div>
               )}
             </div>
-          ) : activeSection === "address" ? (
+          )}
+          
+          {activeSection === "address" && (
             <div>
-              {/* Add Address Form */}
               {showAddForm && (
                 <div style={formStyle}>
                   <div style={{
@@ -891,14 +863,20 @@ const AccountPage = () => {
                     alignItems: 'center',
                     marginBottom: '20px'
                   }}>
-                    <h3 style={{ margin: 0, color: '#333' }}>Add New Address</h3>
+                    <h3 style={{ margin: 0, color: '#333', fontSize: isMobile ? '18px' : '20px' }}>Add New Address</h3>
                     <button
                       style={{
                         background: 'none',
                         border: 'none',
                         fontSize: '24px',
                         cursor: 'pointer',
-                        color: '#999'
+                        color: '#999',
+                        padding: '0',
+                        width: '32px',
+                        height: '32px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
                       }}
                       onClick={() => {
                         setShowAddForm(false);
@@ -913,10 +891,11 @@ const AccountPage = () => {
                     <div style={{
                       backgroundColor: '#fee',
                       border: '1px solid #fcc',
-                      borderRadius: '4px',
+                      borderRadius: '8px',
                       padding: '12px',
                       marginBottom: '16px',
-                      color: '#c33'
+                      color: '#c33',
+                      fontSize: isMobile ? '14px' : '13px'
                     }}>
                       {addressError}
                     </div>
@@ -1040,28 +1019,30 @@ const AccountPage = () => {
                         alignItems: 'center',
                         gap: '8px',
                         cursor: 'pointer',
-                        fontSize: '14px'
+                        fontSize: isMobile ? '15px' : '14px'
                       }}>
                         <input
                           type="checkbox"
                           checked={newAddress.isDefault}
                           onChange={(e) => setNewAddress({...newAddress, isDefault: e.target.checked})}
+                          style={{ width: '18px', height: '18px', cursor: 'pointer' }}
                         />
                         Set as default address
                       </label>
                     </div>
 
-                    <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+                    <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
                       <button
                         type="button"
                         style={{
-                          padding: '12px 24px',
+                          padding: isMobile ? '14px 24px' : '12px 24px',
                           border: '1px solid #ddd',
                           borderRadius: '8px',
                           backgroundColor: '#fff',
                           color: '#333',
                           cursor: 'pointer',
-                          fontSize: '14px'
+                          fontSize: isMobile ? '15px' : '14px',
+                          minWidth: isMobile ? '120px' : 'auto'
                         }}
                         onClick={() => {
                           setShowAddForm(false);
@@ -1073,14 +1054,15 @@ const AccountPage = () => {
                       <button
                         type="submit"
                         style={{
-                          padding: '12px 24px',
+                          padding: isMobile ? '14px 24px' : '12px 24px',
                           border: 'none',
                           borderRadius: '8px',
                           backgroundColor: '#28a745',
                           color: 'white',
                           cursor: 'pointer',
-                          fontSize: '14px',
-                          fontWeight: '500'
+                          fontSize: isMobile ? '15px' : '14px',
+                          fontWeight: '500',
+                          minWidth: isMobile ? '120px' : 'auto'
                         }}
                       >
                         Save Address
@@ -1090,13 +1072,12 @@ const AccountPage = () => {
                 </div>
               )}
 
-              {/* Address List */}
               {loadingAddresses ? (
                 <div style={{ 
                   display: 'flex', 
                   justifyContent: 'center', 
                   alignItems: 'center', 
-                  padding: '40px',
+                  padding: isMobile ? '40px 20px' : '40px',
                   color: '#666'
                 }}>
                   <div style={{
@@ -1113,41 +1094,42 @@ const AccountPage = () => {
                       borderRadius: '50%',
                       animation: 'spin 1s linear infinite'
                     }}></div>
-                    <p style={{ margin: 0, fontSize: '16px' }}>Loading addresses...</p>
+                    <p style={{ margin: 0, fontSize: isMobile ? '15px' : '16px' }}>Loading addresses...</p>
                   </div>
                 </div>
               ) : addresses.length === 0 && !showAddForm ? (
                 <div style={{
                   textAlign: 'center',
-                  padding: '60px 20px',
+                  padding: isMobile ? '40px 20px' : '60px 20px',
                   backgroundColor: '#f8f9fa',
                   borderRadius: '12px',
                   border: '2px dashed #dee2e6'
                 }}>
                   <div style={{
-                    fontSize: '48px',
+                    fontSize: isMobile ? '40px' : '48px',
                     color: '#6c757d',
                     marginBottom: '16px'
                   }}>📍</div>
                   <h3 style={{
                     color: '#495057',
                     marginBottom: '8px',
-                    fontSize: '20px'
+                    fontSize: isMobile ? '18px' : '20px'
                   }}>No saved addresses yet</h3>
                   <p style={{
                     color: '#6c757d',
                     margin: '0 0 20px 0',
-                    fontSize: '14px'
+                    fontSize: isMobile ? '14px' : '15px',
+                    padding: isMobile ? '0 10px' : '0'
                   }}>Add your first address to get started with faster checkout</p>
                   <button 
                     style={{
-                      padding: '12px 24px',
+                      padding: isMobile ? '14px 24px' : '12px 24px',
                       backgroundColor: '#28a745',
                       color: 'white',
                       border: 'none',
                       borderRadius: '8px',
                       cursor: 'pointer',
-                      fontSize: '14px',
+                      fontSize: isMobile ? '15px' : '14px',
                       fontWeight: '500',
                       display: 'inline-flex',
                       alignItems: 'center',
@@ -1164,52 +1146,55 @@ const AccountPage = () => {
                   <div style={{
                     display: 'flex',
                     justifyContent: 'space-between',
-                    alignItems: 'center',
+                    alignItems: isMobile ? 'flex-start' : 'center',
                     marginBottom: '24px',
                     flexWrap: 'wrap',
-                    gap: '12px'
+                    gap: '12px',
+                    flexDirection: isMobile ? 'column' : 'row'
                   }}>
-                  <div style={{ marginBottom: "16px", paddingBottom: "12px", borderBottom: "1px solid #eee" }}>
-  <h3
-    style={{
-      margin: 0,
-      color: "#222",
-      fontSize: "20px",
-      fontWeight: "600",
-      display: "flex",
-      alignItems: "center",
-      gap: "8px",
-    }}
-  >
-    📍 Saved Addresses <span style={{ color: "#007bff" }}>({addresses.length})</span>
-  </h3>
-  <p
-    style={{
-      margin: "6px 0 0 0",
-      color: "#555",
-      fontSize: "15px",
-      lineHeight: "1.5",
-    }}
-  >
-    Manage your <span style={{ fontWeight: 500 }}>shipping</span> and{" "}
-    <span style={{ fontWeight: 500 }}>billing</span> addresses easily.
-  </p>
-</div>
+                    <div style={{ paddingBottom: isMobile ? '0' : '12px', borderBottom: isMobile ? 'none' : '1px solid #eee', flex: 1 }}>
+                      <h3
+                        style={{
+                          margin: 0,
+                          color: "#222",
+                          fontSize: isMobile ? '18px' : '20px',
+                          fontWeight: "600",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "8px",
+                        }}
+                      >
+                        📍 Saved Addresses <span style={{ color: "#007bff" }}>({addresses.length})</span>
+                      </h3>
+                      <p
+                        style={{
+                          margin: "6px 0 0 0",
+                          color: "#555",
+                          fontSize: isMobile ? '14px' : '15px',
+                          lineHeight: "1.5",
+                        }}
+                      >
+                        Manage your <span style={{ fontWeight: 500 }}>shipping</span> and{" "}
+                        <span style={{ fontWeight: 500 }}>billing</span> addresses easily.
+                      </p>
+                    </div>
 
                     <button 
                       style={{
-                        padding: '10px 20px',
+                        padding: isMobile ? '12px 20px' : '10px 20px',
                         backgroundColor: '#28a745',
                         color: 'white',
                         border: 'none',
                         borderRadius: '8px',
                         cursor: 'pointer',
-                        fontSize: '14px',
+                        fontSize: isMobile ? '15px' : '14px',
                         fontWeight: '500',
                         display: 'flex',
                         alignItems: 'center',
                         gap: '8px',
-                        transition: 'background-color 0.2s'
+                        transition: 'background-color 0.2s',
+                        width: isMobile ? '100%' : 'auto',
+                        justifyContent: 'center'
                       }}
                       onClick={() => setShowAddForm(true)}
                     >
@@ -1220,49 +1205,48 @@ const AccountPage = () => {
 
                   <div style={{
                     display: 'grid',
-                    gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(350px, 1fr))',
-                    gap: '20px'
+                    gridTemplateColumns: isMobile ? '1fr' : isTablet ? 'repeat(auto-fill, minmax(300px, 1fr))' : 'repeat(auto-fill, minmax(350px, 1fr))',
+                    gap: isMobile ? '16px' : '20px'
                   }}>
                     {addresses.map((addr, index) => (
                       <div key={addr._id} style={{
                         backgroundColor: '#ffffff',
                         border: '1px solid #e9ecef',
                         borderRadius: '12px',
-                        padding: '24px',
+                        padding: isMobile ? '20px' : '24px',
                         boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
                         transition: 'all 0.2s ease-in-out',
                         position: 'relative'
                       }}>
-                        {/* Address Type Badge */}
                         <div style={{
                           position: 'absolute',
-                          top: '16px',
-                          right: '16px',
+                          top: isMobile ? '12px' : '16px',
+                          right: isMobile ? '12px' : '16px',
                           backgroundColor: index === 0 ? '#007BFF' : '#6c757d',
                           color: 'white',
                           padding: '4px 8px',
                           borderRadius: '4px',
-                          fontSize: '11px',
+                          fontSize: isMobile ? '10px' : '11px',
                           fontWeight: '600',
                           textTransform: 'uppercase'
                         }}>
                           {index === 0 ? 'Primary' : `Address ${index + 1}`}
                         </div>
 
-                        {/* Name and Phone */}
-                        <div style={{ marginBottom: '16px' }}>
+                        <div style={{ marginBottom: '16px', paddingRight: isMobile ? '70px' : '90px' }}>
                           <div style={{
                             display: 'flex',
                             alignItems: 'center',
                             gap: '8px',
                             marginBottom: '8px'
                           }}>
-                            <span style={{ fontSize: '20px' }}>👤</span>
+                            <span style={{ fontSize: isMobile ? '18px' : '20px' }}>👤</span>
                             <h4 style={{
                               margin: 0,
-                              fontSize: '18px',
+                              fontSize: isMobile ? '16px' : '18px',
                               color: '#333',
-                              fontWeight: '600'
+                              fontWeight: '600',
+                              wordBreak: 'break-word'
                             }}>
                               {addr.fullName}
                             </h4>
@@ -1273,15 +1257,14 @@ const AccountPage = () => {
                             gap: '8px',
                             color: '#666'
                           }}>
-                            <span style={{ fontSize: '16px' }}>📞</span>
-                            <span style={{ fontSize: '14px' }}>{addr.phone}</span>
+                            <span style={{ fontSize: isMobile ? '14px' : '16px' }}>📞</span>
+                            <span style={{ fontSize: isMobile ? '13px' : '14px' }}>{addr.phone}</span>
                           </div>
                         </div>
 
-                        {/* Address */}
                         <div style={{
                           backgroundColor: '#f8f9fa',
-                          padding: '16px',
+                          padding: isMobile ? '14px' : '16px',
                           borderRadius: '8px',
                           marginBottom: '20px'
                         }}>
@@ -1290,8 +1273,8 @@ const AccountPage = () => {
                             alignItems: 'flex-start',
                             gap: '8px'
                           }}>
-                            <span style={{ fontSize: '16px', marginTop: '2px' }}>📍</span>
-                            <div style={{ fontSize: '14px', lineHeight: '1.5', color: '#333' }}>
+                            <span style={{ fontSize: isMobile ? '14px' : '16px', marginTop: '2px' }}>📍</span>
+                            <div style={{ fontSize: isMobile ? '13px' : '14px', lineHeight: '1.5', color: '#333' }}>
                               <div style={{ fontWeight: '500', marginBottom: '4px' }}>
                                 {addr.address}
                               </div>
@@ -1309,7 +1292,6 @@ const AccountPage = () => {
                           </div>
                         </div>
 
-                        {/* Action Buttons */}
                         <div style={{
                           display: 'flex',
                           gap: '10px',
@@ -1318,14 +1300,14 @@ const AccountPage = () => {
                           <button
                             style={{
                               flex: 1,
-                              minWidth: '100px',
-                              padding: '10px 16px',
+                              minWidth: isMobile ? '100%' : '100px',
+                              padding: isMobile ? '12px 16px' : '10px 16px',
                               backgroundColor: '#dc3545',
                               color: 'white',
                               border: 'none',
                               borderRadius: '6px',
                               cursor: 'pointer',
-                              fontSize: '14px',
+                              fontSize: isMobile ? '15px' : '14px',
                               fontWeight: '500',
                               transition: 'background-color 0.2s',
                               display: 'flex',
@@ -1345,28 +1327,15 @@ const AccountPage = () => {
                 </div>
               ) : null}
 
-              {/* Add CSS Animation for loading spinner */}
               <style>
                 {`
                   @keyframes spin {
                     0% { transform: rotate(0deg); }
                     100% { transform: rotate(360deg); }
                   }
-                  
-                  .address-card:hover {
-                    box-shadow: 0 4px 16px rgba(0,0,0,0.12) !important;
-                    transform: translateY(-2px) !important;
-                  }
-                  
-                  .action-button:hover {
-                    opacity: 0.9;
-                    transform: translateY(-1px);
-                  }
                 `}
               </style>
             </div>
-          ) : (
-            <p style={{ color: "#555", fontSize: "16px" }}>{sections[activeSection]}</p>
           )}
         </main>
       </div>
