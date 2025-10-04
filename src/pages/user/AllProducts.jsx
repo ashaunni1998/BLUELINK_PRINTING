@@ -365,17 +365,90 @@ const arrowButtonStyle = (position) => ({
           {/* Slide Content */}
           
 
-   <div className="all-products-container">
+ <div className="all-products-container">
+  <style>{`
+    /* Only add mobile responsive styles - Desktop stays exactly as inline styles */
+    
+    @media (max-width: 767px) {
+      .all-products-container .page-title {
+        font-size: 1.5rem !important;
+        padding: 0 1rem;
+      }
+    }
+
+    /* Tablet and below - 4 columns */
+    @media (max-width: 1279px) and (min-width: 1024px) {
+      .all-products-responsive-grid {
+        grid-template-columns: repeat(4, 1fr) !important;
+      }
+    }
+
+    /* Small tablet - 3 columns */
+    @media (max-width: 1023px) and (min-width: 768px) {
+      .all-products-responsive-grid {
+        max-width: 100% !important;
+        grid-template-columns: repeat(3, 1fr) !important;
+        gap: 1rem !important;
+        padding: 0 1rem !important;
+      }
+    }
+
+    /* Mobile landscape - 2 columns */
+    @media (max-width: 767px) and (min-width: 480px) {
+      .all-products-responsive-grid {
+        max-width: 100% !important;
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 0.875rem !important;
+        padding: 0 0.75rem !important;
+      }
+    }
+
+    /* Mobile portrait - 2 columns */
+    @media (max-width: 479px) {
+      .all-products-responsive-grid {
+        max-width: 100% !important;
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 0.75rem !important;
+        padding: 0 0.5rem !important;
+      }
+    }
+
+    .product-card-all-responsive:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 0.25rem 0.75rem rgba(0,0,0,0.12);
+    }
+
+    @media (max-width: 767px) {
+      .product-info-all-responsive {
+        padding: 0.75rem 0.5rem !important;
+      }
+      
+      .product-name-all-responsive {
+        font-size: 0.875rem !important;
+      }
+      
+      .product-price-all-responsive {
+        font-size: 0.8125rem !important;
+      }
+    }
+
+    @media (max-width: 767px) {
+      .no-products-message {
+        padding: 2rem 1rem !important;
+      }
+    }
+  `}</style>
+
   <h2 className="page-title">
     {categoryName ? `All ${categoryName}` : "All Products"}
   </h2>
   {products.length === 0 ? (
-    <p style={{ textAlign: "center", color: "#666" }}>
+    <p className="no-products-message" style={{ textAlign: "center", color: "#666" }}>
       No products found for this category.
     </p>
   ) : (
     <div 
-      className="products-grid"
+      className="all-products-responsive-grid"
       style={{
         display: "grid",
         gridTemplateColumns: "repeat(5, 1fr)",
@@ -387,17 +460,18 @@ const arrowButtonStyle = (position) => ({
     >
       {products.map((product) => (
         <div 
-          className="product-card" 
+          className="product-card-all-responsive" 
           key={product._id}
           style={{
             backgroundColor: "#fff",
             borderRadius: "0.375rem",
             overflow: "hidden",
             boxShadow: "0 0.0625rem 0.375rem rgba(0,0,0,0.07)",
-            transition: "transform 0.2s ease",
+            transition: "transform 0.2s ease, box-shadow 0.2s ease",
           }}
         >
           <div
+            className="product-image-wrapper-all"
             style={{
               width: "100%",
               aspectRatio: "4/3",
@@ -410,7 +484,7 @@ const arrowButtonStyle = (position) => ({
             <img
               src={product.images?.[0] || "https://via.placeholder.com/300"}
               alt={product.name}
-              className="product-image"
+              className="product-image-all"
               style={{
                 width: "100%",
                 height: "100%",
@@ -422,7 +496,7 @@ const arrowButtonStyle = (position) => ({
           </div>
 
           <div 
-            className="product-info"
+            className="product-info-all-responsive"
             style={{
               padding: "0.875rem",
               borderTop: "1px solid #eee",
@@ -430,7 +504,7 @@ const arrowButtonStyle = (position) => ({
             }}
           >
             <h3 
-              className="product-name"
+              className="product-name-all-responsive"
               onClick={() => navigate(`/product/${product._id}`)}
               style={{
                 color: "#007abf",
@@ -439,12 +513,13 @@ const arrowButtonStyle = (position) => ({
                 fontSize: "0.9375rem",
                 marginBottom: "0.375rem",
                 cursor: "pointer",
+                margin: "0 0 0.375rem 0",
               }}
             >
               {product.name}
             </h3>
             <p 
-              className="product-price"
+              className="product-price-all-responsive"
               style={{
                 fontSize: "0.875rem",
                 color: "#444",
@@ -459,7 +534,6 @@ const arrowButtonStyle = (position) => ({
     </div>
   )}
 </div>
-      
 
       <Footer />
     </div>

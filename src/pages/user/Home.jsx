@@ -737,45 +737,161 @@ const maxIndex = Math.ceil(products.length / productsPerSlide) - 1;
 
 
 
-{/* Personalized Gifts Section - Aligned with Header */}
-<section style={{ backgroundColor: "#f5f8f6", padding: "1.875rem 0 2.5rem", textAlign: "center", marginLeft:"6%", marginRight:"6%"}}>
-  <h2
-    style={{
-      fontSize: "32px",
-      marginBottom: "12px",
-      fontWeight: "700",
-      color: "#111",
-    }}
-  >
+{/* Personalized Gifts Section - Mobile Responsive */}
+<section style={{ backgroundColor: "#f5f8f6", padding: "1.875rem 0 2.5rem", textAlign: "center", marginLeft: "6%", marginRight: "6%" }}>
+  <style>{`
+    @media (max-width: 1023px) {
+      section[style*="marginLeft"] {
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+      }
+    }
+
+    .section-title-responsive {
+      font-size: 32px;
+      margin-bottom: 12px;
+      font-weight: 700;
+      color: #111;
+    }
+
+    @media (max-width: 767px) {
+      .section-title-responsive {
+        font-size: 24px;
+      }
+    }
+
+    .section-description-responsive {
+      font-size: 17px;
+      color: #555;
+      margin-bottom: 50px;
+      max-width: 700px;
+      margin-inline: auto;
+      line-height: 1.6;
+    }
+
+    @media (max-width: 767px) {
+      .section-description-responsive {
+        font-size: 15px;
+        margin-bottom: 30px;
+        padding: 0 0.5rem;
+      }
+    }
+
+    .products-container-responsive {
+      max-width: 75%;
+      margin: 0 16% 0 13%;
+      padding: 0 1rem;
+    }
+
+    @media (max-width: 1023px) {
+      .products-container-responsive {
+        max-width: 100%;
+        margin: 0;
+        padding: 0 0.5rem;
+      }
+    }
+
+    .products-grid-responsive {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 1.25rem;
+    }
+
+    @media (max-width: 1279px) and (min-width: 1024px) {
+      .products-grid-responsive {
+        grid-template-columns: repeat(4, 1fr);
+      }
+    }
+
+    @media (max-width: 1023px) and (min-width: 768px) {
+      .products-grid-responsive {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+      }
+    }
+
+    @media (max-width: 767px) and (min-width: 480px) {
+      .products-grid-responsive {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.875rem;
+      }
+    }
+
+    @media (max-width: 479px) {
+      .products-grid-responsive {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.75rem;
+      }
+    }
+
+    .product-card-responsive {
+      background-color: #fff;
+      border-radius: 0.375rem;
+      overflow: hidden;
+      box-shadow: 0 0.0625rem 0.375rem rgba(0,0,0,0.07);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .product-card-responsive:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 0.25rem 0.75rem rgba(0,0,0,0.12);
+    }
+
+    .product-info-responsive {
+      padding: 0.875rem;
+      border-top: 1px solid #eee;
+      text-align: center;
+    }
+
+    @media (max-width: 767px) {
+      .product-info-responsive {
+        padding: 0.75rem 0.5rem;
+      }
+    }
+
+    .product-name-responsive {
+      color: #007abf;
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 0.9375rem;
+      display: block;
+      margin-bottom: 0.375rem;
+    }
+
+    @media (max-width: 767px) {
+      .product-name-responsive {
+        font-size: 0.875rem;
+      }
+    }
+
+    .product-name-responsive:hover {
+      text-decoration: underline;
+    }
+
+    .product-price-responsive {
+      font-size: 0.875rem;
+      color: #444;
+      margin: 0;
+    }
+
+    @media (max-width: 767px) {
+      .product-price-responsive {
+        font-size: 0.8125rem;
+      }
+    }
+  `}</style>
+
+  <h2 className="section-title-responsive">
     Personalized Gifts
   </h2>
-  <p
-    style={{
-      fontSize: "17px",
-      color: "#555",
-      marginBottom: "50px",
-      maxWidth: "700px",
-      marginInline: "auto",
-      lineHeight: "1.6",
-    }}
-  >
+  <p className="section-description-responsive">
     Make every occasion special with personalized gifts designed to create
     lasting memories.
   </p>
-  <div
-    style={{
-      maxWidth: "75%",
-      margin: "0 16% 0 13%",
-      padding: "0 1rem",
-    }}
-  >
-    <div
-      style={{
-        display: "grid",
-        gridTemplateColumns: "repeat(5, 1fr)",
-        gap: "1.25rem",
-      }}
-    >
+  <div className="products-container-responsive">
+    <div className="products-grid-responsive">
       {products
         .filter((product) => {
           const category =
@@ -786,20 +902,11 @@ const maxIndex = Math.ceil(products.length / productsPerSlide) - 1;
             typeof product.name === "string"
               ? product.name.toLowerCase()
               : "";
-          return category.includes("PhotoFrame") || name.includes("photo frame") || name.includes("mugs");
+          return category.includes("photoframe") || name.includes("photo frame") || name.includes("mugs");
         })
-        .slice(0,8)
+        .slice(0, 8)
         .map((gift) => (
-          <div
-            key={gift._id}
-            style={{
-              backgroundColor: "#fff",
-              borderRadius: "0.375rem",
-              overflow: "hidden",
-              boxShadow: "0 0.0625rem 0.375rem rgba(0,0,0,0.07)",
-              transition: "transform 0.2s ease",
-            }}
-          >
+          <div key={gift._id} className="product-card-responsive">
             <Link
               to={`/product/${gift._id}`}
               style={{
@@ -822,27 +929,14 @@ const maxIndex = Math.ceil(products.length / productsPerSlide) - 1;
               />
             </Link>
 
-            <div
-              style={{
-                padding: "0.875rem",
-                borderTop: "1px solid #eee",
-                textAlign: "center",
-              }}
-            >
+            <div className="product-info-responsive">
               <Link
                 to={`/product/${gift._id}`}
-                style={{
-                  color: "#007abf",
-                  textDecoration: "none",
-                  fontWeight: "500",
-                  fontSize: "0.9375rem",
-                  display: "block",
-                  marginBottom: "0.375rem",
-                }}
+                className="product-name-responsive"
               >
                 {gift.name}
               </Link>
-              <p style={{ fontSize: "0.875rem", color: "#444", margin: 0 }}>
+              <p className="product-price-responsive">
                 ${gift.price}
               </p>
             </div>
@@ -852,46 +946,17 @@ const maxIndex = Math.ceil(products.length / productsPerSlide) - 1;
   </div>
 </section>
 
-{/* Flyers Section - Aligned with Header */}
-<section style={{ backgroundColor: "#f5f8f6", padding: "1.875rem 0 2.5rem", textAlign: "center", marginLeft:"6%", marginRight:"6%"}}>
-  <h2
-    style={{
-      fontSize: "32px",
-      marginBottom: "12px",
-      fontWeight: "700",
-      color: "#111",
-    }}
-  >
+{/* Flyers Section - Mobile Responsive */}
+<section style={{ backgroundColor: "#f5f8f6", padding: "1.875rem 0 2.5rem", textAlign: "center", marginLeft: "6%", marginRight: "6%" }}>
+  <h2 className="section-title-responsive">
     Our Flyers
   </h2>
-  <p
-    style={{
-      fontSize: "17px",
-      color: "#555",
-      marginBottom: "50px",
-      maxWidth: "700px",
-      marginInline: "auto",
-      lineHeight: "1.6",
-    }}
-  >
+  <p className="section-description-responsive">
     Showcase your business with professional, eye-catching flyers designed to
     leave a lasting impression.
   </p>
-  <div
-    style={{
-      maxWidth: "75%",
-      margin: "0 16% 0 13%",
-      padding: "0 1rem",
-      textAlign: "center"
-    }}
-  >
-    <div
-      style={{
-        display: "grid",
-        gridTemplateColumns: "repeat(5, 1fr)",
-        gap: "1.25rem",
-      }}
-    >
+  <div className="products-container-responsive">
+    <div className="products-grid-responsive">
       {products
         .filter((product) => {
           const category =
@@ -904,18 +969,9 @@ const maxIndex = Math.ceil(products.length / productsPerSlide) - 1;
               : "";
           return category.includes("flyer") || name.includes("flyer");
         })
-        .slice(0,8)
+        .slice(0, 8)
         .map((flyer) => (
-          <div
-            key={flyer._id}
-            style={{
-              backgroundColor: "#fff",
-              borderRadius: "0.375rem",
-              overflow: "hidden",
-              boxShadow: "0 0.0625rem 0.375rem rgba(0,0,0,0.07)",
-              transition: "transform 0.2s ease",
-            }}
-          >
+          <div key={flyer._id} className="product-card-responsive">
             <Link
               to={`/product/${flyer._id}`}
               style={{
@@ -938,27 +994,14 @@ const maxIndex = Math.ceil(products.length / productsPerSlide) - 1;
               />
             </Link>
 
-            <div
-              style={{
-                padding: "0.875rem",
-                borderTop: "1px solid #eee",
-                textAlign: "center",
-              }}
-            >
+            <div className="product-info-responsive">
               <Link
                 to={`/product/${flyer._id}`}
-                style={{
-                  color: "#007abf",
-                  textDecoration: "none",
-                  fontWeight: "500",
-                  fontSize: "0.9375rem",
-                  display: "block",
-                  marginBottom: "0.375rem",
-                }}
+                className="product-name-responsive"
               >
                 {flyer.name}
               </Link>
-              <p style={{ fontSize: "0.875rem", color: "#444", margin: 0 }}>
+              <p className="product-price-responsive">
                 ${flyer.price}
               </p>
             </div>
