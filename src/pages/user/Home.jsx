@@ -211,7 +211,7 @@ const handleBuyNow = (productId) => {
 console.log(products);
  const [currentIndex, setCurrentIndex] = useState(0);
   const itemsPerView = 1;
-  const maxIndex = Math.ceil(products.length / 10) - 1; // Changed from products.length - itemsPerView
+  // const maxIndex = Math.ceil(products.length / 10) - 1; // Changed from products.length - itemsPerView
 
   const handlePrev = () => {
     setCurrentIndex(prev => Math.max(0, prev - 1));
@@ -220,6 +220,23 @@ console.log(products);
   const handleNext = () => {
     setCurrentIndex(prev => Math.min(maxIndex, prev + 1));
   };
+
+
+  const [isMobile, setIsMobile] = useState(false);
+
+useEffect(() => {
+  const checkMobile = () => {
+    setIsMobile(window.innerWidth <= 768);
+  };
+  
+  checkMobile();
+  window.addEventListener('resize', checkMobile);
+  
+  return () => window.removeEventListener('resize', checkMobile);
+}, []);
+// Replace your existing itemsPerView and maxIndex with:
+const productsPerSlide = isMobile ? 2 : 10;
+const maxIndex = Math.ceil(products.length / productsPerSlide) - 1;
   return (
     <div className="responsive-container">
       {/* <nav
@@ -353,15 +370,22 @@ console.log(products);
 
 
 
- {/* popular productSection */}
- <section style={{ backgroundColor: "#f5f8f6", padding: "1.875rem 0 2.5rem", marginLeft: "6%", marginRight: "6%", textAlign: "center" }}>
+<section style={{ 
+  backgroundColor: "#f5f8f6", 
+  padding: isMobile ? "1.5rem 1rem 2rem" : "1.875rem 0 2.5rem", 
+  marginLeft: isMobile ? "0" : "6%", 
+  marginRight: isMobile ? "0" : "6%", 
+  textAlign: "center" 
+}}>
   <h2
     style={{
-      fontSize: "32px",
+      fontSize: isMobile ? "24px" : "32px",
       marginBottom: "12px",
       fontWeight: "700",
       color: "#111",
-      
+      position: "relative",
+      display: "inline-block",
+      paddingBottom: "0.75rem",
     }}
   >
     Popular Products
@@ -369,7 +393,7 @@ console.log(products);
       style={{
         position: "absolute",
         left: "50%",
-        bottom: "-0.375rem",
+        bottom: "0",
         transform: "translateX(-50%)",
         width: "3.75rem",
         height: "0.25rem",
@@ -381,41 +405,39 @@ console.log(products);
 
   <p
     style={{
-      fontSize: "17px",
+      fontSize: isMobile ? "15px" : "17px",
       color: "#555",
-      marginBottom: "50px",
-      maxWidth: "700px",
+      marginBottom: isMobile ? "30px" : "50px",
+      maxWidth: isMobile ? "100%" : "700px",
       marginInline: "auto",
       lineHeight: "1.6",
-      // textAlign: "center",
+      padding: isMobile ? "0 1rem" : "0",
     }}
   >
     These are tried and true favorites that will have you set to get down to business.
   </p>
 
-  {/* Carousel Container */}
   <div
     style={{
-      maxWidth: "75%",
-      margin: "0 16% 0 13%",
-      padding: "0 1rem",
+      maxWidth: isMobile ? "100%" : "75%",
+      margin: isMobile ? "0 auto" : "0 16% 0 13%",
+      padding: isMobile ? "0 2.5rem" : "0 1rem",
       position: "relative",
     }}
   >
-    {/* Previous Button */}
     <button
       onClick={handlePrev}
       disabled={currentIndex === 0}
       style={{
         position: "absolute",
-        left: "-2.5rem",
+        left: isMobile ? "0" : "-2.5rem",
         top: "50%",
         transform: "translateY(-50%)",
         backgroundColor: "#fff",
         border: "1px solid #ddd",
         borderRadius: "50%",
-        width: "2.5rem",
-        height: "2.5rem",
+        width: isMobile ? "2rem" : "2.5rem",
+        height: isMobile ? "2rem" : "2.5rem",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -438,174 +460,188 @@ console.log(products);
         e.currentTarget.style.transform = "translateY(-50%) scale(1)";
       }}
     >
-      <ChevronLeft size={20} color={currentIndex === 0 ? "#ccc" : "#007abf"} />
+      <ChevronLeft size={isMobile ? 16 : 20} color={currentIndex === 0 ? "#ccc" : "#007abf"} />
     </button>
 
-    {/* Carousel Track */}
     <div style={{ overflow: "hidden" }}>
       <div
         style={{
           display: "flex",
           transition: "transform 0.4s ease-in-out",
-          transform: `translateX(-${currentIndex * (100 / itemsPerView)}%)`,
+          transform: `translateX(-${currentIndex * 100}%)`,
         }}
       >
-        {/* Create slides with 10 products each (2 rows of 5) */}
-        {Array.from({ length: Math.ceil(products.length / 10) }).map((_, slideIndex) => (
+        {Array.from({ length: Math.ceil(products.length / productsPerSlide) }).map((_, slideIndex) => (
           <div
             key={slideIndex}
             style={{
-              flex: `0 0 ${100 / itemsPerView}%`,
-              padding: "0 0.625rem",
+              flex: "0 0 100%",
+              padding: isMobile ? "0 0.5rem" : "0 0.625rem",
               boxSizing: "border-box",
             }}
           >
-            {/* Two rows container */}
-            <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
-              {/* First Row - 5 products */}
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: "1.25rem" }}>
-                {products.slice(slideIndex * 10, slideIndex * 10 + 5).map((product) => (
-                  <div
-                    key={product._id}
-                    style={{
-                      backgroundColor: "#fff",
-                      borderRadius: "0.375rem",
-                      overflow: "hidden",
-                      boxShadow: "0 0.0625rem 0.375rem rgba(0,0,0,0.07)",
-                      transition: "transform 0.2s ease, box-shadow 0.2s ease",
-                      cursor: "pointer",
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.transform = "translateY(-0.25rem)";
-                      e.currentTarget.style.boxShadow = "0 0.375rem 0.75rem rgba(0,0,0,0.15)";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.transform = "translateY(0)";
-                      e.currentTarget.style.boxShadow = "0 0.0625rem 0.375rem rgba(0,0,0,0.07)";
-                    }}
-                  >
-                    <a
-                      href={`/allProducts/${product.categories && product.categories[0] ? product.categories[0] : ''}`}
+            <div style={{ 
+              display: "flex", 
+              flexDirection: "column", 
+              gap: isMobile ? "1rem" : "1.25rem" 
+            }}>
+              <div style={{ 
+                display: "grid", 
+                gridTemplateColumns: isMobile ? "1fr" : "repeat(5, 1fr)", 
+                gap: isMobile ? "1rem" : "1.25rem" 
+              }}>
+                {products
+                  .slice(slideIndex * productsPerSlide, slideIndex * productsPerSlide + (isMobile ? 1 : 5))
+                  .map((product) => (
+                    <div
+                      key={product._id}
                       style={{
-                        width: "100%",
-                        aspectRatio: "4/3",
+                        backgroundColor: "#fff",
+                        borderRadius: "0.375rem",
                         overflow: "hidden",
-                        display: "block",
-                        textDecoration: "none",
+                        boxShadow: "0 0.0625rem 0.375rem rgba(0,0,0,0.07)",
+                        transition: "transform 0.2s ease, box-shadow 0.2s ease",
+                        cursor: "pointer",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = "translateY(-0.25rem)";
+                        e.currentTarget.style.boxShadow = "0 0.375rem 0.75rem rgba(0,0,0,0.15)";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = "translateY(0)";
+                        e.currentTarget.style.boxShadow = "0 0.0625rem 0.375rem rgba(0,0,0,0.07)";
                       }}
                     >
-                      <img
-                        src={product.images[0] || "https://via.placeholder.com/300"}
-                        alt={product.name}
+                      <Link
+                        to={`/allProducts/${product.categories && product.categories[0] ? product.categories[0] : ''}`}
                         style={{
                           width: "100%",
-                          height: "100%",
-                          objectFit: "contain",
+                          aspectRatio: "4/3",
+                          overflow: "hidden",
                           display: "block",
-                          backgroundColor: "#f9f9f9",
-                        }}
-                      />
-                    </a>
-
-                    <div
-                      style={{
-                        padding: "0.875rem",
-                        borderTop: "1px solid #eee",
-                        textAlign: "center",
-                      }}
-                    >
-                      <a
-                        href={`/allProducts/${product.categories && product.categories[0] ? product.categories[0] : ''}`}
-                        style={{
-                          color: "#007abf",
                           textDecoration: "none",
-                          fontWeight: "500",
-                          fontSize: "0.9375rem",
-                          display: "block",
-                          marginBottom: "0.375rem",
                         }}
                       >
-                        {product.name}
-                      </a>
-                      <p style={{ fontSize: "0.875rem", color: "#444", margin: 0 }}>
-                        ${product.price}
-                      </p>
+                        <img
+                          src={product.images[0] || "https://via.placeholder.com/300"}
+                          alt={product.name}
+                          style={{
+                            width: "100%",
+                            height: "100%",
+                            objectFit: "contain",
+                            display: "block",
+                            backgroundColor: "#f9f9f9",
+                          }}
+                        />
+                      </Link>
+
+                      <div
+                        style={{
+                          padding: "0.875rem",
+                          borderTop: "1px solid #eee",
+                          textAlign: "center",
+                        }}
+                      >
+                        <Link
+                          to={`/allProducts/${product.categories && product.categories[0] ? product.categories[0] : ''}`}
+                          style={{
+                            color: "#007abf",
+                            textDecoration: "none",
+                            fontWeight: "500",
+                            fontSize: "0.9375rem",
+                            display: "block",
+                            marginBottom: "0.375rem",
+                          }}
+                        >
+                          {product.name}
+                        </Link>
+                        <p style={{ fontSize: "0.875rem", color: "#444", margin: 0 }}>
+                          ${product.price}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
               </div>
 
-              {/* Second Row - 5 products */}
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: "1.25rem" }}>
-                {products.slice(slideIndex * 10 + 5, slideIndex * 10 + 10).map((product) => (
-                  <div
-                    key={product._id}
-                    style={{
-                      backgroundColor: "#fff",
-                      borderRadius: "0.375rem",
-                      overflow: "hidden",
-                      boxShadow: "0 0.0625rem 0.375rem rgba(0,0,0,0.07)",
-                      transition: "transform 0.2s ease, box-shadow 0.2s ease",
-                      cursor: "pointer",
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.transform = "translateY(-0.25rem)";
-                      e.currentTarget.style.boxShadow = "0 0.375rem 0.75rem rgba(0,0,0,0.15)";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.transform = "translateY(0)";
-                      e.currentTarget.style.boxShadow = "0 0.0625rem 0.375rem rgba(0,0,0,0.07)";
-                    }}
-                  >
-                    <a
-                      href={`/allProducts/${product.categories && product.categories[0] ? product.categories[0] : ''}`}
+              <div style={{ 
+                display: "grid", 
+                gridTemplateColumns: isMobile ? "1fr" : "repeat(5, 1fr)", 
+                gap: isMobile ? "1rem" : "1.25rem" 
+              }}>
+                {products
+                  .slice(
+                    slideIndex * productsPerSlide + (isMobile ? 1 : 5), 
+                    slideIndex * productsPerSlide + productsPerSlide
+                  )
+                  .map((product) => (
+                    <div
+                      key={product._id}
                       style={{
-                        width: "100%",
-                        aspectRatio: "4/3",
+                        backgroundColor: "#fff",
+                        borderRadius: "0.375rem",
                         overflow: "hidden",
-                        display: "block",
-                        textDecoration: "none",
+                        boxShadow: "0 0.0625rem 0.375rem rgba(0,0,0,0.07)",
+                        transition: "transform 0.2s ease, box-shadow 0.2s ease",
+                        cursor: "pointer",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = "translateY(-0.25rem)";
+                        e.currentTarget.style.boxShadow = "0 0.375rem 0.75rem rgba(0,0,0,0.15)";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = "translateY(0)";
+                        e.currentTarget.style.boxShadow = "0 0.0625rem 0.375rem rgba(0,0,0,0.07)";
                       }}
                     >
-                      <img
-                        src={product.images[0] || "https://via.placeholder.com/300"}
-                        alt={product.name}
+                      <Link
+                        to={`/allProducts/${product.categories && product.categories[0] ? product.categories[0] : ''}`}
                         style={{
                           width: "100%",
-                          height: "100%",
-                          objectFit: "contain",
+                          aspectRatio: "4/3",
+                          overflow: "hidden",
                           display: "block",
-                          backgroundColor: "#f9f9f9",
-                        }}
-                      />
-                    </a>
-
-                    <div
-                      style={{
-                        padding: "0.875rem",
-                        borderTop: "1px solid #eee",
-                        textAlign: "center",
-                      }}
-                    >
-                      <a
-                        href={`/allProducts/${product.categories && product.categories[0] ? product.categories[0] : ''}`}
-                        style={{
-                          color: "#007abf",
                           textDecoration: "none",
-                          fontWeight: "500",
-                          fontSize: "0.9375rem",
-                          display: "block",
-                          marginBottom: "0.375rem",
                         }}
                       >
-                        {product.name}
-                      </a>
-                      <p style={{ fontSize: "0.875rem", color: "#444", margin: 0 }}>
-                        ${product.price}
-                      </p>
+                        <img
+                          src={product.images[0] || "https://via.placeholder.com/300"}
+                          alt={product.name}
+                          style={{
+                            width: "100%",
+                            height: "100%",
+                            objectFit: "contain",
+                            display: "block",
+                            backgroundColor: "#f9f9f9",
+                          }}
+                        />
+                      </Link>
+
+                      <div
+                        style={{
+                          padding: "0.875rem",
+                          borderTop: "1px solid #eee",
+                          textAlign: "center",
+                        }}
+                      >
+                        <Link
+                          to={`/allProducts/${product.categories && product.categories[0] ? product.categories[0] : ''}`}
+                          style={{
+                            color: "#007abf",
+                            textDecoration: "none",
+                            fontWeight: "500",
+                            fontSize: "0.9375rem",
+                            display: "block",
+                            marginBottom: "0.375rem",
+                          }}
+                        >
+                          {product.name}
+                        </Link>
+                        <p style={{ fontSize: "0.875rem", color: "#444", margin: 0 }}>
+                          ${product.price}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
               </div>
             </div>
           </div>
@@ -613,20 +649,19 @@ console.log(products);
       </div>
     </div>
 
-    {/* Next Button */}
     <button
       onClick={handleNext}
       disabled={currentIndex === maxIndex}
       style={{
         position: "absolute",
-        right: "-2.5rem",
+        right: isMobile ? "0" : "-2.5rem",
         top: "50%",
         transform: "translateY(-50%)",
         backgroundColor: "#fff",
         border: "1px solid #ddd",
         borderRadius: "50%",
-        width: "2.5rem",
-        height: "2.5rem",
+        width: isMobile ? "2rem" : "2.5rem",
+        height: isMobile ? "2rem" : "2.5rem",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -649,8 +684,31 @@ console.log(products);
         e.currentTarget.style.transform = "translateY(-50%) scale(1)";
       }}
     >
-      <ChevronRight size={20} color={currentIndex === maxIndex ? "#ccc" : "#007abf"} />
+      <ChevronRight size={isMobile ? 16 : 20} color={currentIndex === maxIndex ? "#ccc" : "#007abf"} />
     </button>
+  </div>
+
+  <div style={{ 
+    display: "flex", 
+    justifyContent: "center", 
+    gap: "0.5rem", 
+    marginTop: "1.5rem" 
+  }}>
+    {Array.from({ length: maxIndex + 1 }).map((_, index) => (
+      <button
+        key={index}
+        onClick={() => setCurrentIndex(index)}
+        style={{
+          width: isMobile ? "0.5rem" : "0.625rem",
+          height: isMobile ? "0.5rem" : "0.625rem",
+          borderRadius: "50%",
+          border: "none",
+          backgroundColor: currentIndex === index ? "#007abf" : "#ddd",
+          cursor: "pointer",
+          transition: "all 0.3s ease",
+        }}
+      />
+    ))}
   </div>
 </section>
 

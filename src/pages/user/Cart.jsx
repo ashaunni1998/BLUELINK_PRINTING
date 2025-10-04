@@ -307,63 +307,75 @@ export default function Cart() {
   return (
     <>
       <style>{`
-        .cart-container {
-          width: 60%;
-          padding: 1rem;
+        * {
           box-sizing: border-box;
         }
 
-        /* Mobile: full width with side padding */
+        .cart-container {
+          width: 100%;
+          padding: 1rem;
+          max-width: 65%;
+          margin: 0 auto;
+        }
+
+        /* Mobile First - Default styles for mobile */
         @media (max-width: 768px) {
           .cart-container {
-            max-width: 100%;
-            margin: 0 auto;
-            padding: 1rem;
+            padding: 0.75rem;
           }
         }
 
-        /* Tablet and up: aligned layout */
+        /* Tablet and Desktop */
         @media (min-width: 769px) {
           .cart-container {
-            max-width: 75%;
-            margin: 0 25% 0 17%;
             padding: 2rem 1rem;
+            width: 90%;
+          }
+        }
+
+        @media (min-width: 1200px) {
+          .cart-container {
+            width: 75%;
           }
         }
 
         .cart-grid {
-          display: grid;
-          grid-template-columns: 1fr;
-          gap: 2rem;
+          display: flex;
+          flex-direction: column;
+          gap: 1.5rem;
         }
 
         @media (min-width: 1024px) {
           .cart-grid {
+            display: grid;
             grid-template-columns: 2fr 1fr;
+            gap: 2rem;
           }
         }
 
         .cart-item-card {
           display: flex;
+          flex-direction: column;
           gap: 1rem;
-          align-items: flex-start;
           padding: 1rem;
-          border-bottom: 1px solid #eee;
+          border: 1px solid #e5e7eb;
           background: white;
-          border-radius: 0.5rem;
-          margin-bottom: 0.5rem;
+          border-radius: 0.75rem;
+          margin-bottom: 0.75rem;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         }
 
-        @media (max-width: 640px) {
+        @media (min-width: 641px) {
           .cart-item-card {
-            flex-direction: column;
-            gap: 0.75rem;
+            flex-direction: row;
+            gap: 1.25rem;
+            padding: 1.25rem;
           }
         }
 
         .cart-item-image {
-          width: 80px;
-          height: 80px;
+          width: 100%;
+          height: 200px;
           border-radius: 0.5rem;
           overflow: hidden;
           flex-shrink: 0;
@@ -374,9 +386,22 @@ export default function Cart() {
 
         @media (min-width: 641px) {
           .cart-item-image {
-            width: 100px;
-            height: 100px;
+            width: 120px;
+            height: 120px;
           }
+        }
+
+        @media (min-width: 1024px) {
+          .cart-item-image {
+            width: 140px;
+            height: 140px;
+          }
+        }
+
+        .cart-item-image img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
         }
 
         .cart-item-details {
@@ -384,46 +409,94 @@ export default function Cart() {
           min-width: 0;
         }
 
-        .cart-item-options {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 0.75rem;
-          font-size: 0.875rem;
-          color: #374151;
-          margin-top: 0.5rem;
+        .cart-item-title {
+          margin: 0 0 0.75rem;
+          fontSize: 1.125rem;
+          fontWeight: 600;
+          color: #111827;
+          line-height: 1.4;
         }
 
         @media (max-width: 640px) {
+          .cart-item-title {
+            fontSize: 1rem;
+          }
+        }
+
+        .cart-item-options {
+          display: grid;
+          grid-template-columns: 1fr;
+          gap: 0.75rem;
+          font-size: 0.875rem;
+          color: #374151;
+          margin-top: 0.75rem;
+        }
+
+        @media (min-width: 480px) {
           .cart-item-options {
-            gap: 0.5rem;
-            font-size: 0.8125rem;
+            grid-template-columns: repeat(2, 1fr);
+          }
+        }
+
+        @media (min-width: 768px) {
+          .cart-item-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+          }
+        }
+
+        .cart-item-option {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+        }
+
+        .cart-item-price-section {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding-top: 1rem;
+          border-top: 1px solid #e5e7eb;
+          margin-top: 1rem;
+        }
+
+        @media (min-width: 641px) {
+          .cart-item-price-section {
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: flex-end;
+            border-top: none;
+            padding-top: 0;
+            margin-top: 0;
+            min-width: 120px;
           }
         }
 
         .cart-item-price {
-          text-align: right;
-          min-width: 100px;
+          font-weight: 700;
+          font-size: 1.25rem;
+          color: #111827;
         }
 
-        @media (max-width: 640px) {
+        @media (min-width: 641px) {
           .cart-item-price {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            width: 100%;
+            margin-bottom: 0.75rem;
           }
         }
 
-        .header-section {
-          margin-bottom: 2rem;
+        .remove-btn {
+          background: transparent;
+          border: none;
+          color: #ef4444;
+          cursor: pointer;
+          text-decoration: underline;
+          font-size: 0.875rem;
+          padding: 0.5rem 0;
         }
 
-        .header-title {
-          display: flex;
-          align-items: center;
-          gap: 0.75rem;
-          margin-bottom: 0.5rem;
-          flex-wrap: wrap;
+        .remove-btn:hover {
+          color: #dc2626;
         }
 
         .summary-card {
@@ -431,13 +504,63 @@ export default function Cart() {
           border-radius: 1rem;
           box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
           border: 1px solid #e5e7eb;
-          padding: 1.5rem;
+          padding: 1.25rem;
+        }
+
+        @media (min-width: 768px) {
+          .summary-card {
+            padding: 1.5rem;
+          }
         }
 
         @media (min-width: 1024px) {
           .summary-card {
             position: sticky;
             top: 2rem;
+          }
+        }
+
+        .summary-title {
+          font-size: 1.25rem;
+          font-weight: 600;
+          color: #111827;
+          margin: 0 0 1.5rem;
+        }
+
+        @media (max-width: 640px) {
+          .summary-title {
+            font-size: 1.125rem;
+          }
+        }
+
+        .summary-row {
+          display: flex;
+          justify-content: space-between;
+          color: #6b7280;
+          margin-bottom: 1rem;
+          font-size: 0.875rem;
+        }
+
+        @media (min-width: 768px) {
+          .summary-row {
+            font-size: 0.9375rem;
+          }
+        }
+
+        .summary-total {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          font-size: 1.125rem;
+          font-weight: 600;
+          color: #111827;
+          padding-top: 1rem;
+          border-top: 1px solid #e5e7eb;
+        }
+
+        @media (min-width: 768px) {
+          .summary-total {
+            font-size: 1.25rem;
           }
         }
 
@@ -456,6 +579,14 @@ export default function Cart() {
           gap: 0.5rem;
           transition: all 0.2s;
           text-decoration: none;
+          font-size: 1rem;
+        }
+
+        @media (max-width: 640px) {
+          .btn-primary {
+            padding: 0.875rem 1.25rem;
+            font-size: 0.9375rem;
+          }
         }
 
         .btn-primary:hover {
@@ -479,6 +610,14 @@ export default function Cart() {
           gap: 0.5rem;
           transition: all 0.2s;
           text-decoration: none;
+          font-size: 1rem;
+        }
+
+        @media (max-width: 640px) {
+          .btn-secondary {
+            padding: 0.875rem 1.25rem;
+            font-size: 0.9375rem;
+          }
         }
 
         .btn-secondary:hover {
@@ -491,16 +630,114 @@ export default function Cart() {
           border-radius: 1rem;
           box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
           border: 1px solid #e5e7eb;
-          padding: 3rem 1.5rem;
+          padding: 2rem 1.5rem;
           text-align: center;
+        }
+
+        @media (min-width: 768px) {
+          .empty-cart {
+            padding: 3rem 1.5rem;
+          }
+        }
+
+        .empty-cart-icon {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 4rem;
+          height: 4rem;
+          background: #f3f4f6;
+          border-radius: 50%;
+          margin-bottom: 1.5rem;
+        }
+
+        @media (min-width: 768px) {
+          .empty-cart-icon {
+            width: 5rem;
+            height: 5rem;
+          }
+        }
+
+        .empty-cart-title {
+          font-size: 1.25rem;
+          font-weight: 600;
+          color: #111827;
+          margin-bottom: 1rem;
+        }
+
+        @media (min-width: 768px) {
+          .empty-cart-title {
+            font-size: 1.5rem;
+          }
+        }
+
+        .empty-cart-text {
+          color: #6b7280;
+          margin-bottom: 2rem;
+          max-width: 28rem;
+          margin-left: auto;
+          margin-right: auto;
+          font-size: 0.9375rem;
+        }
+
+        @media (min-width: 768px) {
+          .empty-cart-text {
+            font-size: 1rem;
+          }
         }
 
         .quantity-select {
           margin-left: 0.375rem;
-          padding: 0.375rem 0.625rem;
+          padding: 0.5rem 0.75rem;
           border-radius: 0.375rem;
           border: 1px solid #d1d5db;
           font-size: 0.875rem;
+          background: white;
+          cursor: pointer;
+        }
+
+        @media (max-width: 640px) {
+          .quantity-select {
+            padding: 0.5rem 0.625rem;
+            font-size: 0.8125rem;
+          }
+        }
+
+        .trust-badges {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 1rem;
+          font-size: 0.8125rem;
+          color: #6b7280;
+          flex-wrap: wrap;
+          margin-top: 1.5rem;
+          padding-top: 1.5rem;
+          border-top: 1px solid #e5e7eb;
+        }
+
+        @media (min-width: 768px) {
+          .trust-badges {
+            font-size: 0.875rem;
+          }
+        }
+
+        .trust-badge {
+          display: flex;
+          align-items: center;
+          gap: 0.375rem;
+        }
+
+        .trust-badge-dot {
+          width: 0.5rem;
+          height: 0.5rem;
+          border-radius: 50%;
+        }
+
+        .button-group {
+          display: flex;
+          flex-direction: column;
+          gap: 0.75rem;
         }
       `}</style>
 
@@ -509,18 +746,6 @@ export default function Cart() {
           <Header />
 
           <div className="cart-container">
-            {/* <div className="header-section">
-              <div className="header-title">
-                <div style={{ padding: '0.5rem', background: 'linear-gradient(to right, #4f46e5, #7c3aed)', borderRadius: '0.5rem' }}>
-                  <ShoppingBag style={{ width: '1.5rem', height: '1.5rem', color: 'white' }} />
-                </div>
-                <h1 style={{ fontSize: '1.875rem', fontWeight: 'bold', color: '#111827', margin: 0 }}>Shopping Cart</h1>
-              </div>
-              <p style={{ color: '#6b7280', margin: 0 }}>
-                {items.length} {items.length === 1 ? 'item' : 'items'} in your cart
-              </p>
-            </div> */}
-
             {items.length === 0 ? (
               <div className="empty-cart">
                 <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '5rem', height: '5rem', background: '#f3f4f6', borderRadius: '50%', marginBottom: '1.5rem' }}>
@@ -541,155 +766,136 @@ export default function Cart() {
                   {items.map((item, idx) => {
                     const cartItemId = item.raw?._id ?? null;
                     const keyId = cartItemId ? cartItemId : `${item.id}-${idx}`;
+                    const uploadedImage =
+                      (item?.images && item.images.length > 0 && item.images[0]) ||
+                      (item?.userImage && item.userImage.length > 0 && item.userImage[0]) ||
+                      (item?.raw?.images && item.raw.images.length > 0 && item.raw.images[0]) ||
+                      item?.image ||
+                      null;
 
                     return (
-                     <div key={keyId} className="cart-item-card">
-  {/*
-    Resolve uploadedImage from multiple possible shapes:
-    - item.images (preferred)
-    - item.userImage (alternate)
-    - item.raw.images (maybe nested from API)
-    - item.image (existing product image fallback)
-  */}
-  {(() => {
-    const uploadedImage =
-  (item?.images && item.images.length > 0 && item.images[0]) ||
-  (item?.userImage && item.userImage.length > 0 && item.userImage[0]) ||
-  (item?.raw?.images && item.raw.images.length > 0 && item.raw.images[0]) ||
-  item?.image ||
-  null;
+                      <div key={keyId} className="cart-item-card">
+                        <div
+                          className="cart-item-image"
+                          style={{ background: uploadedImage ? "#fff" : "#f3f4f6" }}
+                        >
+                          {uploadedImage ? (
+                            <img
+                              src={uploadedImage}
+                              alt={item.name || item.product?.name || "Product"}
+                              style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                            />
+                          ) : (
+                            <div style={{ textAlign: "center", color: "#9ca3af", fontSize: "0.8125rem" }}>
+                              No image
+                            </div>
+                          )}
+                        </div>
 
-    return (
-      <>
-        <div
-          className="cart-item-image"
-          style={{ background: uploadedImage ? "#fff" : "#f3f4f6" }}
-        >
-          {uploadedImage ? (
-            // Use an <img> so objectFit works — keep sizing consistent with your original styles
-            <img
-              src={uploadedImage}
-              alt={item.name || item.product?.name || "Product"}
-              style={{ width: "100%", height: "100%", objectFit: "cover" }}
-            />
-          ) : (
-            <div style={{ textAlign: "center", color: "#9ca3af", fontSize: "0.8125rem" }}>
-              No image
-            </div>
-          )}
-        </div>
+                        <div className="cart-item-details">
+                          <h3 style={{ margin: "0 0 0.375rem", fontSize: "1rem", fontWeight: "600" }}>
+                            {item.name}
+                          </h3>
 
-        <div className="cart-item-details">
-          <h3 style={{ margin: "0 0 0.375rem", fontSize: "1rem", fontWeight: "600" }}>
-            {item.name}
-          </h3>
+                          <div className="cart-item-options">
+                            <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+                              <div>
+                                <span style={{ color: "#6b7280" }}>Design:</span>{" "}
+                                <strong style={{ textTransform: "capitalize" }}>{item.designType}</strong>
+                              </div>
 
-          <div className="cart-item-options">
-           <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-  <div>
-    <span style={{ color: "#6b7280" }}>Design:</span>{" "}
-    <strong style={{ textTransform: "capitalize" }}>{item.designType}</strong>
-  </div>
+                              <div>
+                                <span style={{ color: "#6b7280" }}>Qty:</span>
+                                <select
+                                  value={item.qty}
+                                  onChange={(e) => {
+                                    const newQty = e.target.value;
+                                    const cartItemIdToSend = item.raw?._id ?? item.id;
+                                    updateCartQty(cartItemIdToSend, newQty);
+                                  }}
+                                  disabled={!!updatingMap[item.raw?._id ?? item.id] || !cartId}
+                                  className="quantity-select"
+                                >
+                                  {item.allowedQtyOptions.map((q) => (
+                                    <option key={`${item.id}-qty-${q}`} value={q}>
+                                      {q}
+                                    </option>
+                                  ))}
+                                </select>
+                              </div>
+                            </div>
 
-  <div>
-    <span style={{ color: "#6b7280" }}>Qty:</span>
-    <select
-      value={item.qty}
-      onChange={(e) => {
-        const newQty = e.target.value;
-        const cartItemIdToSend = item.raw?._id ?? item.id;
-        updateCartQty(cartItemIdToSend, newQty);
-      }}
-      disabled={!!updatingMap[item.raw?._id ?? item.id] || !cartId}
-      className="quantity-select"
-    >
-      {item.allowedQtyOptions.map((q) => (
-        <option key={`${item.id}-qty-${q}`} value={q}>
-          {q}
-        </option>
-      ))}
-    </select>
-  </div>
-</div>
+                            {item.selectedSize && (
+                              <div>
+                                <span style={{ color: "#6b7280" }}>Size:</span> <strong>{item.selectedSize}</strong>
+                              </div>
+                            )}
+                            {item.selectedPaper && (
+                              <div>
+                                <span style={{ color: "#6b7280" }}>Paper:</span> <strong>{item.selectedPaper}</strong>
+                              </div>
+                            )}
+                            {item.selectedFinish && (
+                              <div>
+                                <span style={{ color: "#6b7280" }}>Finish:</span> <strong>{item.selectedFinish}</strong>
+                              </div>
+                            )}
+                            {item.selectedCorner && (
+                              <div>
+                                <span style={{ color: "#6b7280" }}>Corner:</span> <strong>{item.selectedCorner}</strong>
+                              </div>
+                            )}
+                          </div>
+                        </div>
 
-
-            {item.selectedSize && (
-              <div>
-                <span style={{ color: "#6b7280" }}>Size:</span> <strong>{item.selectedSize}</strong>
-              </div>
-            )}
-            {item.selectedPaper && (
-              <div>
-                <span style={{ color: "#6b7280" }}>Paper:</span> <strong>{item.selectedPaper}</strong>
-              </div>
-            )}
-            {item.selectedFinish && (
-              <div>
-                <span style={{ color: "#6b7280" }}>Finish:</span> <strong>{item.selectedFinish}</strong>
-              </div>
-            )}
-            {item.selectedCorner && (
-              <div>
-                <span style={{ color: "#6b7280" }}>Corner:</span> <strong>{item.selectedCorner}</strong>
-              </div>
-            )}
-          </div>
-        </div>
-
-        <div className="cart-item-price">
-          <div style={{ fontWeight: "700", fontSize: "1.125rem", color: "#111827", marginBottom: "0.5rem" }}>
-            {currencySymbol(currency)}
-            {formatMoney(item.unitPrice)}
-          </div>
-          <button
-            onClick={() => removeItem(item.id)}
-            style={{
-              background: "transparent",
-              border: "none",
-              color: "#ef4444",
-              cursor: "pointer",
-              textDecoration: "underline",
-              fontSize: "0.875rem",
-            }}
-          >
-            Remove
-          </button>
-        </div>
-      </>
-    );
-  })()}
-</div>
-
+                        <div className="cart-item-price-section">
+                          <div style={{ fontWeight: "700", fontSize: "1.125rem", color: "#111827", marginBottom: "0.5rem" }}>
+                            {currencySymbol(currency)}
+                            {formatMoney(item.unitPrice)}
+                          </div>
+                          <button
+                            onClick={() => removeItem(item.id)}
+                            style={{
+                              background: "transparent",
+                              border: "none",
+                              color: "#ef4444",
+                              cursor: "pointer",
+                              textDecoration: "underline",
+                              fontSize: "0.875rem",
+                            }}
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      </div>
                     );
                   })}
                 </div>
 
                 <div>
                   <div className="summary-card">
-                    <h2 style={{ fontSize: '1.25rem', fontWeight: '600', color: '#111827', marginBottom: '1.5rem' }}>Order Summary</h2>
+                    <h2 className="summary-title">Order Summary</h2>
                     
-                    <div style={{ marginBottom: '1.5rem' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', color: '#6b7280', marginBottom: '1rem' }}>
+                    <div>
+                      <div className="summary-row">
                         <span>Subtotal ({items.length} items)</span>
                         <span>{currencySymbol(currency)}{formatMoney(subtotal)}</span>
                       </div>
                       
                       {shippingTotal > 0 && (
-                        <div style={{ display: 'flex', justifyContent: 'space-between', color: '#6b7280', marginBottom: '1rem' }}>
+                        <div className="summary-row">
                           <span>Shipping</span>
                           <span>{currencySymbol(currency)}{formatMoney(shippingTotal)}</span>
                         </div>
                       )}
                       
-                      <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: '1rem' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '1.125rem', fontWeight: '600', color: '#111827' }}>
-                          <span>Total</span>
-                          <span>{currencySymbol(currency)}{formatMoney(total)}</span>
-                        </div>
+                      <div className="summary-total">
+                        <span>Total</span>
+                        <span>{currencySymbol(currency)}{formatMoney(total)}</span>
                       </div>
                     </div>
 
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                    <div className="button-group">
                       <a href="/checkout" className="btn-primary">
                         <CreditCard style={{ width: '1.25rem', height: '1.25rem' }} />
                         <span>Proceed to Checkout</span>
@@ -701,16 +907,14 @@ export default function Cart() {
                       </a>
                     </div>
 
-                    <div style={{ marginTop: '1.5rem', paddingTop: '1.5rem', borderTop: '1px solid #e5e7eb' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem', fontSize: '0.875rem', color: '#6b7280', flexWrap: 'wrap' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                          <div style={{ width: '0.5rem', height: '0.5rem', background: '#10b981', borderRadius: '50%' }}></div>
-                          <span>Secure Checkout</span>
-                        </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                          <div style={{ width: '0.5rem', height: '0.5rem', background: '#3b82f6', borderRadius: '50%' }}></div>
-                          <span>Free Returns</span>
-                        </div>
+                    <div className="trust-badges">
+                      <div className="trust-badge">
+                        <div className="trust-badge-dot" style={{ background: '#10b981' }}></div>
+                        <span>Secure Checkout</span>
+                      </div>
+                      <div className="trust-badge">
+                        <div className="trust-badge-dot" style={{ background: '#3b82f6' }}></div>
+                        <span>Free Returns</span>
                       </div>
                     </div>
                   </div>

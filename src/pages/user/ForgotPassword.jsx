@@ -87,7 +87,7 @@ const styles = {
   heading: {
     fontSize: "24px",
     marginBottom: "10px",
-    color: "#007f4f",
+    color: "#0073e6",
   },
   subtext: {
     fontSize: "14px",
@@ -110,7 +110,7 @@ const styles = {
     marginBottom: "15px",
   },
   button: {
-    backgroundColor: "#007f4f",
+    backgroundColor: "#0073e6",
     color: "#fff",
     padding: "10px",
     fontSize: "16px",

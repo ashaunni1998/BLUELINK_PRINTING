@@ -99,9 +99,7 @@ const EnhancedHomeSections = () => {
         <p className="text-gray-600 leading-relaxed mb-6">
   Blue Link's designers share 10 standout business cards from different industries that combine creative layouts with premium finishes. 
   Discover how smart use of color, typography, and unique printing techniques can instantly elevate your brand’s first impression. 
-  From sleek minimalist designs to bold, unconventional styles, these examples highlight how the right business card not only shares 
-  contact details but also communicates professionalism, creativity, and brand personality. Get inspired to craft a card that clients 
-  and partners will never forget.
+  
 </p>
 
             
@@ -166,9 +164,7 @@ const EnhancedHomeSections = () => {
            <p className="text-gray-600 leading-relaxed mb-6">
   Master the art of creating paper invites that actually get a "yes" with these proven design strategies and tips. 
   From choosing the perfect color palette to selecting premium paper finishes, every detail matters in making your 
-  invitation stand out. Learn how thoughtful typography, minimal yet elegant layouts, and personalized touches can 
-  transform a simple card into a keepsake that sets the tone for your special event. Whether it’s a wedding, 
-  birthday, or corporate gathering, the right design ensures your invite doesn’t just get noticed—it gets remembered.
+  invitation stand out.
 </p>
             
             {/* Stats */}

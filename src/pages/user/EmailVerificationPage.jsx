@@ -241,10 +241,10 @@ if (response.ok) {
   };
 
   return (
-    <div style={{ maxWidth: '100%', overflowX: 'hidden' }}>
-      <div style={{ width: '90%', margin: '0 auto' }}>
+    // <div style={{ maxWidth: '100%', overflowX: 'hidden' }}>
+    <div style={{ width: '90%', margin: '0 auto' }}>
+        <Header />
         <div style={styles.page}>
-          <Header />
           <div style={styles.card}>
             <h2 style={styles.title}>Email Verification</h2>
             <p style={styles.description}>
@@ -286,7 +286,7 @@ if (response.ok) {
         </div>
         <Footer />
       </div>
-    </div>
+    
   );
 };
 
