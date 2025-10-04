@@ -79,7 +79,7 @@ export default function OrderConfirmation() {
     return {
       name: itemObj.name || itemObj.title || itemObj.productName || itemObj.product?.name || "Product",
       quantity: Number(itemObj.quantity ?? itemObj.qty ?? 1) || 1,
-      // price may be stored as total for qty or per-unit — prefer `lineTotal`/`priceForQty` if present
+      // price may be stored as total for qty or per-unit – prefer `lineTotal`/`priceForQty` if present
       lineTotal: parseMoneyToDollars(itemObj.lineTotal ?? itemObj.price ?? itemObj.total ?? itemObj.unitTotal),
       unitPrice: parseMoneyToDollars(itemObj.unitPrice ?? itemObj.pricePerUnit ?? itemObj.priceUnit),
       image: resolveImage(itemObj),
@@ -107,61 +107,380 @@ export default function OrderConfirmation() {
 
   return (
     <div className="responsive-container">
+      <style>{`
+        @media (max-width: 1023px) {
+          .order-confirmation-wrapper {
+            margin-left: 0 !important;
+            margin-right: 0 !important;
+            padding-left: 1rem !important;
+            padding-right: 1rem !important;
+          }
+        }
+
+        .order-confirmation-wrapper {
+          max-width: 65%;
+          margin: 2.5rem 20% 2.5rem 17%;
+          padding: 0 1.25rem;
+        }
+
+        @media (max-width: 1023px) {
+          .order-confirmation-wrapper {
+            max-width: 100%;
+            margin: 2rem auto;
+          }
+        }
+
+        @media (max-width: 767px) {
+          .order-confirmation-wrapper {
+            padding: 0 1rem;
+            margin: 1.5rem auto;
+          }
+        }
+
+        .order-title {
+          font-size: 28px;
+          margin: 8px 0;
+        }
+
+        @media (max-width: 767px) {
+          .order-title {
+            font-size: 24px;
+          }
+        }
+
+        .order-subtitle {
+          color: #6b7280;
+          font-size: 16px;
+        }
+
+        @media (max-width: 767px) {
+          .order-subtitle {
+            font-size: 14px;
+          }
+        }
+
+        .order-card {
+          background: #fff;
+          border-radius: 12px;
+          box-shadow: 0 6px 24px rgba(0,0,0,0.06);
+          overflow: hidden;
+        }
+
+        @media (max-width: 767px) {
+          .order-card {
+            border-radius: 8px;
+          }
+        }
+
+        .order-header {
+          padding: 20px;
+          border-bottom: 1px solid #f1f5f9;
+        }
+
+        @media (max-width: 767px) {
+          .order-header {
+            padding: 16px;
+          }
+        }
+
+        .order-header-grid {
+          display: flex;
+          gap: 20px;
+          flex-wrap: wrap;
+        }
+
+        @media (max-width: 767px) {
+          .order-header-grid {
+            gap: 16px;
+            flex-direction: column;
+          }
+        }
+
+        .order-body {
+          padding: 20px;
+        }
+
+        @media (max-width: 767px) {
+          .order-body {
+            padding: 16px;
+          }
+        }
+
+        .item-row {
+          display: flex;
+          gap: 16px;
+          align-items: center;
+          padding: 12px 0;
+        }
+
+        @media (max-width: 767px) {
+          .item-row {
+            gap: 12px;
+            flex-direction: column;
+            align-items: flex-start;
+            padding: 16px 0;
+          }
+        }
+
+        .item-image-container {
+          width: 86px;
+          height: 86px;
+          border-radius: 8px;
+          overflow: hidden;
+          background: #f9fafb;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+        }
+
+        @media (max-width: 767px) {
+          .item-image-container {
+            width: 100%;
+            height: auto;
+            aspect-ratio: 4/3;
+          }
+        }
+
+        .item-details {
+          flex: 1;
+        }
+
+        @media (max-width: 767px) {
+          .item-details {
+            width: 100%;
+          }
+        }
+
+        .item-name {
+          font-size: 16px;
+          font-weight: 600;
+        }
+
+        @media (max-width: 767px) {
+          .item-name {
+            font-size: 15px;
+          }
+        }
+
+        .item-options {
+          color: #6b7280;
+          margin-top: 8px;
+          display: flex;
+          gap: 12px;
+          flex-wrap: wrap;
+          font-size: 14px;
+        }
+
+        @media (max-width: 767px) {
+          .item-options {
+            font-size: 13px;
+            gap: 8px;
+          }
+        }
+
+        .item-price-container {
+          text-align: right;
+          min-width: 120px;
+        }
+
+        @media (max-width: 767px) {
+          .item-price-container {
+            text-align: left;
+            width: 100%;
+            min-width: auto;
+          }
+        }
+
+        .item-price {
+          font-weight: 700;
+          font-size: 16px;
+        }
+
+        @media (max-width: 767px) {
+          .item-price {
+            font-size: 15px;
+          }
+        }
+
+        .item-unit-price {
+          color: #6b7280;
+          font-size: 13px;
+        }
+
+        @media (max-width: 767px) {
+          .item-unit-price {
+            font-size: 12px;
+          }
+        }
+
+        .order-total {
+          margin-top: 18px;
+          padding-top: 14px;
+          border-top: 1px solid #eef2f7;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+
+        .total-label {
+          font-weight: 700;
+          font-size: 16px;
+        }
+
+        @media (max-width: 767px) {
+          .total-label {
+            font-size: 15px;
+          }
+        }
+
+        .total-amount {
+          font-size: 20px;
+          font-weight: 800;
+          color: #0369a1;
+        }
+
+        @media (max-width: 767px) {
+          .total-amount {
+            font-size: 18px;
+          }
+        }
+
+        .action-buttons {
+          margin-top: 24px;
+          display: flex;
+          gap: 12px;
+          justify-content: center;
+          flex-wrap: wrap;
+        }
+
+        @media (max-width: 767px) {
+          .action-buttons {
+            flex-direction: column;
+            gap: 10px;
+          }
+        }
+
+        .btn-primary {
+          padding: 12px 20px;
+          background: #0369a1;
+          color: #fff;
+          border-radius: 8px;
+          border: none;
+          cursor: pointer;
+          font-size: 15px;
+        }
+
+        @media (max-width: 767px) {
+          .btn-primary {
+            width: 100%;
+            padding: 14px 20px;
+          }
+        }
+
+        .btn-secondary {
+          padding: 12px 20px;
+          background: transparent;
+          color: #0369a1;
+          border: 2px solid #e6f2fb;
+          border-radius: 8px;
+          cursor: pointer;
+          font-size: 15px;
+        }
+
+        @media (max-width: 767px) {
+          .btn-secondary {
+            width: 100%;
+            padding: 14px 20px;
+          }
+        }
+
+        .empty-state {
+          text-align: center;
+          padding: 60px 20px;
+        }
+
+        @media (max-width: 767px) {
+          .empty-state {
+            padding: 40px 16px;
+          }
+        }
+
+        .icon-container {
+          width: 80px;
+          height: 80px;
+          border-radius: 40px;
+          margin: 0 auto 12px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 36px;
+        }
+
+        @media (max-width: 767px) {
+          .icon-container {
+            width: 64px;
+            height: 64px;
+            font-size: 28px;
+          }
+        }
+      `}</style>
+
       <Header />
-      <div style={{ maxWidth: 900, margin: "40px auto", padding: "0 20px" }}>
+      
+      <div className="order-confirmation-wrapper">
         {order || state.orderId ? (
           <>
             <div style={{ textAlign: "center", marginBottom: 36 }}>
-              <div style={{ width:80, height:80, borderRadius:40, margin:"0 auto 12px", background:"#e6fffa", display:"flex", alignItems:"center", justifyContent:"center", fontSize:36, color:"#047857" }}>✓</div>
-              <h1 style={{ fontSize:28, margin: "8px 0" }}>Order Confirmed!</h1>
-              <p style={{ color:"#6b7280" }}>Thanks — we received your order and will begin processing it.</p>
+              <div className="icon-container" style={{ background: "#e6fffa", color: "#047857" }}>✓</div>
+              <h1 className="order-title">Order Confirmed!</h1>
+              <p className="order-subtitle">Thanks – we received your order and will begin processing it.</p>
             </div>
 
-            <div style={{ background:"#fff", borderRadius:12, boxShadow:"0 6px 24px rgba(0,0,0,0.06)", overflow:"hidden" }}>
-              <div style={{ padding:20, borderBottom:"1px solid #f1f5f9" }}>
-                <div style={{ display:"flex", gap:20, flexWrap:"wrap" }}>
+            <div className="order-card">
+              <div className="order-header">
+                <div className="order-header-grid">
                   <div><strong>Order ID</strong><div style={{ color:"#6b7280" }}>{order?._id ?? state.orderId}</div></div>
                   <div><strong>Date</strong><div style={{ color:"#6b7280" }}>{new Date(order?.createdAt || state.date || Date.now()).toLocaleString()}</div></div>
                   <div><strong>Status</strong><div style={{ color:"#6b7280" }}>{order?.status ?? "Pending"}</div></div>
                 </div>
               </div>
 
-              <div style={{ padding:20 }}>
+              <div className="order-body">
                 <h3 style={{ marginTop:0 }}>Order Summary</h3>
                 <div>
                   {items.length === 0 ? <div style={{ color:"#6b7280" }}>No items available</div> : items.map((it, idx) => (
-                    <div key={idx} style={{ display:"flex", gap:16, alignItems:"center", padding:"12px 0", borderBottom: idx < items.length - 1 ? "1px solid #f3f4f6" : "none" }}>
-                      <div style={{ width:86, height:86, borderRadius:8, overflow:"hidden", background:"#f9fafb", display:"flex", alignItems:"center", justifyContent:"center" }}>
+                    <div key={idx} className="item-row" style={{ borderBottom: idx < items.length - 1 ? "1px solid #f3f4f6" : "none" }}>
+                      <div className="item-image-container">
                         {(() => {
-  let imageUrl = null;
+                          let imageUrl = null;
 
-  // ✅ Prefer user uploaded images
-  if (it?.userImage && Array.isArray(it.userImage) && it.userImage.length) {
-    imageUrl = it.userImage[0];
-  } else if (it?.images && Array.isArray(it.images) && it.images.length) {
-    imageUrl = it.images[0];
-  } else if (it?.image) {
-    imageUrl = it.image;
-  } else if (it?.product?.image) {
-    imageUrl = it.product.image;
-  }
+                          // ✅ Prefer user uploaded images
+                          if (it?.userImage && Array.isArray(it.userImage) && it.userImage.length) {
+                            imageUrl = it.userImage[0];
+                          } else if (it?.images && Array.isArray(it.images) && it.images.length) {
+                            imageUrl = it.images[0];
+                          } else if (it?.image) {
+                            imageUrl = it.image;
+                          } else if (it?.product?.image) {
+                            imageUrl = it.product.image;
+                          }
 
-  return imageUrl ? (
-    <img
-      src={imageUrl}
-      alt={it.name || "Product"}
-      style={{ width: "100%", height: "100%", objectFit: "cover" }}
-    />
-  ) : (
-    <div style={{ color: "#9ca3af" }}>No image</div>
-  );
-})()}
-
+                          return imageUrl ? (
+                            <img
+                              src={imageUrl}
+                              alt={it.name || "Product"}
+                              style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                            />
+                          ) : (
+                            <div style={{ color: "#9ca3af" }}>No image</div>
+                          );
+                        })()}
                       </div>
 
-                      <div style={{ flex:1 }}>
-                        <div style={{ fontSize:16, fontWeight:600 }}>{it.name}</div>
-                        <div style={{ color:"#6b7280", marginTop:8, display:"flex", gap:12, flexWrap:"wrap" }}>
+                      <div className="item-details">
+                        <div className="item-name">{it.name}</div>
+                        <div className="item-options">
                           <div>Qty: {it.quantity}</div>
                           <div>Size: {it.size ?? "N/A"}</div>
                           <div>Paper: {it.paper ?? "N/A"}</div>
@@ -170,33 +489,33 @@ export default function OrderConfirmation() {
                         </div>
                       </div>
 
-                      <div style={{ textAlign:"right", minWidth:120 }}>
-                        <div style={{ fontWeight:700, fontSize:16 }}>{fmtCurrencyNZD(it.lineTotal && it.lineTotal>0 ? it.lineTotal : (it.unitPrice * it.quantity))}</div>
-                        {it.unitPrice ? <div style={{ color:"#6b7280", fontSize:13 }}>{fmtCurrencyNZD(it.unitPrice)} / unit</div> : null}
+                      <div className="item-price-container">
+                        <div className="item-price">{fmtCurrencyNZD(it.lineTotal && it.lineTotal>0 ? it.lineTotal : (it.unitPrice * it.quantity))}</div>
+                        {it.unitPrice ? <div className="item-unit-price">{fmtCurrencyNZD(it.unitPrice)} / unit</div> : null}
                       </div>
                     </div>
                   ))}
                 </div>
 
-                <div style={{ marginTop: 18, paddingTop: 14, borderTop:"1px solid #eef2f7", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
-                  <div style={{ fontWeight:700 }}>Total</div>
-                  <div style={{ fontSize:20, fontWeight:800, color:"#0369a1" }}>{fmtCurrencyNZD(totalDollars)}</div>
+                <div className="order-total">
+                  <div className="total-label">Total</div>
+                  <div className="total-amount">{fmtCurrencyNZD(totalDollars)}</div>
                 </div>
               </div>
             </div>
 
-            <div style={{ marginTop:24, display:"flex", gap:12, justifyContent:"center" }}>
-              <Link to="/account?tab=orders"><button style={{ padding:"12px 20px", background:"#0369a1", color:"#fff", borderRadius:8, border:"none" }}>View Orders</button></Link>
-              <Link to="/"><button style={{ padding:"12px 20px", background:"transparent", color:"#0369a1", border:"2px solid #e6f2fb", borderRadius:8 }}>Continue Shopping</button></Link>
+            <div className="action-buttons">
+              <Link to="/account?tab=orders"><button className="btn-primary">View Orders</button></Link>
+              <Link to="/"><button className="btn-secondary">Continue Shopping</button></Link>
             </div>
           </>
         ) : (
-          <div style={{ textAlign:"center", padding:"60px 20px" }}>
-            <div style={{ width:80, height:80, borderRadius:40, margin:"0 auto 12px", background:"#fef3f2", display:"flex", alignItems:"center", justifyContent:"center", fontSize:36, color:"#b91c1c" }}>!</div>
+          <div className="empty-state">
+            <div className="icon-container" style={{ background: "#fef3f2", color: "#b91c1c" }}>!</div>
             <h2>Order Information Missing</h2>
             <p style={{ color:"#6b7280" }}>We couldn't find order details. If you navigated here directly, open "My orders" to find your order.</p>
             <div style={{ marginTop:20 }}>
-              <Link to="/account?tab=orders"><button style={{ padding:"10px 18px", background:"#0369a1", color:"#fff", borderRadius:8, border:"none" }}>View Your Orders</button></Link>
+              <Link to="/account?tab=orders"><button className="btn-primary">View Your Orders</button></Link>
             </div>
           </div>
         )}
