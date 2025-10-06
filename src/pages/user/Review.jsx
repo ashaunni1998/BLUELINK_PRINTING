@@ -112,8 +112,8 @@ const productId="68a3fcbd8bb89752830da307";
         style={{
           marginTop: 50,
           maxWidth: 600,
-          marginLeft: "auto",
-          marginRight: "auto",
+          marginLeft: "0%",
+          marginRight: "25%",
           padding: "0 16px",
         }}
       >
@@ -150,7 +150,7 @@ const productId="68a3fcbd8bb89752830da307";
           rows={4}
           style={{
             width: "100%",
-            maxWidth: 500,
+            maxWidth: "500",
             padding: 12,
             borderRadius: 6,
             border: "1px solid #ccc",

@@ -339,6 +339,23 @@ const arrowButtonStyle = (position) => ({
               font-size: 16px;
             }
           }
+
+
+
+@media (min-width: 768px) {
+  .all-products-responsive-grid[data-count="1"] .product-card-all-responsive,
+  .all-products-responsive-grid[data-count="2"] .product-card-all-responsive,
+  .all-products-responsive-grid[data-count="3"] .product-card-all-responsive {
+    max-width: 250px;
+    margin: 0 auto;
+  }
+  
+  .all-products-responsive-grid[data-count="1"],
+  .all-products-responsive-grid[data-count="2"],
+  .all-products-responsive-grid[data-count="3"] {
+    justify-items: center;
+  }
+}
         `}
         </style>
        
@@ -442,97 +459,120 @@ const arrowButtonStyle = (position) => ({
   <h2 className="page-title">
     {categoryName ? `All ${categoryName}` : "All Products"}
   </h2>
-  {products.length === 0 ? (
-    <p className="no-products-message" style={{ textAlign: "center", color: "#666" }}>
-      No products found for this category.
-    </p>
-  ) : (
+{products.length === 0 ? (
+  <p className="no-products-message" style={{ textAlign: "center", color: "#666" }}>
+    No products found for this category.
+  </p>
+) : (
+  <div 
+    className="all-products-responsive-grid"
+    data-count={products.length <= 3 ? products.length : "more"}
+    style={{
+      display: "grid",
+      gridTemplateColumns: "repeat(5, 1fr)",
+      gap: "1.25rem",
+      maxWidth: "75%",
+      margin: "0 auto",
+      padding: "0 1rem",
+    }}
+  >
+{products.map((product, index) => {
+  // Calculate grid-column for centering on desktop only
+  let gridColumn = "auto";
+  if (!isMobile && products.length <= 4) {
+    if (products.length === 1) {
+      gridColumn = "2 / 5"; // Center single product
+    } else if (products.length === 2) {
+      gridColumn = index === 0 ? "2 / 3" : "4 / 5"; // Two products with gap
+    } else if (products.length === 3) {
+      // Three products centered
+      gridColumn = index === 0 ? "2 / 3" : index === 1 ? "3 / 4" : "4 / 5";
+    } else if (products.length === 4) {
+      // Four products centered - columns 1,2,3,4 (skipping column 5)
+      gridColumn = index === 0 ? "1 / 2" : index === 1 ? "2 / 3" : index === 2 ? "3 / 4" : "4 / 5";
+    }
+  }
+
+
+
+  return (
     <div 
-      className="all-products-responsive-grid"
+      className="product-card-all-responsive" 
+      key={product._id}
       style={{
-        display: "grid",
-        gridTemplateColumns: "repeat(5, 1fr)",
-        gap: "1.25rem",
-        maxWidth: "75%",
-        margin: "0 auto",
-        padding: "0 1rem",
+        backgroundColor: "#fff",
+        borderRadius: "0.375rem",
+        overflow: "hidden",
+        boxShadow: "0 0.0625rem 0.375rem rgba(0,0,0,0.07)",
+        transition: "transform 0.2s ease, box-shadow 0.2s ease",
+        width: "100%",
+        gridColumn: gridColumn,
       }}
     >
-      {products.map((product) => (
-        <div 
-          className="product-card-all-responsive" 
-          key={product._id}
+      <div
+        className="product-image-wrapper-all"
+        style={{
+          width: "100%",
+          aspectRatio: "4/3",
+          overflow: "hidden",
+          display: "block",
+          cursor: "pointer",
+        }}
+        onClick={() => navigate(`/product/${product._id}`)}
+      >
+        <img
+          src={product.images?.[0] || "https://via.placeholder.com/300"}
+          alt={product.name}
+          className="product-image-all"
           style={{
-            backgroundColor: "#fff",
-            borderRadius: "0.375rem",
-            overflow: "hidden",
-            boxShadow: "0 0.0625rem 0.375rem rgba(0,0,0,0.07)",
-            transition: "transform 0.2s ease, box-shadow 0.2s ease",
+            width: "100%",
+            height: "100%",
+            objectFit: "contain",
+            display: "block",
+            backgroundColor: "#f9f9f9",
+          }}
+        />
+      </div>
+
+      <div 
+        className="product-info-all-responsive"
+        style={{
+          padding: "0.875rem",
+          borderTop: "1px solid #eee",
+          textAlign: "center",
+        }}
+      >
+        <h3 
+          className="product-name-all-responsive"
+          onClick={() => navigate(`/product/${product._id}`)}
+          style={{
+            color: "#007abf",
+            textDecoration: "none",
+            fontWeight: "500",
+            fontSize: "0.9375rem",
+            marginBottom: "0.375rem",
+            cursor: "pointer",
+            margin: "0 0 0.375rem 0",
           }}
         >
-          <div
-            className="product-image-wrapper-all"
-            style={{
-              width: "100%",
-              aspectRatio: "4/3",
-              overflow: "hidden",
-              display: "block",
-              cursor: "pointer",
-            }}
-            onClick={() => navigate(`/product/${product._id}`)}
-          >
-            <img
-              src={product.images?.[0] || "https://via.placeholder.com/300"}
-              alt={product.name}
-              className="product-image-all"
-              style={{
-                width: "100%",
-                height: "100%",
-                objectFit: "contain",
-                display: "block",
-                backgroundColor: "#f9f9f9",
-              }}
-            />
-          </div>
-
-          <div 
-            className="product-info-all-responsive"
-            style={{
-              padding: "0.875rem",
-              borderTop: "1px solid #eee",
-              textAlign: "center",
-            }}
-          >
-            <h3 
-              className="product-name-all-responsive"
-              onClick={() => navigate(`/product/${product._id}`)}
-              style={{
-                color: "#007abf",
-                textDecoration: "none",
-                fontWeight: "500",
-                fontSize: "0.9375rem",
-                marginBottom: "0.375rem",
-                cursor: "pointer",
-                margin: "0 0 0.375rem 0",
-              }}
-            >
-              {product.name}
-            </h3>
-            <p 
-              className="product-price-all-responsive"
-              style={{
-                fontSize: "0.875rem",
-                color: "#444",
-                margin: 0,
-              }}
-            >
-              ${product.price}
-            </p>
-          </div>
-        </div>
-      ))}
+          {product.name}
+        </h3>
+        <p 
+          className="product-price-all-responsive"
+          style={{
+            fontSize: "0.875rem",
+            color: "#444",
+            margin: 0,
+          }}
+        >
+          ${product.price}
+        </p>
+      </div>
     </div>
-  )}
+  );
+})}
+  </div>
+)}
 </div>
 
       <Footer />
