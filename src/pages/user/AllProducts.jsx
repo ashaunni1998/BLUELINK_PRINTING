@@ -75,40 +75,68 @@ export default function AllProducts() {
   };
 
   
-  // Fetch products
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const res = await fetch(`${API_BASE_URL}/product/tobBarCategory`, {
-          method: "GET",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-        });
+ // SOLUTION 1: Update the useEffect to fetch full product details
+useEffect(() => {
+  const fetchProducts = async () => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/product/tobBarCategory`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+      });
 
-        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+      if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
 
-        const data = await res.json();
-        const categories = data.data;
- console.log("Available Categories:", categories);
-        const matchedCategory = categories.find((cat) => cat._id === categoryId);
+      const data = await res.json();
+      const categories = data.data;
+      console.log("Available Categories:", categories);
+      const matchedCategory = categories.find((cat) => cat._id === categoryId);
 
-        if (matchedCategory && matchedCategory.products) {
-          setProducts(matchedCategory.products);
-          setCategoryName(matchedCategory.name);
-        } else {
-          setProducts([]);
-          setCategoryName("");
-        }
-      } catch (err) {
-        console.error("Failed to fetch products:", err);
-        setError("Something went wrong while fetching products.");
-      } finally {
-        setLoading(false);
+      if (matchedCategory && matchedCategory.products) {
+        // ✅ Fetch full details for each product to get priceTiers
+        const productsWithDetails = await Promise.all(
+          matchedCategory.products.map(async (product) => {
+            try {
+              const detailRes = await fetch(
+                `${API_BASE_URL}/product/productDetails/${product._id}`,
+                {
+                  headers: { 
+                    'Accept': 'application/json', 
+                    'Content-Type': 'application/json' 
+                  }
+                }
+              );
+              
+              if (detailRes.ok) {
+                const detailData = await detailRes.json();
+                return detailData.data || detailData;
+              }
+              
+              // If detail fetch fails, return original product
+              return product;
+            } catch (err) {
+              console.error(`Failed to fetch details for ${product._id}:`, err);
+              return product;
+            }
+          })
+        );
+        
+        setProducts(productsWithDetails);
+        setCategoryName(matchedCategory.name);
+      } else {
+        setProducts([]);
+        setCategoryName("");
       }
-    };
+    } catch (err) {
+      console.error("Failed to fetch products:", err);
+      setError("Something went wrong while fetching products.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    if (categoryId) fetchProducts();
-  }, [categoryId]);
+  if (categoryId) fetchProducts();
+}, [categoryId]);
 
   if (loading)
     return <p style={{ textAlign: "center", padding: "40px" }}>Loading products...</p>;
@@ -493,7 +521,23 @@ const arrowButtonStyle = (position) => ({
     }
   }
 
+// ✅ Get starting quantity price (now with priceTiers available)
+  const getStartingPrice = () => {
+    // Check if product has priceTiers array
+    if (product.priceTiers && Array.isArray(product.priceTiers) && product.priceTiers.length > 0) {
+      // Sort by quantity to get the lowest tier
+      const sortedTiers = [...product.priceTiers].sort((a, b) => (a.qty || 0) - (b.qty || 0));
+      const startingTier = sortedTiers[0];
+      
+      // Return priceSingle (default for single-sided design)
+      return startingTier.priceSingle || startingTier.priceDouble || startingTier.price || product.price;
+    }
+    
+    // Fallback to product.price if no priceTiers
+    return product.price || 0;
+  };
 
+  const displayPrice = getStartingPrice();
 
   return (
     <div 
@@ -565,7 +609,7 @@ const arrowButtonStyle = (position) => ({
             margin: 0,
           }}
         >
-          ${product.price}
+        ${displayPrice}
         </p>
       </div>
     </div>

@@ -1828,6 +1828,7 @@ const isButtonBadge = normalize(product?.name || "").includes("button badge") ||
             </div>
             
             {/* Corner Icon - Simple L-shape like screenshot */}
+            {/* Corner Icon - Frame style */}
             <div style={{ 
               marginLeft: "16px",
               display: "flex",
@@ -1835,66 +1836,30 @@ const isButtonBadge = normalize(product?.name || "").includes("button badge") ||
               justifyContent: "center"
             }}>
               {isSquare ? (
-                // Square Corner - Sharp 90° L-shape
-                <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
-                  <path 
-                    d="M12 12 L12 20 M12 12 L20 12"
+                // Square Corner - Sharp rectangular frame
+                <svg width="64" height="48" viewBox="0 0 64 48" fill="none">
+                  <rect 
+                    x="8" 
+                    y="8" 
+                    width="48" 
+                    height="32" 
+                    rx="0"
                     stroke={isSelected ? "#007bff" : "#1f2937"}
-                    strokeWidth="3"
-                    strokeLinecap="square"
-                    strokeLinejoin="miter"
-                  />
-                  <path 
-                    d="M36 12 L36 20 M36 12 L28 12"
-                    stroke={isSelected ? "#007bff" : "#1f2937"}
-                    strokeWidth="3"
-                    strokeLinecap="square"
-                    strokeLinejoin="miter"
-                  />
-                  <path 
-                    d="M12 36 L12 28 M12 36 L20 36"
-                    stroke={isSelected ? "#007bff" : "#1f2937"}
-                    strokeWidth="3"
-                    strokeLinecap="square"
-                    strokeLinejoin="miter"
-                  />
-                  <path 
-                    d="M36 36 L36 28 M36 36 L28 36"
-                    stroke={isSelected ? "#007bff" : "#1f2937"}
-                    strokeWidth="3"
-                    strokeLinecap="square"
-                    strokeLinejoin="miter"
+                    strokeWidth="2"
+                    fill="none"
                   />
                 </svg>
               ) : (
-                // Rounded Corner - Smooth curved arcs at corners
-                <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
-                  <path 
-                    d="M12 18 C12 14 14 12 18 12"
+                // Rounded Corner - Rounded rectangular frame
+                <svg width="64" height="48" viewBox="0 0 64 48" fill="none">
+                  <rect 
+                    x="8" 
+                    y="8" 
+                    width="48" 
+                    height="32" 
+                    rx="4"
                     stroke={isSelected ? "#007bff" : "#1f2937"}
-                    strokeWidth="3"
-                    strokeLinecap="round"
-                    fill="none"
-                  />
-                  <path 
-                    d="M36 18 C36 14 34 12 30 12"
-                    stroke={isSelected ? "#007bff" : "#1f2937"}
-                    strokeWidth="3"
-                    strokeLinecap="round"
-                    fill="none"
-                  />
-                  <path 
-                    d="M12 30 C12 34 14 36 18 36"
-                    stroke={isSelected ? "#007bff" : "#1f2937"}
-                    strokeWidth="3"
-                    strokeLinecap="round"
-                    fill="none"
-                  />
-                  <path 
-                    d="M36 30 C36 34 34 36 30 36"
-                    stroke={isSelected ? "#007bff" : "#1f2937"}
-                    strokeWidth="3"
-                    strokeLinecap="round"
+                    strokeWidth="2"
                     fill="none"
                   />
                 </svg>
