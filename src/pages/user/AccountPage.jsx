@@ -838,7 +838,7 @@ const AccountPage = () => {
                                     to={`/orders/${order._id || order.id}`}
                                     style={viewButtonStyle}
                                   >
-                                    👁️ View
+                                     View
                                   </Link>
                                 </td>
                               </tr>

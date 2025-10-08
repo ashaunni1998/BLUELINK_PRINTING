@@ -1040,6 +1040,7 @@ const isButtonBadge = normalize(product?.name || "").includes("button badge") ||
   </p> */}
   {/* Sizes */}
 {/* Sizes */}
+
 {product.sizes?.length > 0 && (
   <div style={{ marginBottom: "16px" }}>
     <h3 style={{ 
@@ -1060,62 +1061,121 @@ const isButtonBadge = normalize(product?.name || "").includes("button badge") ||
       }}
     >
       {product.sizes.map((s, i) => {
-        // Map size name to image
+        // Map size name to image - Only Standard and Square
         const sizeImages = {
-          standard:
-            "https://www.moo.com/static-assets/product-images/b199bfe46c94ed9b044c2e52d18b9042f176b7f8/sizes/business_card-standard-526x325.jpg",
-          normal:
-            "https://www.moo.com/static-assets/product-images/b199bfe46c94ed9b044c2e52d18b9042f176b7f8/sizes/business_card-moo-526x325.jpg",
-          square:
-            "https://www.moo.com/static-assets/product-images/b199bfe46c94ed9b044c2e52d18b9042f176b7f8/sizes/business_card-square-526x325.jpg",
+          standard: "https://www.moo.com/static-assets/product-images/b199bfe46c94ed9b044c2e52d18b9042f176b7f8/sizes/business_card-standard-526x325.jpg",
+          square: "https://www.moo.com/static-assets/product-images/b199bfe46c94ed9b044c2e52d18b9042f176b7f8/sizes/business_card-square-526x325.jpg"
         };
 
-        const imgUrl = sizeImages[s.name.toLowerCase()];
+        // Get the size name - handle both string and object formats
+        const sizeName = typeof s === 'string' ? s : (s.name || s.label || '');
+        const sizeKey = sizeName.toLowerCase().trim();
+        
+        // Skip if not standard or square
+        if (sizeKey !== 'standard' && sizeKey !== 'square') {
+          return null;
+        }
+
+        const imgUrl = sizeImages[sizeKey];
+
+        // FIXED: Better comparison logic
+        let isSelected = false;
+        
+        if (selectedSize) {
+          // If selectedSize is a string
+          if (typeof selectedSize === 'string') {
+            isSelected = selectedSize.toLowerCase().trim() === sizeKey;
+          } 
+          // If selectedSize is an object
+          else if (typeof selectedSize === 'object') {
+            const selectedSizeName = (selectedSize.name || selectedSize.label || '').toLowerCase().trim();
+            isSelected = selectedSizeName === sizeKey;
+          }
+        }
 
         return (
           <div
             key={i}
             onClick={() => setSelectedSize(s)}
             style={{
-              border:
-                selectedSize?.name === s.name
-                  ? "2px solid #007bff"
-                  : "1px solid #ccc",
+              border: isSelected
+                ? "3px solid #007bff"
+                : "2px solid #ddd",
               borderRadius: "8px",
               padding: isMobile ? "8px" : "10px",
               cursor: "pointer",
               textAlign: "center",
               transition: "all 0.2s ease-in-out",
-              boxShadow:
-                selectedSize?.name === s.name
-                  ? "0px 4px 12px rgba(0,0,0,0.15)"
-                  : "none",
+              boxShadow: isSelected
+                ? "0px 4px 12px rgba(0, 123, 255, 0.3)"
+                : "0px 2px 4px rgba(0, 0, 0, 0.05)",
+              backgroundColor: isSelected ? "#f0f8ff" : "#fff",
+              transform: isSelected ? "scale(1.02)" : "scale(1)",
+            }}
+            onMouseEnter={(e) => {
+              if (!isSelected) {
+                e.currentTarget.style.borderColor = "#007bff";
+                e.currentTarget.style.transform = "scale(1.02)";
+                e.currentTarget.style.boxShadow = "0px 4px 12px rgba(0, 123, 255, 0.15)";
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!isSelected) {
+                e.currentTarget.style.borderColor = "#ddd";
+                e.currentTarget.style.transform = "scale(1)";
+                e.currentTarget.style.boxShadow = "0px 2px 4px rgba(0, 0, 0, 0.05)";
+              }
             }}
           >
             {imgUrl && (
               <img
                 src={imgUrl}
-                alt={s.name}
+                alt={sizeName}
                 style={{
                   width: "100%",
                   height: isMobile ? "80px" : "100px",
                   objectFit: "contain",
                   marginBottom: "8px",
                   borderRadius: "6px",
+                  opacity: isSelected ? 1 : 0.85,
+                  transition: "opacity 0.2s ease"
                 }}
               />
             )}
             <div style={{ 
               fontSize: isMobile ? "13px" : "14px", 
-              fontWeight: "500" 
+              fontWeight: isSelected ? "700" : "500",
+              textTransform: "capitalize",
+              color: isSelected ? "#007bff" : "#333",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "6px",
+              marginBottom: "4px"
             }}>
-              {s.name}
+              {sizeName}
+              {isSelected && (
+                <span style={{ 
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  width: "18px",
+                  height: "18px",
+                  borderRadius: "50%",
+                  backgroundColor: "#007bff",
+                  color: "#fff",
+                  fontSize: "10px"
+                }}>
+                  ✓
+                </span>
+              )}
             </div>
             <div style={{ 
               fontSize: isMobile ? "12px" : "13px", 
-              color: "#555" 
+              color: isSelected ? "#0066cc" : "#555",
+              fontWeight: isSelected ? "600" : "400"
             }}>
-              {s.size.width} × {s.size.height}
+              {s.size ? `${s.size.width} × ${s.size.height}` : ''}
             </div>
           </div>
         );
@@ -1229,7 +1289,7 @@ const isButtonBadge = normalize(product?.name || "").includes("button badge") ||
                 letterSpacing: "-0.01em",
                 transition: "color 0.3s ease"
               }}>
-                {selectedPaper ? selectedPaper.name : "Select Paper Quality"}
+                {selectedPaper ? selectedPaper.name : "Select Your Paper"}
               </div>
               {selectedPaper && (
                 <div style={{
@@ -1455,7 +1515,7 @@ const isButtonBadge = normalize(product?.name || "").includes("button badge") ||
           fontFamily: "'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif",
           letterSpacing: "-0.02em"
         }}>
-          Surface Finish
+          Choose Your Finish
         </h3>
         <p style={{
           fontSize: "14px",
@@ -1537,7 +1597,7 @@ const isButtonBadge = normalize(product?.name || "").includes("button badge") ||
                 transition: "color 0.3s ease",
                 textTransform: "capitalize"
               }}>
-                {selectedFinish ? selectedFinish.name : "Choose Finish Type"}
+                {selectedFinish ? selectedFinish.name : "Choose Finish  "}
               </div>
               {selectedFinish && (
                 <div style={{
@@ -1828,7 +1888,6 @@ const isButtonBadge = normalize(product?.name || "").includes("button badge") ||
             </div>
             
             {/* Corner Icon - Simple L-shape like screenshot */}
-            {/* Corner Icon - Frame style */}
             <div style={{ 
               marginLeft: "16px",
               display: "flex",
@@ -1836,30 +1895,66 @@ const isButtonBadge = normalize(product?.name || "").includes("button badge") ||
               justifyContent: "center"
             }}>
               {isSquare ? (
-                // Square Corner - Sharp rectangular frame
-                <svg width="64" height="48" viewBox="0 0 64 48" fill="none">
-                  <rect 
-                    x="8" 
-                    y="8" 
-                    width="48" 
-                    height="32" 
-                    rx="0"
+                // Square Corner - Sharp 90° L-shape
+                <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+                  <path 
+                    d="M12 12 L12 20 M12 12 L20 12"
                     stroke={isSelected ? "#007bff" : "#1f2937"}
-                    strokeWidth="2"
-                    fill="none"
+                    strokeWidth="3"
+                    strokeLinecap="square"
+                    strokeLinejoin="miter"
+                  />
+                  <path 
+                    d="M36 12 L36 20 M36 12 L28 12"
+                    stroke={isSelected ? "#007bff" : "#1f2937"}
+                    strokeWidth="3"
+                    strokeLinecap="square"
+                    strokeLinejoin="miter"
+                  />
+                  <path 
+                    d="M12 36 L12 28 M12 36 L20 36"
+                    stroke={isSelected ? "#007bff" : "#1f2937"}
+                    strokeWidth="3"
+                    strokeLinecap="square"
+                    strokeLinejoin="miter"
+                  />
+                  <path 
+                    d="M36 36 L36 28 M36 36 L28 36"
+                    stroke={isSelected ? "#007bff" : "#1f2937"}
+                    strokeWidth="3"
+                    strokeLinecap="square"
+                    strokeLinejoin="miter"
                   />
                 </svg>
               ) : (
-                // Rounded Corner - Rounded rectangular frame
-                <svg width="64" height="48" viewBox="0 0 64 48" fill="none">
-                  <rect 
-                    x="8" 
-                    y="8" 
-                    width="48" 
-                    height="32" 
-                    rx="4"
+                // Rounded Corner - Smooth curved arcs at corners
+                <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+                  <path 
+                    d="M12 18 C12 14 14 12 18 12"
                     stroke={isSelected ? "#007bff" : "#1f2937"}
-                    strokeWidth="2"
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    fill="none"
+                  />
+                  <path 
+                    d="M36 18 C36 14 34 12 30 12"
+                    stroke={isSelected ? "#007bff" : "#1f2937"}
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    fill="none"
+                  />
+                  <path 
+                    d="M12 30 C12 34 14 36 18 36"
+                    stroke={isSelected ? "#007bff" : "#1f2937"}
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    fill="none"
+                  />
+                  <path 
+                    d="M36 30 C36 34 34 36 30 36"
+                    stroke={isSelected ? "#007bff" : "#1f2937"}
+                    strokeWidth="3"
+                    strokeLinecap="round"
                     fill="none"
                   />
                 </svg>
