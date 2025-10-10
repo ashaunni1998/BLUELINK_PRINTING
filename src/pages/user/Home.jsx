@@ -265,11 +265,16 @@ const maxIndex = Math.ceil(products.length / productsPerSlide) - 1;
       {/* Hero Section */}
       <HomeSlider  />
       {/* Features Section */}
-<section style={{ padding: "20px 10px", backgroundColor: "#ffffff" }}>
+<section
+  style={{
+    padding: "20px 10px",
+    backgroundColor: "#ffffff",
+  }}
+>
   <div
-  className="features-container"
+    className="features-container"
     style={{
-      display:"flex" ,
+      display: "flex",
       justifyContent: "center",
       alignItems: "stretch",
       flexWrap: "wrap",
@@ -279,92 +284,105 @@ const maxIndex = Math.ceil(products.length / productsPerSlide) - 1;
       margin: "0 auto",
     }}
   >
-    {/* Card 1 */}
-    <div
-      style={{
-        flex: "1 1 260px",
-        maxWidth: "280px",
-        padding: "16px 12px",
-        borderRadius: "8px",
-        boxShadow: "0 2px 6px rgba(0,0,0,0.05)",
-        backgroundColor: "#fff",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        textAlign: "center",
-        
-      }}
-    >
-      <img
-        src="https://img.icons8.com/ios-filled/100/007bff/blueprint.png"
-        alt="Print"
-        style={{ marginBottom: "8px", height: "50px" }}
-      />
-      <h3 style={{ fontSize: "16px", marginBottom: "4px", fontWeight: "600" }}>
-        High-Quality Prints
-      </h3>
-      <p style={{ color: "#555", fontSize: "13px", lineHeight: "1.4" }}>
-        Crisp, clear, and durable blueprint prints for professionals.
-      </p>
-    </div>
-
-    {/* Card 2 */}
-    <div
-      style={{
-        flex: "1 1 260px",
-        maxWidth: "280px",
-        padding: "16px 12px",
-        borderRadius: "8px",
-        boxShadow: "0 2px 6px rgba(0,0,0,0.05)",
-        backgroundColor: "#fff",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        textAlign: "center",
-      }}
-    >
-      <img
-        src="https://img.icons8.com/ios-filled/100/007bff/shipped.png"
-        alt="Delivery"
-        style={{ marginBottom: "8px", height: "50px" }}
-      />
-      <h3 style={{ fontSize: "16px", marginBottom: "4px", fontWeight: "600" }}>
-        Fast Delivery
-      </h3>
-      <p style={{ color: "#555", fontSize: "13px", lineHeight: "1.4" }}>
-        Next-day delivery available for urgent projects and deadlines.
-      </p>
-    </div>
-
-    {/* Card 3 */}
-    <div
-      style={{
-        flex: "1 1 260px",
-        maxWidth: "280px",
-        padding: "16px 12px",
-        borderRadius: "8px",
-        boxShadow: "0 2px 6px rgba(0,0,0,0.05)",
-        backgroundColor: "#fff",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        textAlign: "center",
-      }}
-    >
-      <img
-        src="https://img.icons8.com/ios-filled/100/007bff/customer-support.png"
-        alt="Support"
-        style={{ marginBottom: "8px", height: "50px" }}
-      />
-      <h3 style={{ fontSize: "16px", marginBottom: "4px", fontWeight: "600" }}>
-        Customer Support
-      </h3>
-      <p style={{ color: "#555", fontSize: "13px", lineHeight: "1.4" }}>
-        Reach out any time—our team is here to help you succeed.
-      </p>
-    </div>
+    {[
+      {
+        img: "https://img.icons8.com/ios-filled/100/007bff/blueprint.png",
+        title: "High-Quality Prints",
+        text: "Crisp, clear, and durable blueprint prints for professionals.",
+      },
+      {
+        img: "https://img.icons8.com/ios-filled/100/007bff/shipped.png",
+        title: "Fast Delivery",
+        text: "Next-day delivery available for urgent projects and deadlines.",
+      },
+      {
+        img: "https://img.icons8.com/ios-filled/100/007bff/customer-support.png",
+        title: "Customer Support",
+        text: "Reach out any time—our team is here to help you succeed.",
+      },
+    ].map((card, i) => (
+      <div
+        key={i}
+        style={{
+          flex: "1 1 260px",
+          maxWidth: "280px",
+          padding: "16px 12px",
+          borderRadius: "8px",
+          boxShadow: "0 2px 6px rgba(0,0,0,0.05)",
+          backgroundColor: "#fff",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          textAlign: "center",
+          transition: "transform 0.2s ease",
+        }}
+      >
+        <img
+          src={card.img}
+          alt={card.title}
+          style={{
+            marginBottom: "8px",
+            height: "50px",
+            width: "auto",
+          }}
+        />
+        <h3
+          style={{
+            fontSize: "16px",
+            marginBottom: "4px",
+            fontWeight: "600",
+          }}
+        >
+          {card.title}
+        </h3>
+        <p
+          style={{
+            color: "#555",
+            fontSize: "13px",
+            lineHeight: "1.4",
+          }}
+        >
+          {card.text}
+        </p>
+      </div>
+    ))}
   </div>
+
+  <style>
+    {`
+      /* ✅ Mobile (1 per row) */
+      @media (max-width: 600px) {
+        .features-container {
+          flex-direction: column;
+          align-items: center;
+        }
+        .features-container > div {
+          max-width: 90%;
+        }
+      }
+
+      /* ✅ Tablet (2 per row, centered) */
+      @media (min-width: 601px) and (max-width: 1024px) {
+        .features-container {
+          justify-content: center;
+        }
+        .features-container > div {
+          flex: 1 1 calc(50% - 20px);
+          max-width: 320px;
+        }
+      }
+
+      /* ✅ Large desktop scaling */
+      @media (min-width: 1440px) {
+        .features-container {
+          max-width: 1100px;
+        }
+      }
+    `}
+  </style>
 </section>
+
+
 
 
 
@@ -796,7 +814,7 @@ const maxIndex = Math.ceil(products.length / productsPerSlide) - 1;
     .products-grid-responsive {
       display: grid;
       grid-template-columns: repeat(5, 1fr);
-      gap: 1.25rem;
+      gap: 1rem;
     }
 
     @media (max-width: 1279px) and (min-width: 1024px) {

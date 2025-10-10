@@ -209,8 +209,13 @@ const EnhancedHomeSections = () => {
       }
     `}</style>
     
-    <div className="grid lg:grid-cols-2 gap-8 sm:gap-10 md:gap-12 lg:gap-16 items-center">
-      
+         <div
+  className="grid gap-12 items-center"
+  style={{
+    display: "grid",
+    gridTemplateColumns: window.innerWidth > 1499 ? "1fr 1fr" : "1fr",
+  }}
+>      
       {/* Image Side */}
       <div className="relative group order-2 lg:order-1">
         <div className="relative bg-white p-3 sm:p-4 md:p-5 lg:p-6 rounded-2xl sm:rounded-3xl border-2 border-blue-200 max-w-sm sm:max-w-md md:max-w-lg mx-auto lg:mx-0">
@@ -306,8 +311,14 @@ const EnhancedHomeSections = () => {
       marginRight:"21%"
     }}
   >
-          <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
-            
+           <div
+  className="grid gap-12 items-center"
+  style={{
+    display: "grid",
+    gridTemplateColumns: window.innerWidth > 1499 ? "1fr 1fr" : "1fr",
+  }}
+>
+ 
             {/* Content Side */}
             <div className="space-y-8">
               <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 border border-blue-200 rounded-full text-blue-700 text-sm font-medium">
