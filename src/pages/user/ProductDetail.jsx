@@ -990,9 +990,18 @@ const isButtonBadge = normalize(product?.name || "").includes("button badge") ||
           {/* Details */}
  <div style={styles.detailsSection}>
   {/* Product Title */}
-<h1 style={{ fontSize: window.innerWidth <= 768 ? "20px" : "28px", fontWeight: "600", marginBottom: "8px" ,color:"#007bff" }}>
-    {product.name}
-  </h1>
+<h1
+  style={{
+    fontSize: window.innerWidth <= 768 ? "20px" : "28px",
+    fontWeight: "600",
+    marginBottom: "8px",
+    color: "#007bff",
+    marginTop: window.innerWidth <= 768 ? "-40px" : "-40px",
+  }}
+>
+  {product.name}
+</h1>
+
    <h3 style={{ fontSize: window.innerWidth <= 768 ? "18px" : "28px", fontWeight: "400", marginBottom: "8px" ,color:"#111316ff" }}>
     {product.subtitle}
   </h3>
@@ -2344,6 +2353,8 @@ const isButtonBadge = normalize(product?.name || "").includes("button badge") ||
   </div>
 )}
 
+
+
 </div>
 
 
@@ -2691,6 +2702,266 @@ const isButtonBadge = normalize(product?.name || "").includes("button badge") ||
 
   
 </div>      
+{isButtonBadge && (
+  <div
+    style={{
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      marginTop: "20px"
+    }}
+  >
+    <div
+      style={{
+        background: "#fff",
+        padding: "25px",
+        borderRadius: "16px",
+        boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+        width: "100%",
+        maxWidth: "420px",
+        textAlign: "center",
+      }}
+    >
+      <h3
+        style={{
+          fontSize: "20px",
+          fontWeight: "700",
+          marginBottom: "10px",
+          color: "#007bff",
+        }}
+      >
+        Upload Your Photo on Badge
+      </h3>
+
+      {/* Upload Button */}
+      <label
+        htmlFor="upload-badge-photo"
+        style={{
+          display: "inline-block",
+          padding: "10px 20px",
+          background: "#007bff",
+          color: "#fff",
+          borderRadius: "8px",
+          cursor: "pointer",
+          fontWeight: "600",
+          transition: "0.3s",
+        }}
+      >
+        Choose Photo
+      </label>
+      <input
+        id="upload-badge-photo"
+        type="file"
+        accept="image/*"
+        onChange={(e) => handleFileChange(e, "uploaded")}
+        style={{ display: "none" }}
+      />
+
+      {/* Preview Frame */}
+      <div
+        style={{
+          marginTop: "20px",
+          position: "relative",
+          width: "300px",
+          height: "300px",
+          marginInline: "auto",
+          borderRadius: "16px",
+          overflow: "hidden",
+          background: "#f9f9f9",
+          boxShadow: "0 8px 20px rgba(0,0,0,0.15)",
+        }}
+      >
+        {preparedPreview ? (
+          <img
+            src={preparedPreview}
+            alt="Prepared Preview"
+            style={{
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+              position: "absolute",
+              top: 0,
+              left: 0,
+              zIndex: 1,
+            }}
+          />
+        ) : uploadedImage ? (
+          <img
+            src={uploadedImage}
+            alt="Uploaded Preview"
+            style={{
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+              position: "absolute",
+              top: 0,
+              left: 0,
+              zIndex: 1,
+            }}
+          />
+        ) : (
+          <p
+            style={{
+              color: "#aaa",
+              marginTop: "100px",
+              textAlign: "center",
+              fontStyle: "italic",
+              fontSize: "14px",
+            }}
+          >
+            No photo uploaded yet
+          </p>
+        )}
+
+        {/* Frame Overlay */}
+        {FRAME_URL && (
+          <img
+            src={FRAME_URL}
+            alt="Frame"
+            style={{
+              width: "100%",
+              height: "100%",
+              position: "absolute",
+              top: 0,
+              left: 0,
+              zIndex: 2,
+              pointerEvents: "none",
+            }}
+          />
+        )}
+
+        {/* Re-Crop Button */}
+        {(uploadedImage || preparedPreview || originalImage) && (
+          <button
+            onClick={() => {
+              setCroppingImage(uploadedImage || preparedPreview || originalImage);
+              setCroppingSide("uploaded");
+              setIsCropOpen(true);
+              setCrop({ x: 0, y: 0 });
+              setZoom(1);
+              setCroppedAreaPixels(null);
+            }}
+            style={{
+              position: "absolute",
+              bottom: "10px",
+              right: "10px",
+              padding: "6px 12px",
+              background: "#2563eb",
+              color: "#fff",
+              border: "none",
+              borderRadius: "6px",
+              cursor: "pointer",
+              fontSize: "12px",
+              zIndex: 3,
+            }}
+          >
+            Re-Crop
+          </button>
+        )}
+      </div>
+
+      {/* Frame Selection */}
+      <div
+        style={{
+          display: "flex",
+          flexWrap: "wrap",
+          gap: "20px",
+          justifyContent: "center",
+          marginTop: "25px",
+        }}
+      >
+        {Object.entries(frameOverlays).map(([key, url]) => (
+          <div
+            key={key}
+            onClick={() => setSelectedFrame(key)}
+            style={{
+              width: "120px",
+              height: "120px",
+              borderRadius: "12px",
+              border:
+                selectedFrame === key
+                  ? "3px solid #007bff"
+                  : "1px solid #e5e7eb",
+              boxShadow:
+                selectedFrame === key
+                  ? "0 4px 12px rgba(0,123,255,0.3)"
+                  : "0 2px 6px rgba(0,0,0,0.1)",
+              cursor: "pointer",
+              background: "#fff",
+              transition: "all 0.25s ease",
+              textAlign: "center",
+              padding: "10px",
+            }}
+          >
+            <img
+              src={url}
+              alt={key}
+              style={{
+                width: "100%",
+                height: "70px",
+                objectFit: "contain",
+                marginBottom: "6px",
+              }}
+            />
+            <span
+              style={{
+                fontSize: "13px",
+                fontWeight: "600",
+                color: selectedFrame === key ? "#007bff" : "#333",
+                textTransform: "capitalize",
+              }}
+            >
+              {key}
+            </span>
+          </div>
+        ))}
+      </div>
+
+      {/* Action Buttons */}
+      <div
+        style={{
+          display: "flex",
+          gap: "12px",
+          marginTop: "18px",
+          justifyContent: "center",
+        }}
+      >
+        <button
+          onClick={handlePrepareAndUpload}
+          style={{
+            padding: "10px 16px",
+            background: "#10b981",
+            color: "#fff",
+            borderRadius: "8px",
+            border: "none",
+            cursor: "pointer",
+            fontWeight: 600,
+          }}
+        >
+          Prepare & Upload
+        </button>
+
+        <button
+          onClick={async () => {
+            await handlePrepareAndUpload();
+            navigate("/checkout");
+          }}
+          style={{
+            padding: "10px 16px",
+            background: "#3b82f6",
+            color: "#fff",
+            borderRadius: "8px",
+            border: "none",
+            cursor: "pointer",
+            fontWeight: 600,
+          }}
+        >
+          Buy Now
+        </button>
+      </div>
+    </div>
+  </div>
+)}
 
 <div style={{ marginTop: "10px" }}>
 

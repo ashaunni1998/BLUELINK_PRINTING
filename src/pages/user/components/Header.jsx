@@ -42,9 +42,26 @@ export default function Header() {
   const accountTimeoutRef = useRef(null);
   const hoverTimeoutRef = useRef(null);
   const isWindow = typeof window !== "undefined";
-  const [isMobile, setIsMobile] = useState(isWindow ? window.innerWidth < 1024 : false);
+
+const [isMobile, setIsMobile] = useState(isWindow ? window.innerWidth < 1500 : false);
+const [isTablet, setIsTablet] = useState(
+  isWindow ? window.innerWidth >= 768 && window.innerWidth < 1500 : false
+);
 
 
+const [isOfferBarMobile, setIsOfferBarMobile] = useState(
+  isWindow ? window.innerWidth <= 768 : false
+);
+
+// Add this useEffect right after your existing isMobile/isTablet useEffect:
+useEffect(() => {
+  if (!isWindow) return;
+  const onResize = () => {
+    setIsOfferBarMobile(window.innerWidth <= 768);
+  };
+  window.addEventListener("resize", onResize);
+  return () => window.removeEventListener("resize", onResize);
+}, [isWindow]);
 
 // --- Addresses (fetch only when user is logged in) ---
   const [addresses, setAddresses] = useState([]);
@@ -104,12 +121,16 @@ if (addresses.length > 0) {
 
 
 
-  useEffect(() => {
-    if (!isWindow) return;
-    const onResize = () => setIsMobile(window.innerWidth < 1024);
-    window.addEventListener("resize", onResize);
-    return () => window.removeEventListener("resize", onResize);
-  }, [isWindow]);
+useEffect(() => {
+  if (!isWindow) return;
+  const onResize = () => {
+    setIsMobile(window.innerWidth < 1500);
+    setIsTablet(window.innerWidth >= 768 && window.innerWidth < 1500);
+  };
+  window.addEventListener("resize", onResize);
+  return () => window.removeEventListener("resize", onResize);
+}, [isWindow]);
+
 
   // --- menu cache keys and static endings ---
   const MENU_CACHE_KEY = "kdp_menu_cache_v1";
@@ -393,7 +414,444 @@ const handleLogout = () => {
   };
 
 
+
+
+
+
+
+
+ 
+
   if (authLoading) return null; 
+
+/* ---------- styles ---------- */
+const styles = {
+  header: {
+    fontFamily: "'Segoe UI', sans-serif",
+    //  borderBottom: "1px solid #eee",
+  //  boxShadow: "0 1px 4px rgba(0,0,0,0.05)",
+    backgroundColor: "white",
+    // width: "100%",
+    position: "sticky",
+    top: "0",
+    zIndex: "100",
+    overflow:"hidden",
+  },
+topBar: {
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
+  padding: "0.5rem 1rem",
+  maxWidth: "65%",
+  margin: "0 auto",
+  width: "100%",
+  minHeight: "3.75rem",
+},
+  overlay: {
+    position: "fixed",
+    top: 0,
+    left: 0,
+    width: "100%",
+    height: "100%",
+    backgroundColor: "rgba(0,0,0,0.5)",
+    zIndex: 998,
+  },
+  logoWrapper: { 
+    display: "flex", 
+    alignItems: "center",
+    flexShrink: 0,
+  },
+logo: { 
+  height: "2.8rem", 
+  width: "auto",
+  maxWidth: "7.5rem",
+  objectFit: "contain",
+},
+  topRightRow: { 
+    display: "flex", 
+    alignItems: "center", 
+    gap: "1.5rem", 
+    marginLeft: "auto", 
+    marginRight: "0.99rem", 
+  },
+  topLink: { 
+    cursor: "pointer", 
+    color: "#333", 
+    fontSize: "0.875rem", 
+    textDecoration: "none",
+    whiteSpace: "nowrap",
+    fontWeight:"500",
+     fontFamily: "'Segoe UI', sans-serif",
+  },
+  accountContainer: { 
+    position: "relative", 
+    display: "inline-block", 
+    zIndex: 4000 
+  },
+  searchWrapper: { 
+    position: "relative", 
+    width: "12%", 
+    minWidth: "10rem",
+    zIndex: 4000 
+  },
+  searchInput: { 
+    width: "100%", 
+    padding: "0.5rem 2.25rem 0.5rem 0.75rem", 
+    border: "1px solid #ccc", 
+    borderRadius: "0.375rem",
+    fontSize: "0.875rem",
+  },
+  searchIcon: { 
+    position: "absolute", 
+    right: "0.625rem", 
+    top: "50%", 
+    transform: "translateY(-50%)", 
+    fontSize: "1rem", 
+    color: "#333", 
+    pointerEvents: "none" 
+  },
+
+  searchDropdown: { 
+    position: "absolute", 
+    top: "2.625rem", 
+    left: 0, 
+    right: 0, 
+    backgroundColor: "#fff", 
+    border: "1px solid #ccc", 
+    zIndex: 5002,
+    maxHeight: "15.625rem", 
+    overflowY: "auto", 
+    borderRadius: "0.375rem",
+    boxShadow: "0 0.25rem 0.75rem rgba(0,0,0,0.15)",
+  },
+  searchItem: { 
+    padding: "0.625rem", 
+    borderBottom: "1px solid #eee", 
+    cursor: "pointer", 
+    color: "#333",
+    fontSize: "0.875rem",
+  },
+
+  hamburger: { 
+    background: "none",
+    border: "none",
+    cursor: "pointer", 
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: "0.5rem",
+    borderRadius: "0.25rem",
+    transition: "background-color 0.2s ease",
+    flexShrink: 0,
+  },
+  navBar: { 
+    backgroundColor: "white",
+  },
+  navLinks: { 
+  display: "flex", 
+  gap: "0rem", 
+  flexWrap: "nowrap", 
+  whiteSpace: "nowrap", 
+  maxWidth: "66%",
+  margin: "0 auto", 
+  padding: "0 1.3rem",
+  width: "100%",
+  overflowX: "auto",
+  scrollbarWidth: "none", // Firefox
+  msOverflowStyle: "none", // IE/Edge
+},
+  navItem: { 
+    position: "relative" 
+  },
+navLink: { 
+  fontSize: "0.75rem", 
+  color: "#111", 
+  fontWeight: "500", 
+  textDecoration: "none", 
+  padding: window.innerWidth < 1280 ? "0.75rem 0.25rem" : "0.75rem 0.375rem", 
+  display: "inline-block",
+},
+
+  dropdown: {
+    position: "absolute",
+    top: "100%",
+    left: "0",
+    backgroundColor: "#fff",
+    border: "1px solid #e0e6ed",
+    borderRadius: "0.5rem",
+    boxShadow: "0 0.375rem 1.25rem rgba(0,0,0,0.08)",
+    zIndex: 3500,
+    minWidth: "15rem",
+    padding: "0",
+    overflow: "hidden",
+  },
+  dropdownItem: {
+    display: "block",
+    padding: "0.75rem 1.25rem",
+    textDecoration: "none",
+    color: "#4a5568",
+    fontSize: "0.9375rem",
+    fontWeight: "400",
+    borderBottom: "1px solid #f1f3f4",
+    transition: "all 0.15s ease",
+    position: "relative",
+  },
+  dropdownItemFirst: {
+    display: "block",
+    padding: "0.75rem 1.25rem",
+    textDecoration: "none",
+    color: "#2d3748",
+    fontSize: "0.9375rem",
+    fontWeight: "600",
+    borderBottom: "2px solid #e2e8f0",
+    backgroundColor: "#f8f9fa",
+  },
+
+  accountDropdown: { 
+    position: "absolute", 
+    top: "100%", 
+    left: "50%", 
+    transform: "translateX(-50%)", 
+    backgroundColor: "#fff", 
+    boxShadow: "0 0.375rem 1.125rem rgba(0,0,0,0.12)", 
+    borderRadius: "0.5rem", 
+    display: "flex", 
+    flexDirection: "column", 
+    alignItems: "stretch", 
+    minWidth: "11.25rem", 
+    padding: "0.625rem 0", 
+    zIndex: 5002,
+  },
+  accountLink: { 
+    padding: "0.625rem 0.9375rem", 
+    textDecoration: "none", 
+    color: "#0073e6", 
+    fontSize: "0.875rem", 
+    fontWeight: "500" 
+  },
+  divider: { 
+    borderTop: "1px solid #eee", 
+    marginTop: "0.5rem" 
+  },
+  logoutBtn: { 
+    margin: "0.625rem auto 0 auto", 
+    padding: "0.5rem 1rem", 
+    backgroundColor: "#0073e6", 
+    color: "#fff", 
+    border: "none", 
+    borderRadius: "0.375rem", 
+    cursor: "pointer", 
+    fontSize: "0.875rem", 
+    fontWeight: "500" 
+  },
+
+  // Mobile menu styles
+  mobileMenu: { 
+    position: "fixed", 
+    top: 0, 
+    right: 0, 
+    bottom: 0, 
+    width: "85%", 
+    maxWidth: "18.75rem",
+    backgroundColor: "#f8f9fa", 
+    zIndex: 999, 
+    boxShadow: "-0.125rem 0 0.5rem rgba(0,0,0,0.2)", 
+    overflowY: "auto", 
+    display: "flex", 
+    flexDirection: "column",
+    transition: "transform 0.3s ease, visibility 0.3s ease",
+  },
+  mobileHeader: { 
+    display: "flex", 
+    justifyContent: "space-between", 
+    alignItems: "center", 
+    padding: "0.9375rem 1rem", 
+    borderBottom: "1px solid #dee2e6", 
+    backgroundColor: "#fff", 
+    position: "sticky", 
+    top: 0, 
+    zIndex: 1000 
+  },
+  mobileSearchWrapper: { 
+    position: "relative", 
+    flex: 1, 
+    marginRight: "0.75rem" 
+  },
+  mobileSearchInput: { 
+    width: "100%", 
+    padding: "0.625rem 2.5rem 0.625rem 0.9375rem", 
+    fontSize: "1rem", 
+    border: "1px solid #ced4da", 
+    borderRadius: "0.5rem", 
+    backgroundColor: "#fff" 
+  },
+  mobileSearchIcon: { 
+    position: "absolute", 
+    right: "0.75rem", 
+    top: "50%", 
+    transform: "translateY(-50%)", 
+    fontSize: "1rem", 
+    color: "#6c757d" 
+  },
+  mobileSearchDropdown: { 
+    position: "absolute", 
+    top: "3rem", 
+    left: 0, 
+    right: 0, 
+    backgroundColor: "#fff", 
+    border: "1px solid #ced4da", 
+    borderRadius: "0.5rem", 
+    zIndex: 2000, 
+    maxHeight: "12.5rem", 
+    overflowY: "auto", 
+    boxShadow: "0 0.25rem 0.375rem rgba(0,0,0,0.1)" 
+  },
+  closeIcon: { 
+    background: "none",
+    border: "none",
+    cursor: "pointer", 
+    color: "#6c757d", 
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: "0.25rem",
+  },
+  mobileContent: { 
+    flex: 1, 
+    overflowY: "auto", 
+    padding: "0" 
+  },
+  mobileMenuItem: { 
+    borderBottom: "1px solid #e9ecef", 
+    backgroundColor: "#fff" 
+  },
+  mobileMenuHeader: { 
+    display: "flex", 
+    justifyContent: "space-between", 
+    alignItems: "center", 
+    padding: "1rem 1.25rem", 
+    cursor: "pointer", 
+    transition: "background-color 0.2s ease" 
+  },
+  mobileMenuLink: { 
+    textDecoration: "none", 
+    color: "#212529", 
+    fontSize: "1rem", 
+    fontWeight: "500", 
+    flex: 1, 
+    display: "block" 
+  },
+  arrowContainer: { 
+    marginLeft: "0.75rem", 
+    display: "flex", 
+    alignItems: "center", 
+    padding: "0.125rem" 
+  },
+  mobileDropdownContent: { 
+    backgroundColor: "#f8f9fa", 
+    borderTop: "1px solid #e9ecef", 
+    paddingLeft: "1.25rem" 
+  },
+  mobileDropdownLink: { 
+    display: "block", 
+    padding: "0.75rem 1.25rem", 
+    textDecoration: "none", 
+    color: "#495057", 
+    fontSize: "0.9375rem", 
+    borderBottom: "1px solid #e9ecef", 
+    transition: "background-color 0.2s ease" 
+  },
+
+  mobileFooter: { 
+    backgroundColor: "#343a40", 
+    color: "white", 
+    padding: "1.25rem", 
+    borderTop: "1px solid #495057", 
+    marginTop: "auto" 
+  },
+  mobileAccountSection: { 
+    marginBottom: "0.9375rem" 
+  },
+  mobileAccountToggle: { 
+    display: "flex", 
+    justifyContent: "space-between", 
+    alignItems: "center", 
+    fontWeight: "600", 
+    fontSize: "1rem", 
+    padding: "0.9375rem 1.25rem", 
+    backgroundColor: "#495057", 
+    borderRadius: "0.5rem", 
+    cursor: "pointer", 
+    transition: "background-color 0.2s ease" 
+  },
+  mobileAccountDropdown: { 
+    marginTop: "0.625rem", 
+    backgroundColor: "#212529", 
+    borderRadius: "0.5rem", 
+    padding: "0.625rem 0", 
+    overflow: "hidden" 
+  },
+  mobileAccountLink: { 
+    padding: "0.75rem 1.25rem", 
+    fontSize: "0.9375rem", 
+    cursor: "pointer", 
+    textDecoration: "none", 
+    display: "block", 
+    color: "#f8f9fa" 
+  },
+  mobileLogoutBtn: { 
+    background: "none", 
+    border: "none", 
+    cursor: "pointer", 
+    color: "#f8f9fa", 
+    textAlign: "left", 
+    padding: "0.75rem 1.25rem", 
+    width: "100%", 
+    fontSize: "0.9375rem" 
+  },
+  mobileSignIn: { 
+    marginBottom: "0.9375rem", 
+    padding: "0.9375rem 1.25rem", 
+    backgroundColor: "#495057", 
+    borderRadius: "0.5rem", 
+    textAlign: "center" 
+  },
+  mobileSignInLink: { 
+    color: "#fff", 
+    textDecoration: "none", 
+    fontWeight: "600", 
+    fontSize: "1rem" 
+  },
+  mobileCart: { 
+    padding: "0.9375rem 1.25rem", 
+    backgroundColor: "#007bff", 
+    textAlign: "center", 
+    borderRadius: "0.5rem", 
+    fontWeight: "600" 
+  },
+  mobileCartLink: { 
+    color: "white", 
+    textDecoration: "none", 
+    fontSize: "1rem", 
+    display: "flex", 
+    alignItems: "center", 
+    justifyContent: "center" 
+  },
+
+offerBar: { 
+  backgroundColor: "#007BFF", 
+  color: "#fff", 
+  textAlign: "center", 
+  fontSize: isOfferBarMobile ? "0.75rem" : "0.875rem",
+  fontWeight: "500", 
+  lineHeight: "1.4", 
+  wordWrap: "break-word",
+  boxSizing: "border-box",
+}
+
+}
+
+
 
 
   return (
@@ -696,446 +1154,41 @@ onClick={(e) => {
         </div>
       )}
 
-      {/* Offer bar */}
+ 
+ {/* Offer bar - Fully Responsive */}
+
  <div
   style={{
-    ...styles.offerBar,
-    width: isMobile ? "100%" : "88%",   // ✅ now works inside component
-    margin: isMobile ? "0" : "0 auto", // ✅ no error
+    width: isOfferBarMobile ? "100%" : "88%",
+    margin: isOfferBarMobile ? "0" : "0 auto",
+    backgroundColor: "#007BFF",
+    color: "#fff",
+    textAlign: "center",
+    fontSize: isOfferBarMobile ? "0.75rem" : "0.875rem",
+    fontWeight: "500",
+    lineHeight: "1.4",
+    wordWrap: "break-word",
+    padding: isOfferBarMobile ? "0.5rem 1rem" : "0.625rem 1rem",
+    boxSizing: "border-box",
   }}
 >
- 
-  
-        🎉 New members get <strong>$5</strong> off their first order! <a href="/sign-in" style={{ color: "white" }}>Sign up now.</a>
-      </div>
+  {isOfferBarMobile ? (
+    <>
+      🎉 New members get <strong>$5</strong> off! <a href="/sign-in" style={{ color: "white", textDecoration: "underline" }}>Sign up</a>
+    </>
+  ) : (
+    <>
+      🎉 New members get <strong>$5</strong> off their first order! <a href="/sign-in" style={{ color: "white", textDecoration: "underline" }}>Sign up now.</a>
+    </>
+  )}
+</div>
+
+
+
+
       
     </header>
   );
 }
 
-/* ---------- styles ---------- */
-const styles = {
-  header: {
-    fontFamily: "'Segoe UI', sans-serif",
-    //  borderBottom: "1px solid #eee",
-  //  boxShadow: "0 1px 4px rgba(0,0,0,0.05)",
-    backgroundColor: "white",
-    // width: "100%",
-    position: "sticky",
-    top: "0",
-    zIndex: "100",
-  },
-  topBar: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    padding: "0.5rem 1rem",
-    maxWidth: "65%",
-    margin: "0 auto",
-    width: "100%",
-    minHeight: "3.75rem",
-  },
-  overlay: {
-    position: "fixed",
-    top: 0,
-    left: 0,
-    width: "100%",
-    height: "100%",
-    backgroundColor: "rgba(0,0,0,0.5)",
-    zIndex: 998,
-  },
-  logoWrapper: { 
-    display: "flex", 
-    alignItems: "center",
-    flexShrink: 0,
-  },
-  logo: { 
-    height: "2.8rem", 
-    width: "auto",
-    maxWidth: "7.5rem",
-    objectFit: "contain",
-  },
-  topRightRow: { 
-    display: "flex", 
-    alignItems: "center", 
-    gap: "1.5rem", 
-    marginLeft: "auto", 
-    marginRight: "0.99rem", 
-  },
-  topLink: { 
-    cursor: "pointer", 
-    color: "#333", 
-    fontSize: "0.875rem", 
-    textDecoration: "none",
-    whiteSpace: "nowrap",
-    fontWeight:"500",
-     fontFamily: "'Segoe UI', sans-serif",
-  },
-  accountContainer: { 
-    position: "relative", 
-    display: "inline-block", 
-    zIndex: 4000 
-  },
-  searchWrapper: { 
-    position: "relative", 
-    width: "12%", 
-    minWidth: "10rem",
-    zIndex: 4000 
-  },
-  searchInput: { 
-    width: "100%", 
-    padding: "0.5rem 2.25rem 0.5rem 0.75rem", 
-    border: "1px solid #ccc", 
-    borderRadius: "0.375rem",
-    fontSize: "0.875rem",
-  },
-  searchIcon: { 
-    position: "absolute", 
-    right: "0.625rem", 
-    top: "50%", 
-    transform: "translateY(-50%)", 
-    fontSize: "1rem", 
-    color: "#333", 
-    pointerEvents: "none" 
-  },
 
-  searchDropdown: { 
-    position: "absolute", 
-    top: "2.625rem", 
-    left: 0, 
-    right: 0, 
-    backgroundColor: "#fff", 
-    border: "1px solid #ccc", 
-    zIndex: 5002,
-    maxHeight: "15.625rem", 
-    overflowY: "auto", 
-    borderRadius: "0.375rem",
-    boxShadow: "0 0.25rem 0.75rem rgba(0,0,0,0.15)",
-  },
-  searchItem: { 
-    padding: "0.625rem", 
-    borderBottom: "1px solid #eee", 
-    cursor: "pointer", 
-    color: "#333",
-    fontSize: "0.875rem",
-  },
-
-  hamburger: { 
-    background: "none",
-    border: "none",
-    cursor: "pointer", 
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    padding: "0.5rem",
-    borderRadius: "0.25rem",
-    transition: "background-color 0.2s ease",
-    flexShrink: 0,
-  },
-  navBar: { 
-    backgroundColor: "white",
-  },
-  navLinks: { 
-    display: "flex", 
-    gap: "0rem", 
-    flexWrap: "nowrap", 
-     whiteSpace: "nowrap", 
-    maxWidth: "66%",
-    margin: "0 auto", 
-    padding: "0 1.3rem",
-    width: "100%",
-    // overflowX: "auto",
-    // overflowY: "hidden",
-    // alignItems: "flex-start",
-  },
-  navItem: { 
-    position: "relative" 
-  },
-  navLink: { 
-    fontSize: "0.75rem", 
-    color: "#111", 
-    fontWeight: "500", 
-    textDecoration: "none", 
-    padding: "0.75rem 0.375rem", 
-    display: "inline-block",
-  },
-
-  dropdown: {
-    position: "absolute",
-    top: "100%",
-    left: "0",
-    backgroundColor: "#fff",
-    border: "1px solid #e0e6ed",
-    borderRadius: "0.5rem",
-    boxShadow: "0 0.375rem 1.25rem rgba(0,0,0,0.08)",
-    zIndex: 3500,
-    minWidth: "15rem",
-    padding: "0",
-    overflow: "hidden",
-  },
-  dropdownItem: {
-    display: "block",
-    padding: "0.75rem 1.25rem",
-    textDecoration: "none",
-    color: "#4a5568",
-    fontSize: "0.9375rem",
-    fontWeight: "400",
-    borderBottom: "1px solid #f1f3f4",
-    transition: "all 0.15s ease",
-    position: "relative",
-  },
-  dropdownItemFirst: {
-    display: "block",
-    padding: "0.75rem 1.25rem",
-    textDecoration: "none",
-    color: "#2d3748",
-    fontSize: "0.9375rem",
-    fontWeight: "600",
-    borderBottom: "2px solid #e2e8f0",
-    backgroundColor: "#f8f9fa",
-  },
-
-  accountDropdown: { 
-    position: "absolute", 
-    top: "100%", 
-    left: "50%", 
-    transform: "translateX(-50%)", 
-    backgroundColor: "#fff", 
-    boxShadow: "0 0.375rem 1.125rem rgba(0,0,0,0.12)", 
-    borderRadius: "0.5rem", 
-    display: "flex", 
-    flexDirection: "column", 
-    alignItems: "stretch", 
-    minWidth: "11.25rem", 
-    padding: "0.625rem 0", 
-    zIndex: 5002,
-  },
-  accountLink: { 
-    padding: "0.625rem 0.9375rem", 
-    textDecoration: "none", 
-    color: "#0073e6", 
-    fontSize: "0.875rem", 
-    fontWeight: "500" 
-  },
-  divider: { 
-    borderTop: "1px solid #eee", 
-    marginTop: "0.5rem" 
-  },
-  logoutBtn: { 
-    margin: "0.625rem auto 0 auto", 
-    padding: "0.5rem 1rem", 
-    backgroundColor: "#0073e6", 
-    color: "#fff", 
-    border: "none", 
-    borderRadius: "0.375rem", 
-    cursor: "pointer", 
-    fontSize: "0.875rem", 
-    fontWeight: "500" 
-  },
-
-  // Mobile menu styles
-  mobileMenu: { 
-    position: "fixed", 
-    top: 0, 
-    right: 0, 
-    bottom: 0, 
-    width: "85%", 
-    maxWidth: "18.75rem",
-    backgroundColor: "#f8f9fa", 
-    zIndex: 999, 
-    boxShadow: "-0.125rem 0 0.5rem rgba(0,0,0,0.2)", 
-    overflowY: "auto", 
-    display: "flex", 
-    flexDirection: "column",
-    transition: "transform 0.3s ease, visibility 0.3s ease",
-  },
-  mobileHeader: { 
-    display: "flex", 
-    justifyContent: "space-between", 
-    alignItems: "center", 
-    padding: "0.9375rem 1rem", 
-    borderBottom: "1px solid #dee2e6", 
-    backgroundColor: "#fff", 
-    position: "sticky", 
-    top: 0, 
-    zIndex: 1000 
-  },
-  mobileSearchWrapper: { 
-    position: "relative", 
-    flex: 1, 
-    marginRight: "0.75rem" 
-  },
-  mobileSearchInput: { 
-    width: "100%", 
-    padding: "0.625rem 2.5rem 0.625rem 0.9375rem", 
-    fontSize: "1rem", 
-    border: "1px solid #ced4da", 
-    borderRadius: "0.5rem", 
-    backgroundColor: "#fff" 
-  },
-  mobileSearchIcon: { 
-    position: "absolute", 
-    right: "0.75rem", 
-    top: "50%", 
-    transform: "translateY(-50%)", 
-    fontSize: "1rem", 
-    color: "#6c757d" 
-  },
-  mobileSearchDropdown: { 
-    position: "absolute", 
-    top: "3rem", 
-    left: 0, 
-    right: 0, 
-    backgroundColor: "#fff", 
-    border: "1px solid #ced4da", 
-    borderRadius: "0.5rem", 
-    zIndex: 2000, 
-    maxHeight: "12.5rem", 
-    overflowY: "auto", 
-    boxShadow: "0 0.25rem 0.375rem rgba(0,0,0,0.1)" 
-  },
-  closeIcon: { 
-    background: "none",
-    border: "none",
-    cursor: "pointer", 
-    color: "#6c757d", 
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    padding: "0.25rem",
-  },
-  mobileContent: { 
-    flex: 1, 
-    overflowY: "auto", 
-    padding: "0" 
-  },
-  mobileMenuItem: { 
-    borderBottom: "1px solid #e9ecef", 
-    backgroundColor: "#fff" 
-  },
-  mobileMenuHeader: { 
-    display: "flex", 
-    justifyContent: "space-between", 
-    alignItems: "center", 
-    padding: "1rem 1.25rem", 
-    cursor: "pointer", 
-    transition: "background-color 0.2s ease" 
-  },
-  mobileMenuLink: { 
-    textDecoration: "none", 
-    color: "#212529", 
-    fontSize: "1rem", 
-    fontWeight: "500", 
-    flex: 1, 
-    display: "block" 
-  },
-  arrowContainer: { 
-    marginLeft: "0.75rem", 
-    display: "flex", 
-    alignItems: "center", 
-    padding: "0.125rem" 
-  },
-  mobileDropdownContent: { 
-    backgroundColor: "#f8f9fa", 
-    borderTop: "1px solid #e9ecef", 
-    paddingLeft: "1.25rem" 
-  },
-  mobileDropdownLink: { 
-    display: "block", 
-    padding: "0.75rem 1.25rem", 
-    textDecoration: "none", 
-    color: "#495057", 
-    fontSize: "0.9375rem", 
-    borderBottom: "1px solid #e9ecef", 
-    transition: "background-color 0.2s ease" 
-  },
-
-  mobileFooter: { 
-    backgroundColor: "#343a40", 
-    color: "white", 
-    padding: "1.25rem", 
-    borderTop: "1px solid #495057", 
-    marginTop: "auto" 
-  },
-  mobileAccountSection: { 
-    marginBottom: "0.9375rem" 
-  },
-  mobileAccountToggle: { 
-    display: "flex", 
-    justifyContent: "space-between", 
-    alignItems: "center", 
-    fontWeight: "600", 
-    fontSize: "1rem", 
-    padding: "0.9375rem 1.25rem", 
-    backgroundColor: "#495057", 
-    borderRadius: "0.5rem", 
-    cursor: "pointer", 
-    transition: "background-color 0.2s ease" 
-  },
-  mobileAccountDropdown: { 
-    marginTop: "0.625rem", 
-    backgroundColor: "#212529", 
-    borderRadius: "0.5rem", 
-    padding: "0.625rem 0", 
-    overflow: "hidden" 
-  },
-  mobileAccountLink: { 
-    padding: "0.75rem 1.25rem", 
-    fontSize: "0.9375rem", 
-    cursor: "pointer", 
-    textDecoration: "none", 
-    display: "block", 
-    color: "#f8f9fa" 
-  },
-  mobileLogoutBtn: { 
-    background: "none", 
-    border: "none", 
-    cursor: "pointer", 
-    color: "#f8f9fa", 
-    textAlign: "left", 
-    padding: "0.75rem 1.25rem", 
-    width: "100%", 
-    fontSize: "0.9375rem" 
-  },
-  mobileSignIn: { 
-    marginBottom: "0.9375rem", 
-    padding: "0.9375rem 1.25rem", 
-    backgroundColor: "#495057", 
-    borderRadius: "0.5rem", 
-    textAlign: "center" 
-  },
-  mobileSignInLink: { 
-    color: "#fff", 
-    textDecoration: "none", 
-    fontWeight: "600", 
-    fontSize: "1rem" 
-  },
-  mobileCart: { 
-    padding: "0.9375rem 1.25rem", 
-    backgroundColor: "#007bff", 
-    textAlign: "center", 
-    borderRadius: "0.5rem", 
-    fontWeight: "600" 
-  },
-  mobileCartLink: { 
-    color: "white", 
-    textDecoration: "none", 
-    fontSize: "1rem", 
-    display: "flex", 
-    alignItems: "center", 
-    justifyContent: "center" 
-  },
-
-  offerBar: { 
-    backgroundColor: "#007BFF", 
-    color: "#fff", 
-    textAlign: "center", 
-    padding: "0.625rem 1.25rem", 
-    fontSize: "0.875rem", 
-    fontWeight: "500", 
-    lineHeight: "1.4", 
-    wordWrap: "break-word" ,
-          
-    
-  },
-};
