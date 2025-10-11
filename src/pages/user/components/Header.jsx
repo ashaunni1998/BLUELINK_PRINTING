@@ -435,7 +435,7 @@ const styles = {
     position: "sticky",
     top: "0",
     zIndex: "100",
-    overflow:"hidden",
+    
   },
 topBar: {
   display: "flex",
@@ -546,6 +546,9 @@ logo: {
   },
   navBar: { 
     backgroundColor: "white",
+    position: "relative", // ADD THIS
+  zIndex: 100, // ADD THIS
+  overflow:"visible",
   },
   navLinks: { 
   display: "flex", 
@@ -559,9 +562,11 @@ logo: {
   overflowX: "auto",
   scrollbarWidth: "none", // Firefox
   msOverflowStyle: "none", // IE/Edge
+  overflow: "visible",
 },
   navItem: { 
-    position: "relative" 
+    position: "relative" ,
+    zIndex: 1,
   },
 navLink: { 
   fontSize: "0.75rem", 
@@ -580,10 +585,11 @@ navLink: {
     border: "1px solid #e0e6ed",
     borderRadius: "0.5rem",
     boxShadow: "0 0.375rem 1.25rem rgba(0,0,0,0.08)",
-    zIndex: 3500,
+    zIndex: 9999,
     minWidth: "15rem",
-    padding: "0",
-    overflow: "hidden",
+    maxWidth: "20rem",
+  padding: "0.5rem 0",
+    marginTop:"0.25rem",
   },
   dropdownItem: {
     display: "block",
@@ -931,6 +937,7 @@ offerBar: {
       {/* DESKTOP NAV */}
       {!isMobile && (
         <nav style={styles.navBar}>
+    
           <div style={styles.navLinks}>
             {menuItems.map((item, idx) => {
               const key = makeKey(item, idx);
@@ -968,45 +975,46 @@ offerBar: {
   {item.name}
 </Link>
 
-                  {hasProducts && (
-                    <div
-                      style={{
-                        ...styles.dropdown,
-                        display: hoveredMenuKey === key ? "block" : "none",
-                      }}
-                      onMouseEnter={onDropdownMouseEnter}
-                      onMouseLeave={onDropdownMouseLeave}
-                    >
-                      <Link
-                        to={`/allProducts/${item._id || item.id || key}`}
-                        style={styles.dropdownItemFirst}
-                      >
-                        All {item.name}
-                      </Link>
-                      {item.products.map((product, pidx) => (
-                        <Link
-                          key={product._id || product.id || `${key}-p-${pidx}`}
-                          to={`/product/${product._id || product.id}`}
-                          style={{
-                            ...styles.dropdownItem,
-                            borderBottom: pidx === item.products.length - 1 ? "none" : "1px solid #f1f3f4",
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.backgroundColor = "#f7fafc";
-                            e.currentTarget.style.color = "#2b6cb0";
-                            e.currentTarget.style.paddingLeft = "1.5rem";
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.backgroundColor = "transparent";
-                            e.currentTarget.style.color = "#4a5568";
-                            e.currentTarget.style.paddingLeft = "1.25rem";
-                          }}
-                        >
-                          {product.name}
-                        </Link>
-                      ))}
-                    </div>
-                  )}
+          {hasProducts && (
+  <div
+    style={{
+      ...styles.dropdown,
+      display: hoveredMenuKey === key ? "block" : "none",
+    
+    }}
+    onMouseEnter={onDropdownMouseEnter}
+    onMouseLeave={onDropdownMouseLeave}
+  >
+    <Link
+      to={`/allProducts/${item._id || item.id || key}`}
+      style={styles.dropdownItemFirst}
+    >
+      All {item.name}
+    </Link>
+    {item.products.map((product, pidx) => (
+      <Link
+        key={product._id || product.id || `${key}-p-${pidx}`}
+        to={`/product/${product._id || product.id}`}
+        style={{
+          ...styles.dropdownItem,
+          borderBottom: pidx === item.products.length - 1 ? "none" : "1px solid #f1f3f4",
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.backgroundColor = "#f7fafc";
+          e.currentTarget.style.color = "#2b6cb0";
+          e.currentTarget.style.paddingLeft = "1.5rem";
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.backgroundColor = "transparent";
+          e.currentTarget.style.color = "#4a5568";
+          e.currentTarget.style.paddingLeft = "1.25rem";
+        }}
+      >
+        {product.name}
+      </Link>
+    ))}
+  </div>
+)}
                 </div>
               );
             })}
