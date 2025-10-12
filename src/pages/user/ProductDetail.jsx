@@ -1866,7 +1866,11 @@ const isButtonBadge = normalize(product?.name || "").includes("button badge") ||
 
 {/* Corners */}
 {product.corner?.length > 0 && (
-  <div style={{ marginBottom: "24px" }}>
+  <div style={{ 
+    marginBottom: "24px",
+    width: "100%",
+    maxWidth: "100%"
+  }}>
     <h3 style={{ 
       fontSize: "20px", 
       fontWeight: "600", 
@@ -1877,11 +1881,11 @@ const isButtonBadge = normalize(product?.name || "").includes("button badge") ||
     </h3>
     
     <div style={{
-  display: "grid",
-  gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr",
-  gap: "16px",
-}}>
-
+      display: "grid",
+      gridTemplateColumns: isMobile ? "1fr" : "repeat(auto-fit, minmax(220px, 1fr))",
+      gap: "16px",
+      width: "100%"
+    }}>
       {product.corner.map((c, i) => {
         const isSelected = selectedCorner?.name === c.name;
         const isSquare = c.name.toLowerCase() === "square";
@@ -1895,7 +1899,7 @@ const isButtonBadge = normalize(product?.name || "").includes("button badge") ||
                 ? "2px solid #007bff" 
                 : "2px solid #e5e5e5",
               borderRadius: "12px",
-              padding: "20px",
+              padding: "16px",
               cursor: "pointer",
               backgroundColor: isSelected 
                 ? "#f8f9ff" 
@@ -1905,43 +1909,27 @@ const isButtonBadge = normalize(product?.name || "").includes("button badge") ||
                 ? "0 4px 12px rgba(0, 123, 255, 0.15)" 
                 : "0 2px 8px rgba(0, 0, 0, 0.05)",
               display: "flex",
+              flexDirection: "column",
               alignItems: "center",
-              justifyContent: "space-between",
+              justifyContent: "center",
               minHeight: "100px",
               position: "relative",
-              overflow: "hidden"
+              overflow: "hidden",
+              textAlign: "center",
+              width: "100%",
+              boxSizing: "border-box"
             }}
           >
-            {/* Left side content */}
-            <div style={{ flex: 1 }}>
-              <div style={{ 
-                fontSize: "16px", 
-                fontWeight: "600",
-                marginBottom: "4px",
-                color: "#1a1a1a",
-                textTransform: "capitalize"
-              }}>
-                {c.name}
-              </div>
-              <div style={{ 
-                fontSize: "14px", 
-                color: "#666",
-                lineHeight: "1.4"
-              }}>
-                {c.description}
-              </div>
-            </div>
-            
-            {/* Corner Icon - Simple L-shape like screenshot */}
+            {/* Corner Icon */}
             <div style={{ 
-              marginLeft: "16px",
+              marginBottom: "12px",
               display: "flex",
               alignItems: "center",
               justifyContent: "center"
             }}>
               {isSquare ? (
                 // Square Corner - Sharp 90° L-shape
-                <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+                <svg width="48" height="48" viewBox="0 0 48 48" fill="none" style={{ display: "block" }}>
                   <path 
                     d="M12 12 L12 20 M12 12 L20 12"
                     stroke={isSelected ? "#007bff" : "#1f2937"}
@@ -1973,7 +1961,7 @@ const isButtonBadge = normalize(product?.name || "").includes("button badge") ||
                 </svg>
               ) : (
                 // Rounded Corner - Smooth curved arcs at corners
-                <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+                <svg width="48" height="48" viewBox="0 0 48 48" fill="none" style={{ display: "block" }}>
                   <path 
                     d="M12 18 C12 14 14 12 18 12"
                     stroke={isSelected ? "#007bff" : "#1f2937"}
@@ -2004,6 +1992,28 @@ const isButtonBadge = normalize(product?.name || "").includes("button badge") ||
                   />
                 </svg>
               )}
+            </div>
+            
+            {/* Text content */}
+            <div style={{ width: "100%" }}>
+              <div style={{ 
+                fontSize: "16px", 
+                fontWeight: "600",
+                marginBottom: "4px",
+                color: "#1a1a1a",
+                textTransform: "capitalize"
+              }}>
+                {c.name}
+              </div>
+              <div style={{ 
+                fontSize: "14px", 
+                color: "#666",
+                lineHeight: "1.4",
+                wordWrap: "break-word",
+                overflowWrap: "break-word"
+              }}>
+                {c.description}
+              </div>
             </div>
             
             {/* Selection indicator */}
