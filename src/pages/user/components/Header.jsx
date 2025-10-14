@@ -472,7 +472,7 @@ logo: {
     alignItems: "center", 
     gap: "1.5rem", 
     marginLeft: "auto", 
-    marginRight: "0.99rem", 
+    marginRight: "0.60rem", 
   },
   topLink: { 
     cursor: "pointer", 

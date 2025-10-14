@@ -1,4 +1,4 @@
-// App.jsx (full file with updated routes)
+// App.jsx (updated)
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -77,9 +77,10 @@ import Failure from './pages/user/Failure.jsx';
 
 import AllProducts from './pages/user/AllProducts.jsx';
 
-import { AuthProvider } from './context/AuthContext.jsx';
+import { AuthProvider } from '../src/context/AuthContext.jsx';
 import { TranslateProvider } from './context/TranslateProvider.jsx';
 
+import RequireAuth from '../src/pages/user/components/RequireAuth.jsx'; // <- new
 
 const stripePromise = loadStripe("pk_test_51SBJuxCJSue85a5PyEGb1wMz4IxhMDda5ZtNgcwQeeFf0eb5Y0QS8b0ZDybTQlNlGUH2IKQbC9k3fQ6HGvANnd4600RY0Yju3T");
 
@@ -89,17 +90,15 @@ function App() {
       <TranslateProvider>
         <Router>
           <Routes>
+            {/* Public */}
             <Route path="/" element={<Home />} />
-
-            <Route path="/cart" element={<Cart />} />
-            <Route path="/wishlist" element={<Wishlist />} />
             <Route path="/signup" element={<SignUp />} />
+            <Route path="/sign-in" element={<Signin />} />
             <Route path="/forgotpassword" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/verify-otp" element={<VerifyOtp />} />
             <Route path="/emailverification" element={<EmailVerificationPage />} />
 
-            <Route path="/sign-in" element={<Signin />} />
             <Route path="/businessCard" element={<BusinessCards />} />
             <Route path="/businesscardDetails" element={<BusinessCardDetails />} />
             <Route path="/superbusinessCard" element={<SuperBusinessCards />} />
@@ -129,38 +128,14 @@ function App() {
             <Route path='/failure' element={<Failure/>}/>
             <Route path='/allProducts/:categoryId' element={<AllProducts/>}/>
 
-            {/* Stripe-wrapped checkout */}
-            <Route
-              path="/checkout"
-              element={
-                <Elements stripe={stripePromise}>
-                  <Checkout />
-                </Elements>
-              }
-            />
-            <Route 
-              path="/checkout-form"
-              element={
-                <Elements stripe={stripePromise}>
-                  <CheckoutForm />
-                </Elements>
-              }
-            />
-            <Route path="/success" element={<Success />} />
-            <Route path="/cancel" element={<Cancel />} />
-<Route path="/orders/:orderId" element={<OrderDetail />} />
-            <Route path="/orderconfirmation" element={<OrderConfirmation />} />
-            <Route path="/returns" element={<Returns />} />
-
             <Route path="/blog" element={<Blog />} />
-             <Route path="/blog/:id" element={<BlogDetail />} />
+            <Route path="/blog/:id" element={<BlogDetail />} />
             <Route path="/help-faq" element={<HelpAndFaqPage />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/about" element={<Aboutus />} />
             <Route path="/terms" element={<TermsAndCondition />} />
             <Route path="/privacy" element={<PrivacyPolicy />} />
             <Route path="/review" element={<Review />} />
-            <Route path="/account" element={<AccountPage />} />
 
             <Route path="/product/:id" element={<ProductDetail />} />
             <Route path="/editor/:id" element={<Editor />} />
@@ -168,15 +143,96 @@ function App() {
             <Route path="/other-design-selector/:id" element={<OtherCardDesigner />} />
             <Route path="/sample" element={<Sample />} />
 
-            {/* IMPORTANT: allow both query-style and path-style upload-design */}
-            {/* query-style:  /upload-design?productId=123&designType=single */}
-            <Route path="/upload-design" element={<UploadDesign />} />
-            {/* path-style:   /upload-design/123?designType=single */}
-            <Route path="/upload-design/:productId" element={<UploadDesign />} />
+            {/* Protected routes (Require auth) */}
+            <Route
+              path="/cart"
+              element={
+                <RequireAuth>
+                  <Cart />
+                </RequireAuth>
+              }
+            />
+            <Route
+              path="/wishlist"
+              element={
+                <RequireAuth>
+                  <Wishlist />
+                </RequireAuth>
+              }
+            />
+            <Route
+              path="/account"
+              element={
+                <RequireAuth>
+                  <AccountPage />
+                </RequireAuth>
+              }
+            />
+            <Route
+              path="/orders/:orderId"
+              element={
+                <RequireAuth>
+                  <OrderDetail />
+                </RequireAuth>
+              }
+            />
+            <Route
+              path="/orderconfirmation"
+              element={
+                <RequireAuth>
+                  <OrderConfirmation />
+                </RequireAuth>
+              }
+            />
 
+            {/* Stripe-wrapped checkout - protected */}
+            <Route
+              path="/checkout"
+              element={
+                <RequireAuth>
+                  <Elements stripe={stripePromise}>
+                    <Checkout />
+                  </Elements>
+                </RequireAuth>
+              }
+            />
+            <Route
+              path="/checkout-form"
+              element={
+                <RequireAuth>
+                  <Elements stripe={stripePromise}>
+                    <CheckoutForm />
+                  </Elements>
+                </RequireAuth>
+              }
+            />
+
+            <Route
+              path="/upload-design"
+              element={
+                <RequireAuth>
+                  <UploadDesign />
+                </RequireAuth>
+              }
+            />
+            <Route
+              path="/upload-design/:productId"
+              element={
+                <RequireAuth>
+                  <UploadDesign />
+                </RequireAuth>
+              }
+            />
+
+            <Route path="/success" element={<Success />} />
+            <Route path="/cancel" element={<Cancel />} />
+            <Route path="/returns" element={<Returns />} />
+
+            {/* Admin */}
             <Route path='admin/' element={<AdminVerification><MainPage /></AdminVerification>} />
             <Route path="admin/login" element={<AdminReDirect> <LoginPage /></AdminReDirect>} />
             <Route path="admin/*" element={<NotFoundPage />} />
+
           </Routes>
 
           <ToastContainer

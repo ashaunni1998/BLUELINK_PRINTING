@@ -2663,7 +2663,7 @@ const isButtonBadge = normalize(product?.name || "").includes("button badge") ||
 
 
 
-</div>
+
 
 
 
@@ -2926,7 +2926,7 @@ const isButtonBadge = normalize(product?.name || "").includes("button badge") ||
 )}
   </>
 )}
-
+</div>
   
 </div>      
 

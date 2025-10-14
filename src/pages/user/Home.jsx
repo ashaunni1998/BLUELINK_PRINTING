@@ -238,7 +238,8 @@ useEffect(() => {
 const productsPerSlide = isMobile ? 2 : 10;
 const maxIndex = Math.ceil(products.length / productsPerSlide) - 1;
   return (
-    <div className="responsive-container">
+    
+    <div className="responsive-container"  >
       {/* <nav
         style={{
           display: "flex",
@@ -516,6 +517,7 @@ const maxIndex = Math.ceil(products.length / productsPerSlide) - 1;
               flexDirection: "column", 
               gap: isMobile ? "1rem" : "1.25rem" 
             }}>
+              {/* First Row */}
               <div style={{ 
                 display: "grid", 
                 gridTemplateColumns: isMobile ? "1fr" : "repeat(5, 1fr)", 
@@ -533,6 +535,9 @@ const maxIndex = Math.ceil(products.length / productsPerSlide) - 1;
                         boxShadow: "0 0.0625rem 0.375rem rgba(0,0,0,0.07)",
                         transition: "transform 0.2s ease, box-shadow 0.2s ease",
                         cursor: "pointer",
+                        display: "flex",
+                        flexDirection: "column",
+                        height: "100%",
                       }}
                       onMouseEnter={(e) => {
                         e.currentTarget.style.transform = "translateY(-0.25rem)";
@@ -551,6 +556,7 @@ const maxIndex = Math.ceil(products.length / productsPerSlide) - 1;
                           overflow: "hidden",
                           display: "block",
                           textDecoration: "none",
+                          flexShrink: 0,
                         }}
                       >
                         <img
@@ -568,9 +574,14 @@ const maxIndex = Math.ceil(products.length / productsPerSlide) - 1;
 
                       <div
                         style={{
-                          padding: "0.875rem",
+                          padding: "0.75rem",
                           borderTop: "1px solid #eee",
                           textAlign: "center",
+                          flex: 1,
+                          display: "flex",
+                          flexDirection: "column",
+                          justifyContent: "flex-start",
+                          gap: "0.5rem",
                         }}
                       >
                         <Link
@@ -579,14 +590,28 @@ const maxIndex = Math.ceil(products.length / productsPerSlide) - 1;
                             color: "#007abf",
                             textDecoration: "none",
                             fontWeight: "500",
-                            fontSize: "0.9375rem",
-                            display: "block",
-                            marginBottom: "0.375rem",
+                            fontSize: "0.8rem",
+                            height: "2.4rem",
+                            overflow: "hidden",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            lineHeight: "1.2",
+                            wordWrap: "break-word",
+                            hyphens: "auto",
                           }}
                         >
                           {product.name}
                         </Link>
-                        <p style={{ fontSize: "0.875rem", color: "#444", margin: 0 }}>
+                        
+                        <p 
+                          style={{ 
+                            fontSize: "0.875rem", 
+                            color: "#007abf",
+                            fontWeight: "600",
+                            margin: 0,
+                          }}
+                        >
                           ${product.price}
                         </p>
                       </div>
@@ -594,6 +619,7 @@ const maxIndex = Math.ceil(products.length / productsPerSlide) - 1;
                   ))}
               </div>
 
+              {/* Second Row */}
               <div style={{ 
                 display: "grid", 
                 gridTemplateColumns: isMobile ? "1fr" : "repeat(5, 1fr)", 
@@ -614,6 +640,9 @@ const maxIndex = Math.ceil(products.length / productsPerSlide) - 1;
                         boxShadow: "0 0.0625rem 0.375rem rgba(0,0,0,0.07)",
                         transition: "transform 0.2s ease, box-shadow 0.2s ease",
                         cursor: "pointer",
+                        display: "flex",
+                        flexDirection: "column",
+                        height: "100%",
                       }}
                       onMouseEnter={(e) => {
                         e.currentTarget.style.transform = "translateY(-0.25rem)";
@@ -632,6 +661,7 @@ const maxIndex = Math.ceil(products.length / productsPerSlide) - 1;
                           overflow: "hidden",
                           display: "block",
                           textDecoration: "none",
+                          flexShrink: 0,
                         }}
                       >
                         <img
@@ -649,9 +679,14 @@ const maxIndex = Math.ceil(products.length / productsPerSlide) - 1;
 
                       <div
                         style={{
-                          padding: "0.875rem",
+                          padding: "0.75rem",
                           borderTop: "1px solid #eee",
                           textAlign: "center",
+                          flex: 1,
+                          display: "flex",
+                          flexDirection: "column",
+                          justifyContent: "flex-start",
+                          gap: "0.5rem",
                         }}
                       >
                         <Link
@@ -660,14 +695,28 @@ const maxIndex = Math.ceil(products.length / productsPerSlide) - 1;
                             color: "#007abf",
                             textDecoration: "none",
                             fontWeight: "500",
-                            fontSize: "0.9375rem",
-                            display: "block",
-                            marginBottom: "0.375rem",
+                            fontSize: "0.8rem",
+                            height: "2.4rem",
+                            overflow: "hidden",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            lineHeight: "1.2",
+                            wordWrap: "break-word",
+                            hyphens: "auto",
                           }}
                         >
                           {product.name}
                         </Link>
-                        <p style={{ fontSize: "0.875rem", color: "#444", margin: 0 }}>
+                        
+                        <p 
+                          style={{ 
+                            fontSize: "0.875rem", 
+                            color: "#007abf",
+                            fontWeight: "600",
+                            margin: 0,
+                          }}
+                        >
                           ${product.price}
                         </p>
                       </div>

@@ -2,25 +2,25 @@
 import React, { createContext, useEffect, useState } from "react";
 import { API_BASE_URL } from "../config";
 
-// exported context
+// exported context — include both names for clarity/backwards-compat
 export const AuthContext = createContext({
   user: null,
   isLoggedIn: false,
   setUser: () => {},
   setIsLoggedIn: () => {},
   authLoading: true,
+  loading: true, // alias for components expecting `loading`
   logout: () => {},
 });
 
-// provider component
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoggedIn, setIsLoggedInState] = useState(false);
   const [authLoading, setAuthLoading] = useState(true);
 
-  // Custom setIsLoggedIn that also manages localStorage
-  const setIsLoggedInWithPersistence = (loggedIn) => {
-    setIsLoggedIn(loggedIn);
+  // helper to set isLoggedIn and persist
+  const setIsLoggedIn = (loggedIn) => {
+    setIsLoggedInState(loggedIn);
     if (loggedIn) {
       localStorage.setItem("app_is_logged_in", "1");
     } else {
@@ -37,28 +37,29 @@ export function AuthProvider({ children }) {
         const storedUser = localStorage.getItem("user");
 
         if (persistedAuth === "1" || storedUser) {
-          // ✅ verify with server using cookie
-          const res = await fetch(`${API_BASE_URL.replace(/\/$/, "")}/user/me`, {
+          const url = `${API_BASE_URL.replace(/\/$/, "")}/user/me`;
+          const res = await fetch(url, {
             method: "GET",
-            credentials: "include", // browser will send cookie automatically
+            credentials: "include",
           });
 
           if (res.ok) {
             const json = await res.json();
-            console.log("[AuthContext] /user/me response:", json);
+            // debug
+            console.debug("[AuthContext] /user/me response:", json);
 
             const u = json.user || json.userData || json || null;
 
             if (u) {
               setUser(u);
-              setIsLoggedInWithPersistence(true);
+              setIsLoggedIn(true);
             } else {
               setUser(null);
-              setIsLoggedInWithPersistence(false);
+              setIsLoggedIn(false);
             }
           } else {
             setUser(null);
-            setIsLoggedInWithPersistence(false);
+            setIsLoggedIn(false);
           }
         } else {
           setUser(null);
@@ -67,7 +68,7 @@ export function AuthProvider({ children }) {
       } catch (err) {
         console.debug("Auth check error", err);
         setUser(null);
-        setIsLoggedInWithPersistence(false);
+        setIsLoggedIn(false);
       } finally {
         setAuthLoading(false);
       }
@@ -76,17 +77,21 @@ export function AuthProvider({ children }) {
 
   const logout = () => {
     setUser(null);
-    setIsLoggedInWithPersistence(false);
+    setIsLoggedIn(false);
+    // optionally call API to invalidate cookie/session
   };
 
+  // Provide both `authLoading` and `loading` so RequireAuth (and any other
+  // components) can read either name.
   return (
     <AuthContext.Provider
       value={{
         user,
         setUser,
         isLoggedIn,
-        setIsLoggedIn: setIsLoggedInWithPersistence,
+        setIsLoggedIn,
         authLoading,
+        loading: authLoading, // <-- alias required by RequireAuth
         logout,
       }}
     >

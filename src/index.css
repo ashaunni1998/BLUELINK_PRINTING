@@ -47,4 +47,22 @@ code {
     font-size: 18px !important;
     justify-content: center !important;
   }
+
+
+    
+      @media (max-width: 1600px) {
+  #blog-section > div {
+    max-width: 85% !important;
+    padding: 0 3% !important;
+  }
+}
+
+@media (max-width: 1024px) {
+  #blog-section > div {
+    max-width: 90% !important;
+    padding: 0 5% !important;
+  }
+}
+
+    
 }
