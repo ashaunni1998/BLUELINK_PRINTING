@@ -280,7 +280,7 @@ const maxIndex = Math.ceil(products.length / productsPerSlide) - 1;
       flexWrap: "wrap",
       gap: "20px",
       textAlign: "center",
-      maxWidth: "900px",
+      maxWidth: "65%",
       margin: "0 auto",
     }}
   >
@@ -378,6 +378,19 @@ const maxIndex = Math.ceil(products.length / productsPerSlide) - 1;
           max-width: 1100px;
         }
       }
+
+
+      @media (max-width: 760px) {
+  .features-container {
+    align-items: flex-start !important;
+  }
+  .features-container > div {
+    height: auto !important;
+    flex: none !important;
+    width: 90% !important;
+  }
+}
+
     `}
   </style>
 </section>
