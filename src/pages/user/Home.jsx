@@ -34,6 +34,15 @@ const Home = () => {
 
 const navigate = useNavigate();
 
+
+
+const isWindow = typeof window !== "undefined";
+const [isMobile, setIsMobile] = useState(isWindow ? window.innerWidth < 768 : false);
+const [isTablet, setIsTablet] = useState(
+  isWindow ? window.innerWidth >= 768 && window.innerWidth < 1024 : false
+);
+
+
 const handleBuyNow = (productId) => {
   const isLoggedIn = localStorage.getItem("userToken"); // adjust to your auth check
 
@@ -222,22 +231,26 @@ console.log(products);
   };
 
 
-  const [isMobile, setIsMobile] = useState(false);
-
-useEffect(() => {
-  const checkMobile = () => {
-    setIsMobile(window.innerWidth <= 768);
-  };
-  
-  checkMobile();
-  window.addEventListener('resize', checkMobile);
-  
-  return () => window.removeEventListener('resize', checkMobile);
-}, []);
 // Replace your existing itemsPerView and maxIndex with:
 const productsPerSlide = isMobile ? 2 : 10;
 const maxIndex = Math.ceil(products.length / productsPerSlide) - 1;
-  return (
+ 
+// Add this state at the top of your component (similar to Header)
+
+
+// Add this useEffect for responsive detection
+// useEffect(() => {
+//   if (!isWindow) return;
+//   const onResize = () => {
+//     setIsMobile(window.innerWidth < 768);
+//     setIsTablet(window.innerWidth >= 768 && window.innerWidth < 1024);
+//   };
+//   window.addEventListener("resize", onResize);
+//   return () => window.removeEventListener("resize", onResize);
+// }, [isWindow]);
+
+
+return (
     
     <div className="responsive-container"  >
       {/* <nav
@@ -268,8 +281,10 @@ const maxIndex = Math.ceil(products.length / productsPerSlide) - 1;
       {/* Features Section */}
 <section
   style={{
-    padding: "20px 10px",
+    padding: isMobile ? "1.25rem 1rem" : "1.875rem 2rem",
     backgroundColor: "#ffffff",
+    width: "100%",
+    boxSizing: "border-box",
   }}
 >
   <div
@@ -279,10 +294,11 @@ const maxIndex = Math.ceil(products.length / productsPerSlide) - 1;
       justifyContent: "center",
       alignItems: "stretch",
       flexWrap: "wrap",
-      gap: "20px",
+      gap: isMobile ? "1rem" : "1.25rem",
       textAlign: "center",
-      maxWidth: "65%",
+      maxWidth: isMobile ? "100%" : isTablet ? "90%" : "65%",
       margin: "0 auto",
+      width: "100%",
     }}
   >
     {[
@@ -305,33 +321,41 @@ const maxIndex = Math.ceil(products.length / productsPerSlide) - 1;
       <div
         key={i}
         style={{
-          flex: "1 1 260px",
-          maxWidth: "280px",
-          padding: "16px 12px",
-          borderRadius: "8px",
-          boxShadow: "0 2px 6px rgba(0,0,0,0.05)",
+          flex: isMobile ? "1 1 100%" : isTablet ? "1 1 calc(50% - 1.25rem)" : "1 1 16.25rem",
+          maxWidth: isMobile ? "100%" : isTablet ? "20rem" : "17.5rem",
+          padding: isMobile ? "1rem 0.75rem" : "1rem 0.75rem",
+          borderRadius: "0.5rem",
+          boxShadow: "0 0.125rem 0.375rem rgba(0,0,0,0.05)",
           backgroundColor: "#fff",
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
           textAlign: "center",
           transition: "transform 0.2s ease",
+          boxSizing: "border-box",
+        }}
+        onMouseEnter={(e) => {
+          if (!isMobile) e.currentTarget.style.transform = "translateY(-0.3125rem)";
+        }}
+        onMouseLeave={(e) => {
+          if (!isMobile) e.currentTarget.style.transform = "translateY(0)";
         }}
       >
         <img
           src={card.img}
           alt={card.title}
           style={{
-            marginBottom: "8px",
-            height: "50px",
+            marginBottom: "0.5rem",
+            height: isMobile ? "2.5rem" : "3.125rem",
             width: "auto",
           }}
         />
         <h3
           style={{
-            fontSize: "16px",
-            marginBottom: "4px",
+            fontSize: isMobile ? "0.9375rem" : "1rem",
+            marginBottom: "0.25rem",
             fontWeight: "600",
+            color: "#111",
           }}
         >
           {card.title}
@@ -339,8 +363,9 @@ const maxIndex = Math.ceil(products.length / productsPerSlide) - 1;
         <p
           style={{
             color: "#555",
-            fontSize: "13px",
+            fontSize: isMobile ? "0.8125rem" : "0.8125rem",
             lineHeight: "1.4",
+            margin: 0,
           }}
         >
           {card.text}
@@ -351,47 +376,49 @@ const maxIndex = Math.ceil(products.length / productsPerSlide) - 1;
 
   <style>
     {`
-      /* ✅ Mobile (1 per row) */
-      @media (max-width: 600px) {
+      .features-container > div:hover {
+        box-shadow: 0 0.25rem 0.75rem rgba(0,0,0,0.1);
+      }
+
+      /* Mobile optimization */
+      @media (max-width: 767px) {
         .features-container {
-          flex-direction: column;
-          align-items: center;
+          padding: 0 0.625rem;
         }
         .features-container > div {
-          max-width: 90%;
+          width: 100% !important;
+          max-width: 100% !important;
         }
       }
 
-      /* ✅ Tablet (2 per row, centered) */
-      @media (min-width: 601px) and (max-width: 1024px) {
-        .features-container {
-          justify-content: center;
-        }
+      /* Tablet optimization */
+      @media (min-width: 768px) and (max-width: 1023px) {
         .features-container > div {
-          flex: 1 1 calc(50% - 20px);
-          max-width: 320px;
+          flex: 1 1 calc(50% - 1.25rem) !important;
+          max-width: 20rem !important;
         }
       }
 
-      /* ✅ Large desktop scaling */
-      @media (min-width: 1440px) {
+      /* Desktop optimization */
+      @media (min-width: 1024px) {
+        .features-container > div {
+          flex: 1 1 16.25rem !important;
+        }
+      }
+
+      /* Large desktop scaling */
+      @media (min-width: 900px) {
         .features-container {
-          max-width: 1100px;
+          max-width: 68.75rem !important;
         }
       }
 
-
-      @media (max-width: 760px) {
-  .features-container {
-    align-items: flex-start !important;
-  }
-  .features-container > div {
-    height: auto !important;
-    flex: none !important;
-    width: 90% !important;
-  }
-}
-
+      /* Extra large screens */
+      @media (min-width: 1920px) {
+        .features-container {
+          max-width: 75rem !important;
+        }
+      }
     `}
   </style>
 </section>
@@ -404,15 +431,15 @@ const maxIndex = Math.ceil(products.length / productsPerSlide) - 1;
 
 <section style={{ 
   backgroundColor: "#f5f8f6", 
-  padding: isMobile ? "1.5rem 1rem 2rem" : "1.875rem 0 2.5rem", 
-  marginLeft: isMobile ? "0" : "6%", 
-  marginRight: isMobile ? "0" : "6%", 
+  padding: isMobile ? "1.5rem 1rem 2rem" : "1.875rem 2rem 2.5rem",
+  width: "100%",
+  boxSizing: "border-box",
   textAlign: "center" 
 }}>
   <h2
     style={{
-      fontSize: isMobile ? "24px" : "32px",
-      marginBottom: "12px",
+      fontSize: isMobile ? "1.5rem" : "2rem",
+      marginBottom: "0.75rem",
       fontWeight: "700",
       color: "#111",
       position: "relative",
@@ -437,10 +464,10 @@ const maxIndex = Math.ceil(products.length / productsPerSlide) - 1;
 
   <p
     style={{
-      fontSize: isMobile ? "15px" : "17px",
+      fontSize: isMobile ? "0.9375rem" : "1.0625rem",
       color: "#555",
-      marginBottom: isMobile ? "30px" : "50px",
-      maxWidth: isMobile ? "100%" : "700px",
+      marginBottom: isMobile ? "1.875rem" : "3.125rem",
+      maxWidth: isMobile ? "100%" : "43.75rem",
       marginInline: "auto",
       lineHeight: "1.6",
       padding: isMobile ? "0 1rem" : "0",
@@ -451,10 +478,12 @@ const maxIndex = Math.ceil(products.length / productsPerSlide) - 1;
 
   <div
     style={{
-      maxWidth: isMobile ? "100%" : "75%",
-      margin: isMobile ? "0 auto" : "0 16% 0 13%",
+      maxWidth: isMobile ? "100%" : "88%",
+      margin: "0 auto",
       padding: isMobile ? "0 2.5rem" : "0 1rem",
       position: "relative",
+      width: "100%",
+      boxSizing: "border-box",
     }}
   >
     <button
@@ -466,7 +495,7 @@ const maxIndex = Math.ceil(products.length / productsPerSlide) - 1;
         top: "50%",
         transform: "translateY(-50%)",
         backgroundColor: "#fff",
-        border: "1px solid #ddd",
+        border: "0.0625rem solid #ddd",
         borderRadius: "50%",
         width: isMobile ? "2rem" : "2.5rem",
         height: isMobile ? "2rem" : "2.5rem",
@@ -476,7 +505,7 @@ const maxIndex = Math.ceil(products.length / productsPerSlide) - 1;
         cursor: currentIndex === 0 ? "not-allowed" : "pointer",
         opacity: currentIndex === 0 ? 0.5 : 1,
         transition: "all 0.2s ease",
-        boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+        boxShadow: "0 0.125rem 0.5rem rgba(0,0,0,0.1)",
         zIndex: 10,
       }}
       onMouseEnter={(e) => {
@@ -540,12 +569,16 @@ const maxIndex = Math.ceil(products.length / productsPerSlide) - 1;
                         height: "100%",
                       }}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.transform = "translateY(-0.25rem)";
-                        e.currentTarget.style.boxShadow = "0 0.375rem 0.75rem rgba(0,0,0,0.15)";
+                        if (!isMobile) {
+                          e.currentTarget.style.transform = "translateY(-0.25rem)";
+                          e.currentTarget.style.boxShadow = "0 0.375rem 0.75rem rgba(0,0,0,0.15)";
+                        }
                       }}
                       onMouseLeave={(e) => {
-                        e.currentTarget.style.transform = "translateY(0)";
-                        e.currentTarget.style.boxShadow = "0 0.0625rem 0.375rem rgba(0,0,0,0.07)";
+                        if (!isMobile) {
+                          e.currentTarget.style.transform = "translateY(0)";
+                          e.currentTarget.style.boxShadow = "0 0.0625rem 0.375rem rgba(0,0,0,0.07)";
+                        }
                       }}
                     >
                       <Link
@@ -575,7 +608,7 @@ const maxIndex = Math.ceil(products.length / productsPerSlide) - 1;
                       <div
                         style={{
                           padding: "0.75rem",
-                          borderTop: "1px solid #eee",
+                          borderTop: "0.0625rem solid #eee",
                           textAlign: "center",
                           flex: 1,
                           display: "flex",
@@ -645,12 +678,16 @@ const maxIndex = Math.ceil(products.length / productsPerSlide) - 1;
                         height: "100%",
                       }}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.transform = "translateY(-0.25rem)";
-                        e.currentTarget.style.boxShadow = "0 0.375rem 0.75rem rgba(0,0,0,0.15)";
+                        if (!isMobile) {
+                          e.currentTarget.style.transform = "translateY(-0.25rem)";
+                          e.currentTarget.style.boxShadow = "0 0.375rem 0.75rem rgba(0,0,0,0.15)";
+                        }
                       }}
                       onMouseLeave={(e) => {
-                        e.currentTarget.style.transform = "translateY(0)";
-                        e.currentTarget.style.boxShadow = "0 0.0625rem 0.375rem rgba(0,0,0,0.07)";
+                        if (!isMobile) {
+                          e.currentTarget.style.transform = "translateY(0)";
+                          e.currentTarget.style.boxShadow = "0 0.0625rem 0.375rem rgba(0,0,0,0.07)";
+                        }
                       }}
                     >
                       <Link
@@ -680,7 +717,7 @@ const maxIndex = Math.ceil(products.length / productsPerSlide) - 1;
                       <div
                         style={{
                           padding: "0.75rem",
-                          borderTop: "1px solid #eee",
+                          borderTop: "0.0625rem solid #eee",
                           textAlign: "center",
                           flex: 1,
                           display: "flex",
@@ -738,7 +775,7 @@ const maxIndex = Math.ceil(products.length / productsPerSlide) - 1;
         top: "50%",
         transform: "translateY(-50%)",
         backgroundColor: "#fff",
-        border: "1px solid #ddd",
+        border: "0.0625rem solid #ddd",
         borderRadius: "50%",
         width: isMobile ? "2rem" : "2.5rem",
         height: isMobile ? "2rem" : "2.5rem",
@@ -748,7 +785,7 @@ const maxIndex = Math.ceil(products.length / productsPerSlide) - 1;
         cursor: currentIndex === maxIndex ? "not-allowed" : "pointer",
         opacity: currentIndex === maxIndex ? 0.5 : 1,
         transition: "all 0.2s ease",
-        boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+        boxShadow: "0 0.125rem 0.5rem rgba(0,0,0,0.1)",
         zIndex: 10,
       }}
       onMouseEnter={(e) => {
@@ -787,6 +824,7 @@ const maxIndex = Math.ceil(products.length / productsPerSlide) - 1;
           cursor: "pointer",
           transition: "all 0.3s ease",
         }}
+        aria-label={`Go to slide ${index + 1}`}
       />
     ))}
   </div>
@@ -818,151 +856,188 @@ const maxIndex = Math.ceil(products.length / productsPerSlide) - 1;
 
 
 {/* Personalized Gifts Section - Mobile Responsive */}
-<section style={{ backgroundColor: "#f5f8f6", padding: "1.875rem 0 2.5rem", textAlign: "center", marginLeft: "6%", marginRight: "6%" }}>
-  <style>{`
-    @media (max-width: 1023px) {
-      section[style*="marginLeft"] {
-        margin-left: 0 !important;
-        margin-right: 0 !important;
-        padding-left: 1rem !important;
-        padding-right: 1rem !important;
-      }
+ <section style={{ 
+  backgroundColor: "#f5f8f6", 
+  padding: "3rem 0 4rem", 
+  textAlign: "center",
+  width: "100%",
+  margin: "0"
+}}>
+<style>{`
+  .section-container-wrapper {
+    padding: 0 1rem;
+  }
+  
+  @media (min-width: 768px) {
+    .section-container-wrapper {
+      padding: 0 2rem;
     }
+  }
+  
+  @media (min-width: 1024px) {
+    .section-container-wrapper {
+      padding: 0 4rem;
+    }
+  }
+  
+  @media (min-width: 1280px) {
+    .section-container-wrapper {
+      padding: 0 6rem;
+    }
+  }
 
+  .section-title-responsive {
+    font-size: 2rem;
+    margin-bottom: 0.75rem;
+    font-weight: 700;
+    color: #111;
+  }
+
+  @media (min-width: 768px) {
     .section-title-responsive {
-      font-size: 32px;
-      margin-bottom: 12px;
-      font-weight: 700;
-      color: #111;
+      font-size: 2.5rem;
     }
-
-    @media (max-width: 767px) {
-      .section-title-responsive {
-        font-size: 24px;
-      }
+  }
+  
+  @media (min-width: 1024px) {
+    .section-title-responsive {
+      font-size: 3rem;
     }
+  }
 
+  .section-description-responsive {
+    font-size: 1rem;
+    color: #555;
+    margin-bottom: 3rem;
+    max-width: 43.75rem;
+    margin-inline: auto;
+    line-height: 1.6;
+    padding: 0 1rem;
+  }
+
+  @media (min-width: 768px) {
     .section-description-responsive {
-      font-size: 17px;
-      color: #555;
-      margin-bottom: 50px;
-      max-width: 700px;
-      margin-inline: auto;
-      line-height: 1.6;
+      font-size: 1.0625rem;
+      margin-bottom: 3.125rem;
     }
-
-    @media (max-width: 767px) {
-      .section-description-responsive {
-        font-size: 15px;
-        margin-bottom: 30px;
-        padding: 0 0.5rem;
-      }
+  }
+  
+  @media (min-width: 1024px) {
+    .section-description-responsive {
+      font-size: 1.125rem;
+      padding: 0;
     }
+  }
 
-    .products-container-responsive {
-      max-width: 75%;
-      margin: 0 16% 0 13%;
-      padding: 0 1rem;
-    }
+  .products-container-responsive {
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 0;
+  }
 
-    @media (max-width: 1023px) {
-      .products-container-responsive {
-        max-width: 100%;
-        margin: 0;
-        padding: 0 0.5rem;
-      }
-    }
+  .products-grid-responsive {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
 
+  @media (min-width: 480px) {
     .products-grid-responsive {
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
       gap: 1rem;
     }
+  }
 
-    @media (max-width: 1279px) and (min-width: 1024px) {
-      .products-grid-responsive {
-        grid-template-columns: repeat(4, 1fr);
-      }
+  @media (min-width: 768px) {
+    .products-grid-responsive {
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.25rem;
     }
+  }
 
-    @media (max-width: 1023px) and (min-width: 768px) {
-      .products-grid-responsive {
-        grid-template-columns: repeat(3, 1fr);
-        gap: 1rem;
-      }
+  @media (min-width: 1024px) {
+    .products-grid-responsive {
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1.5rem;
     }
+  }
 
-    @media (max-width: 767px) and (min-width: 480px) {
-      .products-grid-responsive {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 0.875rem;
-      }
+  @media (min-width: 1280px) {
+    .products-grid-responsive {
+      grid-template-columns: repeat(5, 1fr);
     }
+  }
 
-    @media (max-width: 479px) {
-      .products-grid-responsive {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 0.75rem;
-      }
-    }
+  .product-card-responsive {
+    background-color: #fff;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    box-shadow: 0 0.125rem 0.5rem rgba(0,0,0,0.07);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
 
-    .product-card-responsive {
-      background-color: #fff;
-      border-radius: 0.375rem;
-      overflow: hidden;
-      box-shadow: 0 0.0625rem 0.375rem rgba(0,0,0,0.07);
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
+  .product-card-responsive:hover {
+    transform: translateY(-0.25rem);
+    box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.12);
+  }
 
-    .product-card-responsive:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 0.25rem 0.75rem rgba(0,0,0,0.12);
-    }
+  .product-info-responsive {
+    padding: 0.75rem 0.5rem;
+    border-top: 0.0625rem solid #eee;
+    text-align: center;
+  }
 
+  @media (min-width: 768px) {
     .product-info-responsive {
-      padding: 0.875rem;
-      border-top: 1px solid #eee;
-      text-align: center;
+      padding: 1rem 0.75rem;
     }
+  }
 
-    @media (max-width: 767px) {
-      .product-info-responsive {
-        padding: 0.75rem 0.5rem;
-      }
-    }
+  .product-name-responsive {
+    color: #007abf;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 0.875rem;
+    display: block;
+    margin-bottom: 0.375rem;
+    line-height: 1.3;
+  }
 
+  @media (min-width: 768px) {
     .product-name-responsive {
-      color: #007abf;
-      text-decoration: none;
-      font-weight: 500;
       font-size: 0.9375rem;
-      display: block;
-      margin-bottom: 0.375rem;
     }
-
-    @media (max-width: 767px) {
-      .product-name-responsive {
-        font-size: 0.875rem;
-      }
+  }
+  
+  @media (min-width: 1024px) {
+    .product-name-responsive {
+      font-size: 1rem;
     }
+  }
 
-    .product-name-responsive:hover {
-      text-decoration: underline;
-    }
+  .product-name-responsive:hover {
+    text-decoration: underline;
+  }
 
+  .product-price-responsive {
+    font-size: 0.8125rem;
+    color: #444;
+    margin: 0;
+    font-weight: 600;
+  }
+
+  @media (min-width: 768px) {
     .product-price-responsive {
       font-size: 0.875rem;
-      color: #444;
-      margin: 0;
     }
-
-    @media (max-width: 767px) {
-      .product-price-responsive {
-        font-size: 0.8125rem;
-      }
+  }
+  
+  @media (min-width: 1024px) {
+    .product-price-responsive {
+      font-size: 0.9375rem;
     }
-  `}</style>
-
+  }
+`}</style>
+<div className="section-container-wrapper">
   <h2 className="section-title-responsive">
     Personalized Gifts
   </h2>
@@ -1024,11 +1099,19 @@ const maxIndex = Math.ceil(products.length / productsPerSlide) - 1;
         ))}
     </div>
   </div>
+  </div>
 </section>
 
 {/* Flyers Section - Mobile Responsive */}
-<section style={{ backgroundColor: "#f5f8f6", padding: "1.875rem 0 2.5rem", textAlign: "center", marginLeft: "6%", marginRight: "6%" }}>
-  <h2 className="section-title-responsive">
+<section style={{ 
+  backgroundColor: "#f5f8f6", 
+  padding: "3rem 0 4rem", 
+  textAlign: "center",
+  width: "100%",
+  margin: "0"
+}}>
+  <div className="section-container-wrapper">
+    <h2 className="section-title-responsive">
     Our Flyers
   </h2>
   <p className="section-description-responsive">
@@ -1089,6 +1172,7 @@ const maxIndex = Math.ceil(products.length / productsPerSlide) - 1;
         ))}
     </div>
   </div>
+  </div>
 </section>
       {/* CTA Banner */}
       <section
@@ -1097,19 +1181,9 @@ const maxIndex = Math.ceil(products.length / productsPerSlide) - 1;
     backgroundColor: "#007bff",
     color: "#ffffff",
     textAlign: "center",
-       marginLeft:"6%",
-       marginRight:"6%",
+    
   }}
 >
-  <div
-    style={{
-      maxWidth: "65%",
-      margin: "0 auto",
-      padding: "0 20px",
-      // width: "100%",
-   
-    }}
-  >
     <h2 style={{ fontSize: "28px", marginBottom: "15px" }}>
       Let's Get Your Plans Printed!
     </h2>
@@ -1131,7 +1205,7 @@ const maxIndex = Math.ceil(products.length / productsPerSlide) - 1;
         Start Now
       </button>
     </a>
-  </div>
+  
 </section>
 
 

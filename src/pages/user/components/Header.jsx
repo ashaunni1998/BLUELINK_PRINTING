@@ -43,9 +43,9 @@ export default function Header() {
   const hoverTimeoutRef = useRef(null);
   const isWindow = typeof window !== "undefined";
 
-const [isMobile, setIsMobile] = useState(isWindow ? window.innerWidth < 1500 : false);
+const [isMobile, setIsMobile] = useState(isWindow ? window.innerWidth < 1050 : false);
 const [isTablet, setIsTablet] = useState(
-  isWindow ? window.innerWidth >= 768 && window.innerWidth < 1500 : false
+  isWindow ? window.innerWidth >= 768 && window.innerWidth < 1050 : false
 );
 
 
@@ -62,6 +62,25 @@ useEffect(() => {
   window.addEventListener("resize", onResize);
   return () => window.removeEventListener("resize", onResize);
 }, [isWindow]);
+
+
+
+const [isLargeDesktop, setIsLargeDesktop] = useState(
+  isWindow ? window.innerWidth >= 1920 : false
+);
+
+// Add this to the resize useEffect (around line 135)
+useEffect(() => {
+  if (!isWindow) return;
+  const onResize = () => {
+    setIsMobile(window.innerWidth < 1050);
+    setIsTablet(window.innerWidth >= 768 && window.innerWidth < 1050);
+    setIsLargeDesktop(window.innerWidth >= 1920);
+  };
+  window.addEventListener("resize", onResize);
+  return () => window.removeEventListener("resize", onResize);
+}, [isWindow]);
+
 
 // --- Addresses (fetch only when user is logged in) ---
   const [addresses, setAddresses] = useState([]);
@@ -124,8 +143,8 @@ if (addresses.length > 0) {
 useEffect(() => {
   if (!isWindow) return;
   const onResize = () => {
-    setIsMobile(window.innerWidth < 1500);
-    setIsTablet(window.innerWidth >= 768 && window.innerWidth < 1500);
+    setIsMobile(window.innerWidth < 1050);
+    setIsTablet(window.innerWidth >= 768 && window.innerWidth < 1050);
   };
   window.addEventListener("resize", onResize);
   return () => window.removeEventListener("resize", onResize);
@@ -428,108 +447,115 @@ const handleLogout = () => {
 const styles = {
   header: {
     fontFamily: "'Segoe UI', sans-serif",
-    //  borderBottom: "1px solid #eee",
-  //  boxShadow: "0 1px 4px rgba(0,0,0,0.05)",
     backgroundColor: "white",
-    // width: "100%",
     position: "sticky",
     top: "0",
     zIndex: "100",
-    
   },
-topBar: {
-  display: "flex",
-  justifyContent: "space-between",
-  alignItems: "center",
-  padding: "0.5rem 1rem",
-  maxWidth: "65%",
-  margin: "0 auto",
-  width: "100%",
-  minHeight: "3.75rem",
-},
+  
+  topBar: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: isMobile ? "0.5rem 1rem" : "0.5rem 2rem",
+    maxWidth: "100%",
+    margin: "0 auto",
+    width: "100%",
+    minHeight: "3.75rem", // Already in rem
+  },
+  
   overlay: {
     position: "fixed",
     top: 0,
     left: 0,
     width: "100%",
-    height: "100%",
+    height: "100vh", // Changed from 100%
     backgroundColor: "rgba(0,0,0,0.5)",
     zIndex: 998,
   },
+  
   logoWrapper: { 
     display: "flex", 
     alignItems: "center",
     flexShrink: 0,
   },
-logo: { 
-  height: "2.8rem", 
-  width: "auto",
-  maxWidth: "7.5rem",
-  objectFit: "contain",
-},
+  
+  logo: { 
+    height: "2.8rem", // Already in rem
+    width: "auto",
+    maxWidth: "7.5rem", // Already in rem
+    objectFit: "contain",
+  },
+  
   topRightRow: { 
     display: "flex", 
     alignItems: "center", 
-    gap: "1.5rem", 
+    gap: "2rem", // Already in rem
     marginLeft: "auto", 
-    marginRight: "0.60rem", 
+    marginRight: "1rem", // Already in rem
   },
+
   topLink: { 
     cursor: "pointer", 
     color: "#333", 
-    fontSize: "0.875rem", 
+    fontSize: "0.975rem", // Already in rem
     textDecoration: "none",
     whiteSpace: "nowrap",
-    fontWeight:"500",
-     fontFamily: "'Segoe UI', sans-serif",
+    fontWeight: "500",
+    fontFamily: "'Segoe UI', sans-serif",
   },
+  
   accountContainer: { 
     position: "relative", 
     display: "inline-block", 
     zIndex: 4000 
   },
+  
   searchWrapper: { 
     position: "relative", 
-    width: "12%", 
-    minWidth: "10rem",
+    width: isMobile ? "100%" : "18%", // Already in %
+    minWidth: "12rem", // Already in rem
     zIndex: 4000 
   },
+  
   searchInput: { 
-    width: "100%", 
-    padding: "0.5rem 2.25rem 0.5rem 0.75rem", 
-    border: "1px solid #ccc", 
-    borderRadius: "0.375rem",
-    fontSize: "0.875rem",
+    width: "100%", // Already in %
+    padding: "0.5rem 2.25rem 0.5rem 0.75rem", // Already in rem
+    border: "0.0625rem solid #ccc", // 1px = 0.0625rem
+    borderRadius: "0.375rem", // Already in rem
+    fontSize: "0.875rem", // Already in rem
   },
+  
   searchIcon: { 
     position: "absolute", 
-    right: "0.625rem", 
-    top: "50%", 
-    transform: "translateY(-50%)", 
-    fontSize: "1rem", 
+    right: "0.625rem", // Already in rem
+    top: "50%", // Already in %
+    transform: "translateY(-50%)", // Already in %
+    fontSize: "1rem", // Already in rem
     color: "#333", 
     pointerEvents: "none" 
   },
 
   searchDropdown: { 
     position: "absolute", 
-    top: "2.625rem", 
+    top: "2.625rem", // Already in rem
     left: 0, 
     right: 0, 
     backgroundColor: "#fff", 
-    border: "1px solid #ccc", 
+    border: "0.0625rem solid #ccc", // 1px = 0.0625rem
     zIndex: 5002,
-    maxHeight: "15.625rem", 
+    maxHeight: "15.625rem", // Already in rem
     overflowY: "auto", 
-    borderRadius: "0.375rem",
-    boxShadow: "0 0.25rem 0.75rem rgba(0,0,0,0.15)",
+    borderRadius: "0.375rem", // Already in rem
+    boxShadow: "0 0.25rem 0.75rem rgba(0,0,0,0.15)", // Already in rem
   },
+  
   searchItem: { 
-    padding: "0.625rem", 
-    borderBottom: "1px solid #eee", 
+    padding: "0.625rem", // Already in rem
+    borderBottom: "0.0625rem solid #eee", // 1px = 0.0625rem
     cursor: "pointer", 
     color: "#333",
-    fontSize: "0.875rem",
+    fontSize: "0.875rem", // Already in rem
   },
 
   hamburger: { 
@@ -539,115 +565,125 @@ logo: {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    padding: "0.5rem",
-    borderRadius: "0.25rem",
+    padding: "0.5rem", // Already in rem
+    borderRadius: "0.25rem", // Already in rem
     transition: "background-color 0.2s ease",
     flexShrink: 0,
   },
+  
   navBar: { 
     backgroundColor: "white",
-    position: "relative", // ADD THIS
-  zIndex: 100, // ADD THIS
-  overflow:"visible",
+    position: "relative",
+    zIndex: 100,
+    overflow: "visible",
   },
+  
   navLinks: { 
-  display: "flex", 
-  gap: "0rem", 
-  flexWrap: "nowrap", 
-  whiteSpace: "nowrap", 
-  maxWidth: "66%",
-  margin: "0 auto", 
-  padding: "0 1.3rem",
-  width: "100%",
-  overflowX: "auto",
-  scrollbarWidth: "none", // Firefox
-  msOverflowStyle: "none", // IE/Edge
-  overflow: "visible",
-},
+    display: "flex", 
+    gap: "0rem", // Already in rem
+    flexWrap: "nowrap", 
+    whiteSpace: "nowrap", 
+    maxWidth: "100%", // Already in %
+    margin: "0 auto", 
+    padding: "0 2rem", // Already in rem
+    width: "100%", // Already in %
+    overflowX: "auto",
+    scrollbarWidth: "none",
+    msOverflowStyle: "none",
+    overflow: "visible",
+  },
+
   navItem: { 
-    position: "relative" ,
+    position: "relative",
     zIndex: 1,
   },
-navLink: { 
-  fontSize: "0.75rem", 
-  color: "#111", 
-  fontWeight: "500", 
-  textDecoration: "none", 
-  padding: window.innerWidth < 1280 ? "0.75rem 0.25rem" : "0.75rem 0.375rem", 
-  display: "inline-block",
-},
+  
+  navLink: { 
+    fontSize: "0.975rem", // Already in rem
+    color: "#111", 
+    fontWeight: "500", 
+    textDecoration: "none", 
+    padding: window.innerWidth < 1280 ? "0.75rem 0.5rem" : "0.75rem 1rem", // Already in rem
+    display: "inline-block",
+    transition: "color 0.2s ease",
+  },
 
   dropdown: {
     position: "absolute",
-    top: "100%",
+    top: "100%", // Already in %
     left: "0",
     backgroundColor: "#fff",
-    border: "1px solid #e0e6ed",
-    borderRadius: "0.5rem",
-    boxShadow: "0 0.375rem 1.25rem rgba(0,0,0,0.08)",
+    border: "0.0625rem solid #e0e6ed", // 1px = 0.0625rem
+    borderRadius: "0.5rem", // Already in rem
+    boxShadow: "0 0.375rem 1.25rem rgba(0,0,0,0.08)", // Already in rem
     zIndex: 9999,
-    minWidth: "15rem",
-    maxWidth: "20rem",
-  padding: "0.5rem 0",
-    marginTop:"0.25rem",
+    minWidth: "16rem", // Already in rem
+    maxWidth: "22rem", // Already in rem
+    padding: "0.5rem 0", // Already in rem
+    marginTop: "0.25rem", // Already in rem
   },
+  
   dropdownItem: {
     display: "block",
-    padding: "0.75rem 1.25rem",
+    padding: "0.75rem 1.25rem", // Already in rem
     textDecoration: "none",
     color: "#4a5568",
-    fontSize: "0.9375rem",
+    fontSize: "0.9375rem", // Already in rem
     fontWeight: "400",
-    borderBottom: "1px solid #f1f3f4",
+    borderBottom: "0.0625rem solid #f1f3f4", // 1px = 0.0625rem
     transition: "all 0.15s ease",
     position: "relative",
   },
+  
   dropdownItemFirst: {
     display: "block",
-    padding: "0.75rem 1.25rem",
+    padding: "0.75rem 1.25rem", // Already in rem
     textDecoration: "none",
     color: "#2d3748",
-    fontSize: "0.9375rem",
+    fontSize: "0.9375rem", // Already in rem
     fontWeight: "600",
-    borderBottom: "2px solid #e2e8f0",
+    borderBottom: "0.125rem solid #e2e8f0", // 2px = 0.125rem
     backgroundColor: "#f8f9fa",
   },
 
   accountDropdown: { 
     position: "absolute", 
-    top: "100%", 
-    left: "50%", 
-    transform: "translateX(-50%)", 
+    top: "100%", // Already in %
+    left: "50%", // Already in %
+    transform: "translateX(-50%)", // Already in %
     backgroundColor: "#fff", 
-    boxShadow: "0 0.375rem 1.125rem rgba(0,0,0,0.12)", 
-    borderRadius: "0.5rem", 
+    boxShadow: "0 0.375rem 1.125rem rgba(0,0,0,0.12)", // Already in rem
+    borderRadius: "0.5rem", // Already in rem
     display: "flex", 
     flexDirection: "column", 
     alignItems: "stretch", 
-    minWidth: "11.25rem", 
-    padding: "0.625rem 0", 
+    minWidth: "11.25rem", // Already in rem
+    padding: "0.625rem 0", // Already in rem
     zIndex: 5002,
   },
+  
   accountLink: { 
-    padding: "0.625rem 0.9375rem", 
+    padding: "0.625rem 0.9375rem", // Already in rem
     textDecoration: "none", 
     color: "#0073e6", 
-    fontSize: "0.875rem", 
+    fontSize: "0.875rem", // Already in rem
     fontWeight: "500" 
   },
+  
   divider: { 
-    borderTop: "1px solid #eee", 
-    marginTop: "0.5rem" 
+    borderTop: "0.0625rem solid #eee", // 1px = 0.0625rem
+    marginTop: "0.5rem" // Already in rem
   },
+  
   logoutBtn: { 
-    margin: "0.625rem auto 0 auto", 
-    padding: "0.5rem 1rem", 
+    margin: "0.625rem auto 0 auto", // Already in rem
+    padding: "0.5rem 1rem", // Already in rem
     backgroundColor: "#0073e6", 
     color: "#fff", 
     border: "none", 
-    borderRadius: "0.375rem", 
+    borderRadius: "0.375rem", // Already in rem
     cursor: "pointer", 
-    fontSize: "0.875rem", 
+    fontSize: "0.875rem", // Already in rem
     fontWeight: "500" 
   },
 
@@ -657,61 +693,67 @@ navLink: {
     top: 0, 
     right: 0, 
     bottom: 0, 
-    width: "85%", 
-    maxWidth: "18.75rem",
+    width: "85%", // Already in %
+    maxWidth: "18.75rem", // Already in rem
     backgroundColor: "#f8f9fa", 
     zIndex: 999, 
-    boxShadow: "-0.125rem 0 0.5rem rgba(0,0,0,0.2)", 
+    boxShadow: "-0.125rem 0 0.5rem rgba(0,0,0,0.2)", // Already in rem
     overflowY: "auto", 
     display: "flex", 
     flexDirection: "column",
     transition: "transform 0.3s ease, visibility 0.3s ease",
   },
+  
   mobileHeader: { 
     display: "flex", 
     justifyContent: "space-between", 
     alignItems: "center", 
-    padding: "0.9375rem 1rem", 
-    borderBottom: "1px solid #dee2e6", 
+    padding: "0.9375rem 1rem", // Already in rem
+    borderBottom: "0.0625rem solid #dee2e6", // 1px = 0.0625rem
     backgroundColor: "#fff", 
     position: "sticky", 
     top: 0, 
     zIndex: 1000 
   },
+  
   mobileSearchWrapper: { 
     position: "relative", 
     flex: 1, 
-    marginRight: "0.75rem" 
+    marginRight: "0.75rem" // Already in rem
   },
+  
   mobileSearchInput: { 
-    width: "100%", 
-    padding: "0.625rem 2.5rem 0.625rem 0.9375rem", 
-    fontSize: "1rem", 
-    border: "1px solid #ced4da", 
-    borderRadius: "0.5rem", 
+    width: "100%", // Already in %
+    padding: "0.625rem 2.5rem 0.625rem 0.9375rem", // Already in rem
+    fontSize: "1rem", // Already in rem
+    border: "0.0625rem solid #ced4da", // 1px = 0.0625rem
+    borderRadius: "0.5rem", // Already in rem
     backgroundColor: "#fff" 
   },
+  
   mobileSearchIcon: { 
     position: "absolute", 
-    right: "0.75rem", 
-    top: "50%", 
-    transform: "translateY(-50%)", 
-    fontSize: "1rem", 
+    right: "0.75rem", // Already in rem
+    top: "50%", // Already in %
+    transform: "translateY(-50%)", // Already in %
+    fontSize: "1rem", // Already in rem
     color: "#6c757d" 
   },
+  
   mobileSearchDropdown: { 
     position: "absolute", 
-    top: "3rem", 
+    top: "3rem", // Already in rem
     left: 0, 
     right: 0, 
     backgroundColor: "#fff", 
-    border: "1px solid #ced4da", 
-    borderRadius: "0.5rem", 
+    border: "0.0625rem solid #ced4da", // 1px = 0.0625rem
+    borderRadius: "0.5rem", // Already in rem
     zIndex: 2000, 
-    maxHeight: "12.5rem", 
+    maxHeight: "12.5rem", // Already in rem
     overflowY: "auto", 
-    boxShadow: "0 0.25rem 0.375rem rgba(0,0,0,0.1)" 
+    boxShadow: "0 0.25rem 0.375rem rgba(0,0,0,0.1)" // Already in rem
   },
+  
   closeIcon: { 
     background: "none",
     border: "none",
@@ -720,141 +762,156 @@ navLink: {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    padding: "0.25rem",
+    padding: "0.25rem", // Already in rem
   },
+  
   mobileContent: { 
     flex: 1, 
     overflowY: "auto", 
     padding: "0" 
   },
+  
   mobileMenuItem: { 
-    borderBottom: "1px solid #e9ecef", 
+    borderBottom: "0.0625rem solid #e9ecef", // 1px = 0.0625rem
     backgroundColor: "#fff" 
   },
+  
   mobileMenuHeader: { 
     display: "flex", 
     justifyContent: "space-between", 
     alignItems: "center", 
-    padding: "1rem 1.25rem", 
+    padding: "1rem 1.25rem", // Already in rem
     cursor: "pointer", 
     transition: "background-color 0.2s ease" 
   },
+  
   mobileMenuLink: { 
     textDecoration: "none", 
     color: "#212529", 
-    fontSize: "1rem", 
+    fontSize: "1rem", // Already in rem
     fontWeight: "500", 
     flex: 1, 
     display: "block" 
   },
+  
   arrowContainer: { 
-    marginLeft: "0.75rem", 
+    marginLeft: "0.75rem", // Already in rem
     display: "flex", 
     alignItems: "center", 
-    padding: "0.125rem" 
+    padding: "0.125rem" // Already in rem
   },
+  
   mobileDropdownContent: { 
     backgroundColor: "#f8f9fa", 
-    borderTop: "1px solid #e9ecef", 
-    paddingLeft: "1.25rem" 
+    borderTop: "0.0625rem solid #e9ecef", // 1px = 0.0625rem
+    paddingLeft: "1.25rem" // Already in rem
   },
+  
   mobileDropdownLink: { 
     display: "block", 
-    padding: "0.75rem 1.25rem", 
+    padding: "0.75rem 1.25rem", // Already in rem
     textDecoration: "none", 
     color: "#495057", 
-    fontSize: "0.9375rem", 
-    borderBottom: "1px solid #e9ecef", 
+    fontSize: "0.9375rem", // Already in rem
+    borderBottom: "0.0625rem solid #e9ecef", // 1px = 0.0625rem
     transition: "background-color 0.2s ease" 
   },
 
   mobileFooter: { 
     backgroundColor: "#343a40", 
     color: "white", 
-    padding: "1.25rem", 
-    borderTop: "1px solid #495057", 
+    padding: "1.25rem", // Already in rem
+    borderTop: "0.0625rem solid #495057", // 1px = 0.0625rem
     marginTop: "auto" 
   },
+  
   mobileAccountSection: { 
-    marginBottom: "0.9375rem" 
+    marginBottom: "0.9375rem" // Already in rem
   },
+  
   mobileAccountToggle: { 
     display: "flex", 
     justifyContent: "space-between", 
     alignItems: "center", 
     fontWeight: "600", 
-    fontSize: "1rem", 
-    padding: "0.9375rem 1.25rem", 
+    fontSize: "1rem", // Already in rem
+    padding: "0.9375rem 1.25rem", // Already in rem
     backgroundColor: "#495057", 
-    borderRadius: "0.5rem", 
+    borderRadius: "0.5rem", // Already in rem
     cursor: "pointer", 
     transition: "background-color 0.2s ease" 
   },
+  
   mobileAccountDropdown: { 
-    marginTop: "0.625rem", 
+    marginTop: "0.625rem", // Already in rem
     backgroundColor: "#212529", 
-    borderRadius: "0.5rem", 
-    padding: "0.625rem 0", 
+    borderRadius: "0.5rem", // Already in rem
+    padding: "0.625rem 0", // Already in rem
     overflow: "hidden" 
   },
+  
   mobileAccountLink: { 
-    padding: "0.75rem 1.25rem", 
-    fontSize: "0.9375rem", 
+    padding: "0.75rem 1.25rem", // Already in rem
+    fontSize: "0.9375rem", // Already in rem
     cursor: "pointer", 
     textDecoration: "none", 
     display: "block", 
     color: "#f8f9fa" 
   },
+  
   mobileLogoutBtn: { 
     background: "none", 
     border: "none", 
     cursor: "pointer", 
     color: "#f8f9fa", 
     textAlign: "left", 
-    padding: "0.75rem 1.25rem", 
-    width: "100%", 
-    fontSize: "0.9375rem" 
+    padding: "0.75rem 1.25rem", // Already in rem
+    width: "100%", // Already in %
+    fontSize: "0.9375rem" // Already in rem
   },
+  
   mobileSignIn: { 
-    marginBottom: "0.9375rem", 
-    padding: "0.9375rem 1.25rem", 
+    marginBottom: "0.9375rem", // Already in rem
+    padding: "0.9375rem 1.25rem", // Already in rem
     backgroundColor: "#495057", 
-    borderRadius: "0.5rem", 
+    borderRadius: "0.5rem", // Already in rem
     textAlign: "center" 
   },
+  
   mobileSignInLink: { 
     color: "#fff", 
     textDecoration: "none", 
     fontWeight: "600", 
-    fontSize: "1rem" 
+    fontSize: "1rem" // Already in rem
   },
+  
   mobileCart: { 
-    padding: "0.9375rem 1.25rem", 
+    padding: "0.9375rem 1.25rem", // Already in rem
     backgroundColor: "#007bff", 
     textAlign: "center", 
-    borderRadius: "0.5rem", 
+    borderRadius: "0.5rem", // Already in rem
     fontWeight: "600" 
   },
+  
   mobileCartLink: { 
     color: "white", 
     textDecoration: "none", 
-    fontSize: "1rem", 
+    fontSize: "1rem", // Already in rem
     display: "flex", 
     alignItems: "center", 
     justifyContent: "center" 
   },
 
-offerBar: { 
-  backgroundColor: "#007BFF", 
-  color: "#fff", 
-  textAlign: "center", 
-  fontSize: isOfferBarMobile ? "0.75rem" : "0.875rem",
-  fontWeight: "500", 
-  lineHeight: "1.4", 
-  wordWrap: "break-word",
-  boxSizing: "border-box",
-}
-
+  offerBar: { 
+    backgroundColor: "#007BFF", 
+    color: "#fff", 
+    textAlign: "center", 
+    fontSize: isOfferBarMobile ? "0.75rem" : "0.875rem", // Already in rem
+    fontWeight: "500", 
+    lineHeight: "1.4", 
+    wordWrap: "break-word",
+    boxSizing: "border-box",
+  }
 }
 
 
@@ -968,9 +1025,12 @@ offerBar: {
                   onMouseEnter={onNavMouseEnter}
                   onMouseLeave={onNavMouseLeave}
                 >
-                 <Link
+                <Link
   to={item.path || `/allProducts/${item._id || item.id || key}`}
-  style={styles.navLink}
+  style={{
+    ...styles.navLink,
+    paddingLeft: idx === 0 ? "0" : undefined,
+  }}
 >
   {item.name}
 </Link>
@@ -1167,8 +1227,8 @@ onClick={(e) => {
 
  <div
   style={{
-    width: isOfferBarMobile ? "100%" : "88%",
-    margin: isOfferBarMobile ? "0" : "0 auto",
+    width: "100%", // Changed from conditional width
+    margin: "0",
     backgroundColor: "#007BFF",
     color: "#fff",
     textAlign: "center",
@@ -1176,7 +1236,7 @@ onClick={(e) => {
     fontWeight: "500",
     lineHeight: "1.4",
     wordWrap: "break-word",
-    padding: isOfferBarMobile ? "0.5rem 1rem" : "0.625rem 1rem",
+    padding: isOfferBarMobile ? "0.5rem 1rem" : "0.625rem 2rem",
     boxSizing: "border-box",
   }}
 >
@@ -1190,7 +1250,6 @@ onClick={(e) => {
     </>
   )}
 </div>
-
 
 
 

@@ -98,7 +98,7 @@ const Footer = () => {
       };
     }
     return {
-      maxWidth: "75%",
+      maxWidth: "100%",
       padding: "0 1.5rem",
     };
   };
@@ -117,13 +117,12 @@ const Footer = () => {
           backgroundColor: "#2c3e50",
           color: "#fff",
           padding: isMobile ? "10px 0" : "12px 0",
-          marginRight: isMobile ? "0" : "6%",
-          marginLeft: isMobile ? "0" : "6%",
+         
         }}
       >
         <div
           style={{
-            maxWidth: isMobile ? "100%" : "75%",
+            maxWidth: isMobile ? "100%" : "100%",
             margin: "0 auto",
             padding: "0 1.5rem",
             width: "100%",
@@ -216,7 +215,7 @@ const Footer = () => {
       >
         <div
           style={{
-            maxWidth: isMobile ? "100%" : "65%",
+            maxWidth: isMobile ? "100%" : "100%",
             margin: "0 auto",
             padding: isMobile ? "12px 1rem" : "16px 1rem",
             width: "100%",
@@ -230,14 +229,13 @@ const Footer = () => {
       <div
         style={{
           backgroundColor: "#f9f9f9",
-          marginRight: isMobile ? "0" : "6%",
-          marginLeft: isMobile ? "0" : "6%",
+          
         }}
       >
         <div
           style={{
-            maxWidth: isMobile ? "100%" : "75%",
-            margin: isMobile ? "0 auto" : "0 16% 0 13%",
+            maxWidth: isMobile ? "100%" : "100%",
+           
             padding: isMobile ? "20px 1rem" : "40px 1rem",
             width: "100%",
           }}
@@ -358,7 +356,7 @@ const Footer = () => {
       >
         <div
           style={{
-            maxWidth: isMobile ? "100%" : "65%",
+            maxWidth: isMobile ? "100%" : "100%",
             margin: "0 auto",
             padding: isMobile ? "16px 1rem" : "20px 1rem",
             width: "100%",

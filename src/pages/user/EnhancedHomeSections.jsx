@@ -32,35 +32,28 @@ const EnhancedHomeSections = () => {
       
       {/* Blog/Examples Section */}
    <section 
-      id="blog-section"
-      data-animate
-      className={`relative py-20 lg:py-32 overflow-hidden transition-all duration-1000 ${
-        visibleSections['blog-section'] ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
-      }`}
-    >
-      <div
-        style={{
-          maxWidth: "75%",
-          margin: "0 auto",
-          marginLeft:"18%",
-          marginRight:"21%"
-        }}
-      >
+  id="blog-section"
+  data-animate
+  className={`relative py-12 md:py-16 lg:py-20 xl:py-24 overflow-hidden transition-all duration-1000 ${
+    visibleSections['blog-section'] ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+  }`}
+  style={{ width: "100%", margin: "0" }}
+>
+  <div className="relative z-10 w-full px-4 md:px-8 lg:px-16 xl:px-24">
         {/* Section Header */}
-        <div className="text-center mb-16">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 border border-blue-200 rounded-full text-blue-700 text-sm font-medium mb-6">
-            <Eye className="w-4 h-4" />
-            Design Inspiration
-          </div>
-          <h2 className="text-4xl lg:text-5xl font-black text-gray-900 mb-4">
-            Creative <span className="text-blue-600">Showcase</span>
-          </h2>
-          <div className="w-24 h-1 bg-blue-600 rounded-full mx-auto" />
-        </div>
+    <div className="text-center mb-12 md:mb-16">
+  <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 border border-blue-200 rounded-full text-blue-700 text-sm font-medium mb-6">
+    <Eye className="w-4 h-4" />
+    Design Inspiration
+  </div>
+  <h2 className="text-3xl md:text-4xl lg:text-5xl font-black text-gray-900 mb-4">
+    Creative <span className="text-blue-600">Showcase</span>
+  </h2>
+  <div className="w-24 h-1 bg-blue-600 rounded-full mx-auto" />
+</div>
 
         {/* Cards Grid */}
-        <div className="grid lg:grid-cols-2 gap-8 lg:gap-8 items-stretch">
-          
+<div className="grid lg:grid-cols-2 gap-6 md:gap-8 items-stretch">          
           {/* Business Cards Card */}
           <div 
             className={`group relative bg-white rounded-3xl overflow-hidden border-2 border-blue-200 transform transition-all duration-500 hover:scale-105 flex flex-col h-full ${
@@ -70,44 +63,45 @@ const EnhancedHomeSections = () => {
             onMouseLeave={() => setHoveredCard(null)}
           >
             {/* Image Container */}
-            <div className="relative overflow-hidden">
-              <img
-                src="/homeimages/business-cards-sample.jpg"
-                alt="Business Card Examples"
-                className="w-full h-64 lg:h-72 object-cover transform group-hover:scale-110 transition-transform duration-700"
-              />
-              <div className="absolute top-4 right-4 bg-white px-3 py-1 rounded-full text-xs font-semibold text-blue-600 border-2 border-blue-200">
-                <Sparkles className="w-3 h-3 inline mr-1" />
-                Featured
-              </div>
-            </div>
+           <div className="relative overflow-hidden">
+  <img
+    src="/homeimages/business-cards-sample.jpg"
+    alt="Business Card Examples"
+    className="w-full h-64 md:h-72 lg:h-80 object-cover transform group-hover:scale-110 transition-transform duration-700"
+  />
+  <div className="absolute top-4 right-4 bg-white px-3 py-1.5 rounded-full text-xs font-semibold text-blue-600 border-2 border-blue-200">
+    <Sparkles className="w-3 h-3 inline mr-1" />
+    Featured
+  </div>
+</div>
 
             {/* Content */}
-            <div className="p-4 sm:p-5 md:p-6 lg:p-8 flex flex-col flex-grow">
+            <div className="p-6 md:p-8 flex flex-col flex-grow">
               <div className="flex-grow">
-                <div className="flex items-start justify-between mb-3 sm:mb-4">
-                  <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 leading-tight pr-2">
-                    10 Business Card Examples
-                  </h3>
-                  <FileText className="w-5 h-5 sm:w-6 sm:h-6 text-blue-500 flex-shrink-0 mt-1" />
-                </div>
+                <div className="flex items-start justify-between mb-4">
+  <h3 className="text-xl md:text-2xl font-bold text-gray-900 leading-tight pr-2">
+    10 Business Card Examples
+  </h3>
+  <FileText className="w-6 h-6 text-blue-500 flex-shrink-0 mt-1" />
+</div>
 
-                <p className="text-sm sm:text-base text-gray-600 leading-relaxed mb-4 sm:mb-6">
+<p className="text-base md:text-lg text-gray-600 leading-relaxed mb-6">
+
                   Blue Link's designers share 10 standout business cards from different industries that combine creative layouts with premium finishes. Discover how smart use of color, typography, and unique printing techniques can instantly elevate your brand's first impression.
                 </p>
               </div>
 
               {/* Stats + Button */}
               <div className="mt-auto">
-                <div className="flex items-center gap-4 sm:gap-6 mb-4 sm:mb-5">
-                  <div className="flex items-center gap-1">
-                    {[...Array(5)].map((_, i) => (
-                      <Star key={i} className="w-3 h-3 sm:w-4 sm:h-4 fill-yellow-400 text-yellow-400" />
-                    ))}
-                    <span className="text-xs sm:text-sm text-gray-600 ml-1">4.9</span>
-                  </div>
-                  <span className="text-xs sm:text-sm text-gray-500">1.2k views</span>
-                </div>
+              <div className="flex items-center gap-6 mb-5">
+  <div className="flex items-center gap-1">
+    {[...Array(5)].map((_, i) => (
+      <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+    ))}
+    <span className="text-sm text-gray-600 ml-1">4.9</span>
+  </div>
+  <span className="text-sm text-gray-500">1.2k views</span>
+</div>
                 <Link
                   to="/blog/5"
                   state={{ from: "home" }}
@@ -129,11 +123,11 @@ const EnhancedHomeSections = () => {
             onMouseLeave={() => setHoveredCard(null)}
           >
             {/* Image Container */}
-            <div className="relative overflow-hidden">
+             <div className="relative overflow-hidden h-64 md:h-72 lg:h-80">
               <img
                 src="/homeimages/invites-sample.jpg"
                 alt="Event Invitations"
-                className="w-full h-64 lg:h-72 object-cover transform group-hover:scale-110 transition-transform duration-700"
+                className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700"
               />
               <div className="absolute top-4 right-4 bg-white px-3 py-1 rounded-full text-xs font-semibold text-blue-600 border-2 border-blue-200">
                 <Heart className="w-3 h-3 inline mr-1" />
@@ -142,30 +136,31 @@ const EnhancedHomeSections = () => {
             </div>
 
             {/* Content */}
-            <div className="p-4 sm:p-5 md:p-6 lg:p-8 flex flex-col flex-grow">
+           {/* Content */}
+            <div className="p-6 md:p-8 flex flex-col flex-grow">
               <div className="flex-grow">
-                <div className="flex items-start justify-between mb-3 sm:mb-4">
-                  <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 leading-tight pr-2">
+                <div className="flex items-start justify-between mb-4">
+                  <h3 className="text-xl md:text-2xl font-bold text-gray-900 leading-tight pr-2">
                     Invites They Won't Ignore
                   </h3>
                   <Heart className="w-6 h-6 text-blue-500 flex-shrink-0 mt-1" />
                 </div>
 
-                <p className="text-sm sm:text-base text-gray-600 leading-relaxed mb-4 sm:mb-6">
+                <p className="text-base md:text-lg text-gray-600 leading-relaxed mb-6">
                   Master the art of creating paper invites that actually get a "yes" with these proven design strategies and tips. From choosing the perfect color palette to selecting premium paper finishes, every detail matters in making your invitation stand out.
                 </p>
               </div>
 
               {/* Stats + Button */}
               <div className="mt-auto">
-                <div className="flex items-center gap-4 sm:gap-6 mb-4 sm:mb-5">
+                <div className="flex items-center gap-6 mb-5">
                   <div className="flex items-center gap-1">
                     {[...Array(5)].map((_, i) => (
-                      <Star key={i} className="w-3 h-3 sm:w-4 sm:h-4 fill-yellow-400 text-yellow-400" />
+                      <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
                     ))}
-                    <span className="text-xs sm:text-sm text-gray-600 ml-1">4.8</span>
+                    <span className="text-sm text-gray-600 ml-1">4.8</span>
                   </div>
-                  <span className="text-xs sm:text-sm text-gray-500">850 views</span>
+                  <span className="text-sm text-gray-500">850 views</span>
                 </div>
                 <Link
                   to="/blog/6"
@@ -182,17 +177,18 @@ const EnhancedHomeSections = () => {
       </div>
     </section>
       {/* Flyers Section */}
-     <section 
+ <section 
   id="flyers-section"
   data-animate
-  className={`relative py-12 sm:py-16 md:py-20 lg:py-32 overflow-hidden transition-all duration-1000 delay-200 bg-blue-50 mx-[3%] sm:mx-[4%] md:mx-[5%] lg:mx-[6%] ${
+  className={`relative py-12 md:py-16 lg:py-20 xl:py-24 overflow-hidden transition-all duration-1000 delay-200 bg-blue-50 ${
     visibleSections['flyers-section']
       ? 'opacity-100 translate-y-0'
       : 'opacity-0 translate-y-10'
   }`}
+  style={{ width: "100%", margin: "0" }}
 >
+  <div className="relative z-10 w-full px-4 md:px-8 lg:px-16 xl:px-24">
   {/* Responsive container with desktop-specific styling */}
-  <div className="flyers-container mx-auto px-4 sm:px-6 md:px-8 lg:px-4">
     <style jsx>{`
       @media (min-width: 1024px) {
         .flyers-container {
@@ -209,132 +205,113 @@ const EnhancedHomeSections = () => {
       }
     `}</style>
     
-         <div
-  className="grid gap-12 items-center"
-  style={{
-    display: "grid",
-    gridTemplateColumns: window.innerWidth > 1499 ? "1fr 1fr" : "1fr",
-  }}
->      
+   <div className="grid lg:grid-cols-2 gap-8 md:gap-12 items-center">     
       {/* Image Side */}
       <div className="relative group order-2 lg:order-1">
-        <div className="relative bg-white p-3 sm:p-4 md:p-5 lg:p-6 rounded-2xl sm:rounded-3xl border-2 border-blue-200 max-w-sm sm:max-w-md md:max-w-lg mx-auto lg:mx-0">
-          <img
-            src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQd19vInA8bUX20OregUR32xvV6CbNZ_kMhDQ&s"
-            alt="Flyers & Leaflets"
-            className="w-full rounded-xl sm:rounded-2xl transform group-hover:scale-105 transition-transform duration-500"
-          />
-          
-          {/* Floating Elements - Responsive */}
-          <div className="absolute -top-3 -right-3 sm:-top-4 sm:-right-4 bg-white rounded-xl sm:rounded-2xl p-2 sm:p-3 lg:p-4 border-2 border-blue-200 shadow-lg">
-            <div className="text-center">
-              <div className="text-sm sm:text-base md:text-lg lg:text-xl font-black text-blue-600">Fast</div>
-              <div className="text-[10px] sm:text-xs text-gray-600">Delivery</div>
-            </div>
-          </div>
-          
-          <div className="absolute -bottom-3 -left-3 sm:-bottom-4 sm:-left-4 bg-blue-600 text-white rounded-xl sm:rounded-2xl p-2 sm:p-3 lg:p-4 shadow-lg">
-            <div className="text-center">
-              <div className="text-sm sm:text-base md:text-lg lg:text-xl font-black">HD</div>
-              <div className="text-[10px] sm:text-xs">Quality</div>
-            </div>
-          </div>
-        </div>
+  <div className="relative bg-white p-4 md:p-6 rounded-2xl md:rounded-3xl border-2 border-blue-200 max-w-md mx-auto lg:mx-0">
+    <img
+      src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQd19vInA8bUX20OregUR32xvV6CbNZ_kMhDQ&s"
+      alt="Flyers & Leaflets"
+      className="w-full rounded-xl md:rounded-2xl transform group-hover:scale-105 transition-transform duration-500"
+    />
+    
+    <div className="absolute -top-4 -right-4 bg-white rounded-xl md:rounded-2xl p-3 md:p-4 border-2 border-blue-200 shadow-lg">
+      <div className="text-center">
+        <div className="text-lg md:text-xl font-black text-blue-600">Fast</div>
+        <div className="text-xs text-gray-600">Delivery</div>
       </div>
+    </div>
+    
+    <div className="absolute -bottom-4 -left-4 bg-blue-600 text-white rounded-xl md:rounded-2xl p-3 md:p-4 shadow-lg">
+      <div className="text-center">
+        <div className="text-lg md:text-xl font-black">HD</div>
+        <div className="text-xs">Quality</div>
+      </div>
+    </div>
+  </div>
+</div>
 
       {/* Content Side */}
-      <div className="space-y-5 sm:space-y-6 md:space-y-7 lg:space-y-8 order-1 lg:order-2">
-        <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-blue-100 border border-blue-200 rounded-full text-blue-700 text-xs sm:text-sm font-medium">
-          <FileText className="w-3 h-3 sm:w-4 sm:h-4" />
-          Marketing Materials
-        </div>
+    <div className="space-y-6 md:space-y-8 order-1 lg:order-2">
+  <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 border border-blue-200 rounded-full text-blue-700 text-sm font-medium">
+    <FileText className="w-4 h-4" />
+    Marketing Materials
+  </div>
 
-        <div className="space-y-4 sm:space-y-5 md:space-y-6">
-          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-4xl xl:text-5xl font-black text-gray-900 leading-tight">
-            Flyers & Leaflets.
-            <span className="block text-blue-600">Spread the word.</span>
-          </h2>
-          <div className="w-20 sm:w-24 h-1 bg-blue-600 rounded-full" />
-        </div>
+  <div className="space-y-4 md:space-y-6">
+    <h2 className="text-3xl md:text-4xl lg:text-5xl font-black text-gray-900 leading-tight">
+      Flyers & Leaflets.
+      <span className="block text-blue-600">Spread the word.</span>
+    </h2>
+    <div className="w-24 h-1 bg-blue-600 rounded-full" />
+  </div>
 
-        <p className="text-base sm:text-lg md:text-xl text-gray-700 leading-relaxed">
+  <p className="text-base md:text-lg lg:text-xl text-gray-700 leading-relaxed">
+
           Make your message loud and clear with professional, high-impact flyers and leaflets – 
           perfect for <span className="text-blue-600 font-semibold">promotions</span>, 
           <span className="text-blue-600 font-semibold"> menus</span>, and so much more.
         </p>
 
         {/* Features - Responsive Grid */}
-        <div className="grid grid-cols-2 gap-3 sm:gap-4">
-          {[
-            { icon: Zap, text: "Same-day printing" },
-            { icon: Star, text: "Premium papers" },
-            { icon: Sparkles, text: "Custom designs" },
-            { icon: Heart, text: "Expert support" }
-          ].map((feature, index) => (
-            <div key={index} className="flex items-center gap-2 sm:gap-3 p-2 sm:p-2.5 md:p-3 bg-blue-100 rounded-lg sm:rounded-xl border border-blue-200">
-              <feature.icon className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500 flex-shrink-0" />
-              <span className="text-xs sm:text-sm font-medium text-gray-700 leading-tight">{feature.text}</span>
-            </div>
-          ))}
-        </div>
+       <div className="grid grid-cols-2 gap-4">
+  {[
+    { icon: Zap, text: "Same-day printing" },
+    { icon: Star, text: "Premium papers" },
+    { icon: Sparkles, text: "Custom designs" },
+    { icon: Heart, text: "Expert support" }
+  ].map((feature, index) => (
+    <div key={index} className="flex items-center gap-3 p-3 bg-blue-100 rounded-xl border border-blue-200">
+      <feature.icon className="w-5 h-5 text-blue-500 flex-shrink-0" />
+      <span className="text-sm font-medium text-gray-700 leading-tight">{feature.text}</span>
+    </div>
+  ))}
+</div>
 
         {/* CTA Buttons - Fully Responsive */}
-        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-          <button className="group flex items-center justify-center gap-2 px-4 sm:px-5 md:px-6 lg:px-8 py-3 sm:py-3.5 md:py-4 bg-blue-600 text-white text-sm sm:text-base font-bold rounded-xl sm:rounded-2xl transform transition-all duration-300 hover:scale-105 w-full sm:w-auto">
-            <span className="whitespace-nowrap">Shop Flyers & Leaflets</span>
-            <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform flex-shrink-0" />
-          </button>
-          <button className="px-4 sm:px-5 md:px-6 lg:px-8 py-3 sm:py-3.5 md:py-4 border-2 border-blue-400 text-blue-600 text-sm sm:text-base font-semibold rounded-xl sm:rounded-2xl bg-white hover:bg-blue-50 transition-all duration-300 w-full sm:w-auto">
-            View Samples
-          </button>
-        </div>
+        <div className="flex flex-col sm:flex-row gap-4">
+  <button className="group flex items-center justify-center gap-2 px-6 md:px-8 py-4 bg-blue-600 text-white text-base font-bold rounded-2xl transform transition-all duration-300 hover:scale-105 w-full sm:w-auto">
+    <span className="whitespace-nowrap">Shop Flyers & Leaflets</span>
+    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform flex-shrink-0" />
+  </button>
+  <button className="px-6 md:px-8 py-4 border-2 border-blue-400 text-blue-600 text-base font-semibold rounded-2xl bg-white hover:bg-blue-50 transition-all duration-300 w-full sm:w-auto">
+    View Samples
+  </button>
+</div>
       </div>
     </div>
   </div>
 </section>
 
       {/* Gifts Section */}
-      <section 
-        id="gifts-section"
-        data-animate
-        className={`relative py-20 lg:py-32 overflow-hidden transition-all duration-1000 delay-400 ${
-          visibleSections['gifts-section'] ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
-        }`}
-      >
-        {/* Match header's container structure */}
-{/* <div className="relative z-10 w-full px-[5%] lg:px-[18%]"> */}
-        <div
-    style={{
-      maxWidth: "75%",
-      margin: "0 auto",
-      marginLeft:"18%",
-      marginRight:"21%"
-    }}
-  >
-           <div
-  className="grid gap-12 items-center"
-  style={{
-    display: "grid",
-    gridTemplateColumns: window.innerWidth > 1499 ? "1fr 1fr" : "1fr",
-  }}
+   <section 
+  id="gifts-section"
+  data-animate
+  className={`relative py-12 md:py-16 lg:py-20 xl:py-24 overflow-hidden transition-all duration-1000 delay-400 ${
+    visibleSections['gifts-section'] ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+  }`}
+  style={{ width: "100%", margin: "0" }}
 >
+  <div className="relative z-10 w-full px-4 md:px-8 lg:px-16 xl:px-24">
+    <div className="grid lg:grid-cols-2 gap-8 md:gap-12 items-center">
  
             {/* Content Side */}
-            <div className="space-y-8">
-              <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 border border-blue-200 rounded-full text-blue-700 text-sm font-medium">
-                <Gift className="w-4 h-4" />
-                Custom Products
-              </div>
+            <div className="space-y-6 md:space-y-8">
+  <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 border border-blue-200 rounded-full text-blue-700 text-sm font-medium">
+    <Gift className="w-4 h-4" />
+    Custom Products
+  </div>
 
-              <div className="space-y-6">
-                <h2 className="text-3xl lg:text-4xl xl:text-5xl font-black text-gray-900 leading-tight">
-                  Personalized Gifts.
-                  <span className="block text-blue-600">Make it special.</span>
-                </h2>
-                <div className="w-24 h-1 bg-blue-600 rounded-full" />
-              </div>
+  <div className="space-y-4 md:space-y-6">
+    <h2 className="text-3xl md:text-4xl lg:text-5xl font-black text-gray-900 leading-tight">
+      Personalized Gifts.
+      <span className="block text-blue-600">Make it special.</span>
+    </h2>
+    <div className="w-24 h-1 bg-blue-600 rounded-full" />
+  </div>
 
-              <p className="text-lg lg:text-xl text-gray-700 leading-relaxed">
+  <p className="text-base md:text-lg lg:text-xl text-gray-700 leading-relaxed">
+
                 Add a personal touch with custom gifts perfect for any occasion – from 
                 <span className="text-blue-600 font-semibold"> birthdays</span> to 
                 <span className="text-blue-600 font-semibold"> business branding</span> and everything in between.
@@ -377,20 +354,19 @@ const EnhancedHomeSections = () => {
                 />
                 
                 {/* 100% Custom Badge - Top Left */}
-                <div className="absolute -top-3 -left-3 bg-white rounded-xl px-3 py-2 shadow-lg border border-gray-200">
-                  <div className="text-center">
-                    <div className="text-sm font-bold text-blue-600">100%</div>
-                    <div className="text-xs text-gray-600 uppercase tracking-wide">Custom</div>
-                  </div>
-                </div>
-                
-                {/* Gift Icon Badge - Bottom Right */}
-                <div className="absolute -bottom-3 -right-3 bg-blue-600 text-white rounded-xl p-3 shadow-lg">
-                  <div className="text-center">
-                    <div className="text-lg">🎁</div>
-                    <div className="text-xs">Special</div>
-                  </div>
-                </div>
+             <div className="absolute -top-3 -left-3 bg-white rounded-xl px-3 py-2 shadow-lg border border-gray-200">
+  <div className="text-center">
+    <div className="text-base font-bold text-blue-600">100%</div>
+    <div className="text-xs text-gray-600 uppercase tracking-wide">Custom</div>
+  </div>
+</div>
+
+<div className="absolute -bottom-3 -right-3 bg-blue-600 text-white rounded-xl p-3 shadow-lg">
+  <div className="text-center">
+    <div className="text-xl">🎁</div>
+    <div className="text-xs">Special</div>
+  </div>
+</div>
               </div>
             </div>
           </div>

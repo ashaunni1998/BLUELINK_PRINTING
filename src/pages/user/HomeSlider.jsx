@@ -100,238 +100,225 @@ export default function HomeSlider() {
     fetchCategories();
   }, []);
 
+
+  const isWindow = typeof window !== "undefined";
+
   return (
-    <>
-      {/* Background Image Section */}
-      <section
-        style={{
-          backgroundImage: `url(${slide.image || ""})`,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          height: isMobile ? "200px" : "340px",
-          width: isMobile ? "100%" : "88%",
-           margin: isMobile ? "0" : "0 auto",
-          position: "relative",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: isMobile ? "center" : "space-between",
-          flexDirection: isMobile ? "column" : "row",
-          transition: "background-image 1s ease-in-out",
-        }}
-      >
-        {/* Arrows (hidden on mobile) */}
-        {!isMobile && (
-          <>
-            <button onClick={goToPrev} style={arrowButtonStyle("left")} aria-label="Previous Slide">
-              &#10094;
-            </button>
-            <button onClick={goToNext} style={arrowButtonStyle("right")} aria-label="Next Slide">
-              &#10095;
-            </button>
-          </>
-        )}
-
-        {/* Slide Content (Desktop Only) */}
-        {!isMobile && (
-         
-         <div
-  style={{
-    position: "absolute",   // ⬅️ new
-    top: "40%",             // ⬅️ new
-    left: "14%",            // ⬅️ adjust this to move left/right
-    transform: "translateY(-50%)", // ⬅️ vertically centered
-    color: "black",
-    maxWidth: "500px",
-    textAlign: "left",
-  }}
->
-            <h2 style={{ fontSize: "32px", marginBottom: "15px" }}>{slide.title}</h2>
-            <p style={{ fontSize: "16px", marginBottom: "25px" }}>{slide.description}</p>
-            <a href="/AllProducts">
-               <button
+  <>
+    {/* Background Image Section */}
+    <section
       style={{
-        padding: "5px 10px",
-        backgroundColor: "#007bff",
-        color: "#fff",
-        border: "none",
-        borderRadius: "5px",
-        fontSize: "16px",
-        cursor: "pointer",
-        marginBottom: "15px",
+        backgroundImage: `url(${slide.image || ""})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        height: isMobile ? "12.5rem" : "21.25rem", // 200px -> 12.5rem, 340px -> 21.25rem
+        width: "100%",
+        maxWidth: isMobile ? "100%" : "100%",
+        margin: isMobile ? "0" : "0 auto",
+        position: "relative",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: isMobile ? "center" : "space-between",
+        flexDirection: isMobile ? "column" : "row",
+        transition: "background-image 1s ease-in-out",
       }}
-              >
-                View Our Products
-              </button>
-            </a>
-          </div>
-        )}
+    >
+      {/* Arrows (hidden on mobile) */}
+      {!isMobile && (
+        <>
+          <button onClick={goToPrev} style={arrowButtonStyle("left")} aria-label="Previous Slide">
+            &#10094;
+          </button>
+          <button onClick={goToNext} style={arrowButtonStyle("right")} aria-label="Next Slide">
+            &#10095;
+          </button>
+        </>
+      )}
 
-        {/* Slide Bottom Section: Progress Bars + Card Links */}
+      {/* Slide Content (Desktop Only) */}
+      {!isMobile && (
         <div
           style={{
             position: "absolute",
-            bottom: "0",
-            width: "100%",
-            // background:
-            //   "linear-gradient(to bottom, rgba(255,255,255,0) 0%, rgba(248,213,148,0.95) 70%, rgba(248,213,148,1) 100%)",
-            padding: "10px 30px 20px",
-            boxSizing: "border-box",
-           textAlign: "center",
+            top: "40%",
+            left: "14%",
+            transform: "translateY(-50%)",
+            color: "black",
+            maxWidth: "31.25rem", // 500px -> 31.25rem
+            textAlign: "left",
           }}
         >
-          {/* Progress Bars (Desktop Only) */}
-          {!isMobile && (
-            <div style={{ display: "flex", justifyContent: "flex-start", gap: "6px", marginTop: "15px", marginBottom: "50px",marginLeft:"12.8%", }}>
-              {homeSlides.map((_, index) => (
-                <div
-                  key={index}
-                  style={{
-                    height: "1px",
-                    backgroundColor: "#ddd",
-                    borderRadius: "10px",
-                    overflow: "hidden",
-                    position: "relative",
-                    width: "50px",
-                    marginTop:"50px",
-                    
-                                   }}
-                >
-                  <div
-                    style={{
-                      height: "100%",
-                      width: index === currentSlide ? "100%" : "0%",
-                      backgroundColor: "#333",
-                      transition: index === currentSlide ? "width 7s linear" : "none",
-                    }}
-                  />
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* Card Links (Desktop Only) */}
-          {/* {!isMobile && slide.cardLinks && (
-            <div
+          <h2 style={{ fontSize: "2rem", marginBottom: "0.9375rem" }}>{slide.title}</h2>
+          <p style={{ fontSize: "1rem", marginBottom: "1.5625rem" }}>{slide.description}</p>
+          <a href="/AllProducts">
+            <button
               style={{
-                display: "flex",
-                justifyContent: "center",
-                flexWrap: "wrap",
-                gap: "15px",
-                marginTop: "15px",
+                padding: "0.3125rem 0.625rem",
+                backgroundColor: "#007bff",
+                color: "#fff",
+                border: "none",
+                borderRadius: "0.3125rem",
+                fontSize: "1rem",
+                cursor: "pointer",
+                marginBottom: "0.9375rem",
               }}
             >
-              {slide.cardLinks.map((item, idx) => (
-                <a
-                  key={idx}
-                  href={item.link}
-                  style={{
-                    fontSize: "14px",
-                    color: "#007bff",
-                    fontWeight: "400",
-                    cursor: "pointer",
-                    textDecoration: "none",
-                    transition: "color 0.3s ease",
-                  }}
-                  onMouseOver={(e) => {
-                    e.currentTarget.style.color = "#0056b3";
-                    e.currentTarget.style.textDecoration = "underline";
-                  }}
-                  onMouseOut={(e) => {
-                    e.currentTarget.style.color = "#007bff";
-                    e.currentTarget.style.textDecoration = "none";
-                  }}
-                >
-                  {item.label}
-                </a>
-              ))}
-            </div>
-          )} */}
+              View Our Products
+            </button>
+          </a>
         </div>
-      </section>
+      )}
 
-      {/* Mobile Content Section */}
-      {isMobile && (
-        <div
-          style={{
-            padding: "25px 15px",
-            textAlign: "center",
-            background: "linear-gradient(135deg, #f9f9f9, #ffffff)",
-            borderRadius: "15px",
-            boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-            margin: "20px",
-          }}
-        >
-          <h2 style={{ fontSize: "24px", marginBottom: "12px", fontWeight: "700", color: "#222" }}>
-            {slide.title}
-          </h2>
-          <p style={{ fontSize: "16px", marginBottom: "20px", color: "#555", lineHeight: "1.5" }}>
-            {slide.description}
-          </p>
-          <button
-            style={{
-              padding: "12px 30px",
-              background: "linear-gradient(90deg, #007bff, #00c6ff)",
-              color: "#fff",
-              border: "none",
-              borderRadius: "50px",
-              fontSize: "16px",
-              fontWeight: "600",
-              cursor: "pointer",
-              boxShadow: "0 4px 12px rgba(0,123,255,0.4)",
-              transition: "all 0.3s ease",
+      {/* Slide Bottom Section: Progress Bars */}
+      <div
+        style={{
+          position: "absolute",
+          bottom: "0",
+          width: "100%",
+          padding: "0.625rem 1.875rem 1.25rem",
+          boxSizing: "border-box",
+          textAlign: "center",
+        }}
+      >
+        {/* Progress Bars (Desktop Only) */}
+        {!isMobile && (
+          <div 
+            style={{ 
+              display: "flex", 
+              justifyContent: "flex-start", 
+              gap: "0.375rem", 
+              marginTop: "0.9375rem", 
+              marginBottom: "3.125rem",
+              marginLeft: "12.8%", 
             }}
-            onClick={() => navigate("/sign-in")}
-            onMouseOver={(e) => (e.target.style.transform = "scale(1.05)")}
-            onMouseOut={(e) => (e.target.style.transform = "scale(1)")}
           >
-            Upload Your Blueprint
-          </button>
-
-          {/* Progress Bars (Mobile Only) */}
-          <div style={{ display: "flex", justifyContent: "center", gap: "10px", marginTop: "25px" }}>
             {homeSlides.map((_, index) => (
               <div
                 key={index}
                 style={{
-                  flex: 1,
-                  height: "2px",
-                  background: "linear-gradient(90deg, #eee, #ddd)",
-                  borderRadius: "20px",
+                  height: "0.0625rem",
+                  backgroundColor: "#ddd",
+                  borderRadius: "0.625rem",
                   overflow: "hidden",
-                  maxWidth: "70px",
                   position: "relative",
-                  boxShadow: "inset 0 2px 5px rgba(0,0,0,0.15)",
+                  width: "3.125rem",
+                  marginTop: "3.125rem",
                 }}
               >
                 <div
                   style={{
                     height: "100%",
                     width: index === currentSlide ? "100%" : "0%",
-                    background: "linear-gradient(90deg, #007bff, #00c6ff)",
+                    backgroundColor: "#333",
                     transition: index === currentSlide ? "width 7s linear" : "none",
-                    borderRadius: "20px",
-                    boxShadow: index === currentSlide ? "0 0 10px rgba(0, 123, 255, 0.8)" : "none",
                   }}
                 />
               </div>
             ))}
           </div>
+        )}
+      </div>
+    </section>
+
+    {/* Mobile Content Section */}
+    {isMobile && (
+      <div
+        style={{
+          padding: "1.5625rem 0.9375rem",
+          textAlign: "center",
+          background: "linear-gradient(135deg, #f9f9f9, #ffffff)",
+          borderRadius: "0.9375rem",
+          boxShadow: "0 0.25rem 0.75rem rgba(0,0,0,0.1)",
+          margin: "1.25rem",
+        }}
+      >
+        <h2 style={{ 
+          fontSize: "1.5rem", 
+          marginBottom: "0.75rem", 
+          fontWeight: "700", 
+          color: "#222" 
+        }}>
+          {slide.title}
+        </h2>
+        <p style={{ 
+          fontSize: "1rem", 
+          marginBottom: "1.25rem", 
+          color: "#555", 
+          lineHeight: "1.5" 
+        }}>
+          {slide.description}
+        </p>
+        <button
+          style={{
+            padding: "0.75rem 1.875rem",
+            background: "linear-gradient(90deg, #007bff, #00c6ff)",
+            color: "#fff",
+            border: "none",
+            borderRadius: "3.125rem",
+            fontSize: "1rem",
+            fontWeight: "600",
+            cursor: "pointer",
+            boxShadow: "0 0.25rem 0.75rem rgba(0,123,255,0.4)",
+            transition: "all 0.3s ease",
+          }}
+          onClick={() => navigate("/sign-in")}
+          onMouseOver={(e) => (e.target.style.transform = "scale(1.05)")}
+          onMouseOut={(e) => (e.target.style.transform = "scale(1)")}
+        >
+          Upload Your Blueprint
+        </button>
+
+        {/* Progress Bars (Mobile Only) */}
+        <div style={{ 
+          display: "flex", 
+          justifyContent: "center", 
+          gap: "0.625rem", 
+          marginTop: "1.5625rem" 
+        }}>
+          {homeSlides.map((_, index) => (
+            <div
+              key={index}
+              style={{
+                flex: 1,
+                height: "0.125rem",
+                background: "linear-gradient(90deg, #eee, #ddd)",
+                borderRadius: "1.25rem",
+                overflow: "hidden",
+                maxWidth: "4.375rem",
+                position: "relative",
+                boxShadow: "inset 0 0.125rem 0.3125rem rgba(0,0,0,0.15)",
+              }}
+            >
+              <div
+                style={{
+                  height: "100%",
+                  width: index === currentSlide ? "100%" : "0%",
+                  background: "linear-gradient(90deg, #007bff, #00c6ff)",
+                  transition: index === currentSlide ? "width 7s linear" : "none",
+                  borderRadius: "1.25rem",
+                  boxShadow: index === currentSlide ? "0 0 0.625rem rgba(0, 123, 255, 0.8)" : "none",
+                }}
+              />
+            </div>
+          ))}
         </div>
-      )}
-    </>
-  );
+      </div>
+    )}
+  </>
+);
+ 
 }
 
 const arrowButtonStyle = (side) => ({
   position: "absolute",
   top: "50%",
-  [side]: "20px",
+  [side]: "1.25rem",
   transform: "translateY(-50%)",
   backgroundColor: "rgba(0,0,0,0.5)",
   color: "#fff",
   border: "none",
-  padding: "10px 15px",
-  fontSize: "15px",
+  padding: "0.625rem 0.9375rem",
+  fontSize: "0.9375rem",
   cursor: "pointer",
   borderRadius: "40%",
   zIndex: 2,
