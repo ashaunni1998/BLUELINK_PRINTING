@@ -31,7 +31,17 @@ const [appliedCoupon, setAppliedCoupon] = useState(null);
  // ✅ New state for delivery method
   const [deliveryMethod, setDeliveryMethod] = useState("north"); // default
 
+const isWindow = typeof window !== "undefined";
+const [windowWidth, setWindowWidth] = useState(isWindow ? window.innerWidth : 1440);
 
+useEffect(() => {
+  if (!isWindow) return;
+  const onResize = () => {
+    setWindowWidth(window.innerWidth);
+  };
+  window.addEventListener("resize", onResize);
+  return () => window.removeEventListener("resize", onResize);
+}, [isWindow]);
 
 
 /* ---------- Paste this directly after:
@@ -839,12 +849,16 @@ const handleApplyCoupon = async () => {
 
     
     
-    <div 
+ <div 
   className="checkout-wrapper"
   style={{
-    maxWidth: "75%",
-    margin: "0 20% 0 18%",
-    padding: "2rem 1rem",
+    maxWidth: "1440px",
+    margin: "0 auto",
+    width: "100%",
+    paddingTop: "2rem",
+    paddingBottom: "2rem",
+    paddingLeft: windowWidth < 1050 ? "1rem" : windowWidth < 1200 ? "1.5rem" : "2.5rem",
+    paddingRight: windowWidth < 1050 ? "1rem" : windowWidth < 1200 ? "1.5rem" : "2.5rem",
   }}
 >
 
@@ -1524,22 +1538,22 @@ const handleApplyCoupon = async () => {
 {/* responsive tweak (keeps everything in same file) */}
 <style>
 {`
-  @media (max-width: 768px) {
+  @media (max-width: 1050px) {
     .checkout-wrapper {
-      max-width: 100% !important;
-      margin: 0 !important;
-      padding: 1rem !important;
+      padding-left: 1rem !important;
+      padding-right: 1rem !important;
     }
+  }
+  
+  @media (max-width: 768px) {
     .checkout-grid {
       display: block !important;
     }
     .checkout-card {
       margin-bottom: 20px !important;
     }
-    .place-order-inline-btn {
-      width: 100% !important;
-    }
   }
+  
   @media (max-width: 520px) {
     .place-order-inline-btn {
       width: 100% !important;

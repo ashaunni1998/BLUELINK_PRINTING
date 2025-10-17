@@ -105,6 +105,64 @@ useEffect(() => {
   if (width < 1200) return "1.5rem";
   return "2.5rem";
 };
+
+
+const [currentPage, setCurrentPage] = useState(0);
+
+const filteredProducts = products.filter((product) => {
+  const category = typeof product.category === "string" ? product.category.toLowerCase() : "";
+  const name = typeof product.name === "string" ? product.name.toLowerCase() : "";
+  return category.includes("photoframe") || name.includes("photo frame") || name.includes("mugs");
+});
+
+const productsPerPage = windowWidth < 640 ? 2 : windowWidth < 1024 ? 4 : 8;
+const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
+
+const handleNextPage = () => {
+  if (currentPage < totalPages - 1) {
+    setCurrentPage(currentPage + 1);
+  }
+};
+
+const handlePrevPage = () => {
+  if (currentPage > 0) {
+    setCurrentPage(currentPage - 1);
+  }
+};
+
+const startIndex = currentPage * productsPerPage;
+const endIndex = startIndex + productsPerPage;
+const visibleProducts = filteredProducts.slice(startIndex, endIndex);
+
+
+const [currentFlyerPage, setCurrentFlyerPage] = useState(0);
+
+// Add this before the return statement
+const filteredFlyers = products.filter((product) => {
+  const category = typeof product.category === "string" ? product.category.toLowerCase() : "";
+  const name = typeof product.name === "string" ? product.name.toLowerCase() : "";
+  return category.includes("flyer") || name.includes("flyer");
+});
+
+const flyersPerPage = windowWidth < 640 ? 2 : windowWidth < 1024 ? 4 : windowWidth < 1280 ? 8 : 10;
+const totalFlyerPages = Math.ceil(filteredFlyers.length / flyersPerPage);
+const flyerStartIndex = currentFlyerPage * flyersPerPage;
+const flyerEndIndex = flyerStartIndex + flyersPerPage;
+const visibleFlyers = filteredFlyers.slice(flyerStartIndex, flyerEndIndex);
+
+const handleNextFlyerPage = () => {
+  if (currentFlyerPage < totalFlyerPages - 1) {
+    setCurrentFlyerPage(currentFlyerPage + 1);
+  }
+};
+
+const handlePrevFlyerPage = () => {
+  if (currentFlyerPage > 0) {
+    setCurrentFlyerPage(currentFlyerPage - 1);
+  }
+};
+
+
   const styles = {
     section: {
       backgroundColor: "#f7f9f7",
@@ -455,13 +513,16 @@ return (
   boxSizing: "border-box",
 }}>
   {/* Wrapper matching Header layout */}
-  <div
+    <div
     style={{
       maxWidth: "1440px",
       margin: "0 auto",
-      padding: isMobile ? "1.5rem 1rem 2rem" : "1.875rem " + getPadding() + " 2.5rem",
-      boxSizing: "border-box",
       width: "100%",
+      paddingTop: isMobile ? "1.5rem" : "1.875rem",
+      paddingBottom: isMobile ? "2rem" : "2.5rem",
+      paddingLeft: isMobile ? "1rem" : windowWidth < 1200 ? "1.5rem" : "2.5rem",
+      paddingRight: isMobile ? "1rem" : windowWidth < 1200 ? "1.5rem" : "2.5rem",
+      boxSizing: "border-box",
       textAlign: "center",
     }}
   >
@@ -885,639 +946,717 @@ return (
 
 
 {/* Personalized Gifts Section - Mobile Responsive */}
-<section style={{ 
-  backgroundColor: "#f5f8f6",
-  width: "100%",
-  margin: "0",
-  padding: "0",
-  boxSizing: "border-box",
-}}>
-  {/* Outer centered container - matches Header structure */}
-  <div style={{
-    maxWidth: "1440px",
-    margin: "0 auto",
+  <section style={{ 
+    backgroundColor: "#f5f8f6",
     width: "100%",
+    margin: "0",
+    padding: "0",
     boxSizing: "border-box",
   }}>
-    {/* Inner padding wrapper - matches Header padding */}
     <div style={{
-      paddingLeft: getPadding(),
-      paddingRight: getPadding(),
-      paddingTop: windowWidth < 1050 ? '1.5rem' : '1.875rem',
-      paddingBottom: windowWidth < 1050 ? '2rem' : '2.5rem',
+      maxWidth: "1440px",
+      margin: "0 auto",
+      width: "100%",
       boxSizing: "border-box",
-      textAlign: "center",
     }}>
-      <h2
-        style={{
-          fontSize: windowWidth < 768 ? "1.5rem" : "2rem",
-          marginBottom: "0.75rem",
-          fontWeight: "700",
-          color: "#111",
-          position: "relative",
-          display: "inline-block",
-          paddingBottom: "0.75rem",
-        }}
-      >
-        Personalized Gifts
-        <span
+      <div style={{
+        paddingLeft: getPadding(),
+        paddingRight: getPadding(),
+        paddingTop: windowWidth < 1050 ? '1.5rem' : '1.875rem',
+        paddingBottom: windowWidth < 1050 ? '2rem' : '2.5rem',
+        boxSizing: "border-box",
+        textAlign: "center",
+      }}>
+        <h2
           style={{
-            position: "absolute",
-            left: "50%",
-            bottom: "0",
-            transform: "translateX(-50%)",
-            width: "3.75rem",
-            height: "0.25rem",
-            backgroundColor: "#007abf",
-            borderRadius: "0.125rem",
+            fontSize: windowWidth < 768 ? "1.5rem" : "2rem",
+            marginBottom: "0.75rem",
+            fontWeight: "700",
+            color: "#111",
+            position: "relative",
+            display: "inline-block",
+            paddingBottom: "0.75rem",
           }}
-        ></span>
-      </h2>
+        >
+          Personalized Gifts
+          <span
+            style={{
+              position: "absolute",
+              left: "50%",
+              bottom: "0",
+              transform: "translateX(-50%)",
+              width: "3.75rem",
+              height: "0.25rem",
+              backgroundColor: "#007abf",
+              borderRadius: "0.125rem",
+            }}
+          ></span>
+        </h2>
 
-      <p
-        style={{
-          fontSize: windowWidth < 768 ? "0.9375rem" : "1.0625rem",
-          color: "#555",
-          marginBottom: windowWidth < 768 ? "1.875rem" : "3.125rem",
-          maxWidth: windowWidth < 768 ? "100%" : "43.75rem",
-          marginInline: "auto",
-          lineHeight: "1.6",
-          padding: "0",
-        }}
-      >
-        Make every occasion special with personalized gifts designed to create lasting memories.
-      </p>
+        <p
+          style={{
+            fontSize: windowWidth < 768 ? "0.9375rem" : "1.0625rem",
+            color: "#555",
+            marginBottom: windowWidth < 768 ? "1.875rem" : "3.125rem",
+            maxWidth: windowWidth < 768 ? "100%" : "43.75rem",
+            marginInline: "auto",
+            lineHeight: "1.6",
+            padding: "0",
+          }}
+        >
+          Make every occasion special with personalized gifts designed to create lasting memories.
+        </p>
 
-      <div
-        style={{
-          width: "100%",
-          position: "relative",
-          boxSizing: "border-box",
-        }}
-      >
-        <div style={{ 
-          display: "flex", 
-          flexDirection: "column", 
-          gap: windowWidth < 768 ? "1rem" : "1.25rem" 
-        }}>
-          {/* First Row */}
+        <div
+          style={{
+            width: "100%",
+            position: "relative",
+            boxSizing: "border-box",
+          }}
+        >
+          {/* Navigation Arrows for Mobile */}
+          {windowWidth < 640 && currentPage > 0 && (
+            <button
+              onClick={handlePrevPage}
+              style={{
+                position: "absolute",
+                left: "-0.625rem",
+                top: "50%",
+                transform: "translateY(-50%)",
+                backgroundColor: "rgba(255, 255, 255, 0.9)",
+                border: "0.0625rem solid #ddd",
+                borderRadius: "50%",
+                width: "2rem",
+                height: "2rem",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                cursor: "pointer",
+                zIndex: 10,
+                boxShadow: "0 0.125rem 0.375rem rgba(0,0,0,0.15)",
+              }}
+            >
+              <span style={{ fontSize: "1.25rem", color: "#007abf" }}>‹</span>
+            </button>
+          )}
+          
+          {windowWidth < 640 && currentPage < totalPages - 1 && (
+            <button
+              onClick={handleNextPage}
+              style={{
+                position: "absolute",
+                right: "-0.625rem",
+                top: "50%",
+                transform: "translateY(-50%)",
+                backgroundColor: "rgba(255, 255, 255, 0.9)",
+                border: "0.0625rem solid #ddd",
+                borderRadius: "50%",
+                width: "2rem",
+                height: "2rem",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                cursor: "pointer",
+                zIndex: 10,
+                boxShadow: "0 0.125rem 0.375rem rgba(0,0,0,0.15)",
+              }}
+            >
+              <span style={{ fontSize: "1.25rem", color: "#007abf" }}>›</span>
+            </button>
+          )}
+
           <div style={{ 
-            display: "grid", 
-            gridTemplateColumns: windowWidth < 640 
-              ? "1fr" 
-              : windowWidth < 1024 
-              ? "repeat(2, 1fr)" 
-              : windowWidth < 1280
-              ? "repeat(4, 1fr)"
-              : "repeat(5, 1fr)", 
+            display: "flex", 
+            flexDirection: "column", 
             gap: windowWidth < 768 ? "1rem" : "1.25rem" 
           }}>
-            {products
-              .filter((product) => {
-                const category = typeof product.category === "string" ? product.category.toLowerCase() : "";
-                const name = typeof product.name === "string" ? product.name.toLowerCase() : "";
-                return category.includes("photoframe") || name.includes("photo frame") || name.includes("mugs");
-              })
-              .slice(0, windowWidth < 640 ? 1 : windowWidth < 1024 ? 2 : windowWidth < 1280 ? 4 : 5)
-              .map((product) => (
-                <div
-                  key={product._id}
-                  style={{
-                    backgroundColor: "#fff",
-                    borderRadius: "0.375rem",
-                    overflow: "hidden",
-                    boxShadow: "0 0.0625rem 0.375rem rgba(0,0,0,0.07)",
-                    transition: "transform 0.2s ease, box-shadow 0.2s ease",
-                    cursor: "pointer",
-                    display: "flex",
-                    flexDirection: "column",
-                    height: "100%",
-                  }}
-                  onMouseEnter={(e) => {
-                    if (windowWidth >= 768) {
-                      e.currentTarget.style.transform = "translateY(-0.25rem)";
-                      e.currentTarget.style.boxShadow = "0 0.375rem 0.75rem rgba(0,0,0,0.15)";
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (windowWidth >= 768) {
-                      e.currentTarget.style.transform = "translateY(0)";
-                      e.currentTarget.style.boxShadow = "0 0.0625rem 0.375rem rgba(0,0,0,0.07)";
-                    }
-                  }}
-                >
-                  <Link
-                    to={`/product/${product._id}`}
-                    style={{
-                      width: "100%",
-                      aspectRatio: "4/3",
-                      overflow: "hidden",
-                      display: "block",
-                      textDecoration: "none",
-                      flexShrink: 0,
-                    }}
-                  >
-                    <img
-                      src={product.images[0] || "https://via.placeholder.com/300"}
-                      alt={product.name}
-                      style={{
-                        width: "100%",
-                        height: "100%",
-                        objectFit: "contain",
-                        display: "block",
-                        backgroundColor: "#f9f9f9",
-                      }}
-                    />
-                  </Link>
-
+            {/* First Row */}
+            <div style={{ 
+              display: "grid", 
+              gridTemplateColumns: windowWidth < 640 
+                ? "1fr" 
+                : windowWidth < 1024 
+                ? "repeat(2, 1fr)" 
+                : windowWidth < 1280
+                ? "repeat(4, 1fr)"
+                : "repeat(5, 1fr)", 
+              gap: windowWidth < 768 ? "1rem" : "1.25rem" 
+            }}>
+              {visibleProducts
+                .slice(0, windowWidth < 640 ? 1 : windowWidth < 1024 ? 2 : windowWidth < 1280 ? 4 : 5)
+                .map((product) => (
                   <div
+                    key={product._id}
                     style={{
-                      padding: "0.75rem",
-                      borderTop: "0.0625rem solid #eee",
-                      textAlign: "center",
-                      flex: 1,
+                      backgroundColor: "#fff",
+                      borderRadius: "0.375rem",
+                      overflow: "hidden",
+                      boxShadow: "0 0.0625rem 0.375rem rgba(0,0,0,0.07)",
+                      transition: "transform 0.2s ease, box-shadow 0.2s ease",
+                      cursor: "pointer",
                       display: "flex",
                       flexDirection: "column",
-                      justifyContent: "flex-start",
-                      gap: "0.5rem",
+                      height: "100%",
+                    }}
+                    onMouseEnter={(e) => {
+                      if (windowWidth >= 768) {
+                        e.currentTarget.style.transform = "translateY(-0.25rem)";
+                        e.currentTarget.style.boxShadow = "0 0.375rem 0.75rem rgba(0,0,0,0.15)";
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (windowWidth >= 768) {
+                        e.currentTarget.style.transform = "translateY(0)";
+                        e.currentTarget.style.boxShadow = "0 0.0625rem 0.375rem rgba(0,0,0,0.07)";
+                      }
                     }}
                   >
                     <Link
                       to={`/product/${product._id}`}
                       style={{
-                        color: "#007abf",
-                        textDecoration: "none",
-                        fontWeight: "500",
-                        fontSize: "0.8rem",
-                        height: "2.4rem",
-                        overflow: "hidden",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        lineHeight: "1.2",
-                        wordWrap: "break-word",
-                        hyphens: "auto",
-                      }}
-                    >
-                      {product.name}
-                    </Link>
-                    
-                    <p 
-                      style={{ 
-                        fontSize: "0.875rem", 
-                        color: "#007abf",
-                        fontWeight: "600",
-                        margin: 0,
-                      }}
-                    >
-                      ${product.price}
-                    </p>
-                  </div>
-                </div>
-              ))}
-          </div>
-
-          {/* Second Row */}
-          <div style={{ 
-            display: "grid", 
-            gridTemplateColumns: windowWidth < 640 
-              ? "1fr" 
-              : windowWidth < 1024 
-              ? "repeat(2, 1fr)" 
-              : windowWidth < 1280
-              ? "repeat(4, 1fr)"
-              : "repeat(5, 1fr)", 
-            gap: windowWidth < 768 ? "1rem" : "1.25rem" 
-          }}>
-            {products
-              .filter((product) => {
-                const category = typeof product.category === "string" ? product.category.toLowerCase() : "";
-                const name = typeof product.name === "string" ? product.name.toLowerCase() : "";
-                return category.includes("photoframe") || name.includes("photo frame") || name.includes("mugs");
-              })
-              .slice(
-                windowWidth < 640 ? 1 : windowWidth < 1024 ? 2 : windowWidth < 1280 ? 4 : 5,
-                windowWidth < 640 ? 2 : windowWidth < 1024 ? 4 : 8
-              )
-              .map((product) => (
-                <div
-                  key={product._id}
-                  style={{
-                    backgroundColor: "#fff",
-                    borderRadius: "0.375rem",
-                    overflow: "hidden",
-                    boxShadow: "0 0.0625rem 0.375rem rgba(0,0,0,0.07)",
-                    transition: "transform 0.2s ease, box-shadow 0.2s ease",
-                    cursor: "pointer",
-                    display: "flex",
-                    flexDirection: "column",
-                    height: "100%",
-                  }}
-                  onMouseEnter={(e) => {
-                    if (windowWidth >= 768) {
-                      e.currentTarget.style.transform = "translateY(-0.25rem)";
-                      e.currentTarget.style.boxShadow = "0 0.375rem 0.75rem rgba(0,0,0,0.15)";
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (windowWidth >= 768) {
-                      e.currentTarget.style.transform = "translateY(0)";
-                      e.currentTarget.style.boxShadow = "0 0.0625rem 0.375rem rgba(0,0,0,0.07)";
-                    }
-                  }}
-                >
-                  <Link
-                    to={`/product/${product._id}`}
-                    style={{
-                      width: "100%",
-                      aspectRatio: "4/3",
-                      overflow: "hidden",
-                      display: "block",
-                      textDecoration: "none",
-                      flexShrink: 0,
-                    }}
-                  >
-                    <img
-                      src={product.images[0] || "https://via.placeholder.com/300"}
-                      alt={product.name}
-                      style={{
                         width: "100%",
-                        height: "100%",
-                        objectFit: "contain",
+                        aspectRatio: "4/3",
+                        overflow: "hidden",
                         display: "block",
-                        backgroundColor: "#f9f9f9",
+                        textDecoration: "none",
+                        flexShrink: 0,
                       }}
-                    />
-                  </Link>
+                    >
+                      <img
+                        src={product.images[0] || "https://via.placeholder.com/300"}
+                        alt={product.name}
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "contain",
+                          display: "block",
+                          backgroundColor: "#f9f9f9",
+                        }}
+                      />
+                    </Link>
 
+                    <div
+                      style={{
+                        padding: "0.75rem",
+                        borderTop: "0.0625rem solid #eee",
+                        textAlign: "center",
+                        flex: 1,
+                        display: "flex",
+                        flexDirection: "column",
+                        justifyContent: "flex-start",
+                        gap: "0.5rem",
+                      }}
+                    >
+                      <Link
+                        to={`/product/${product._id}`}
+                        style={{
+                          color: "#007abf",
+                          textDecoration: "none",
+                          fontWeight: "500",
+                          fontSize: "0.8rem",
+                          height: "2.4rem",
+                          overflow: "hidden",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          lineHeight: "1.2",
+                          wordWrap: "break-word",
+                          hyphens: "auto",
+                        }}
+                      >
+                        {product.name}
+                      </Link>
+                      
+                      <p 
+                        style={{ 
+                          fontSize: "0.875rem", 
+                          color: "#007abf",
+                          fontWeight: "600",
+                          margin: 0,
+                        }}
+                      >
+                        ${product.price}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+            </div>
+
+            {/* Second Row */}
+            <div style={{ 
+              display: "grid", 
+              gridTemplateColumns: windowWidth < 640 
+                ? "1fr" 
+                : windowWidth < 1024 
+                ? "repeat(2, 1fr)" 
+                : windowWidth < 1280
+                ? "repeat(4, 1fr)"
+                : "repeat(5, 1fr)", 
+              gap: windowWidth < 768 ? "1rem" : "1.25rem" 
+            }}>
+              {visibleProducts
+                .slice(
+                  windowWidth < 640 ? 1 : windowWidth < 1024 ? 2 : windowWidth < 1280 ? 4 : 5,
+                  windowWidth < 640 ? 2 : windowWidth < 1024 ? 4 : 8
+                )
+                .map((product) => (
                   <div
+                    key={product._id}
                     style={{
-                      padding: "0.75rem",
-                      borderTop: "0.0625rem solid #eee",
-                      textAlign: "center",
-                      flex: 1,
+                      backgroundColor: "#fff",
+                      borderRadius: "0.375rem",
+                      overflow: "hidden",
+                      boxShadow: "0 0.0625rem 0.375rem rgba(0,0,0,0.07)",
+                      transition: "transform 0.2s ease, box-shadow 0.2s ease",
+                      cursor: "pointer",
                       display: "flex",
                       flexDirection: "column",
-                      justifyContent: "flex-start",
-                      gap: "0.5rem",
+                      height: "100%",
+                    }}
+                    onMouseEnter={(e) => {
+                      if (windowWidth >= 768) {
+                        e.currentTarget.style.transform = "translateY(-0.25rem)";
+                        e.currentTarget.style.boxShadow = "0 0.375rem 0.75rem rgba(0,0,0,0.15)";
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (windowWidth >= 768) {
+                        e.currentTarget.style.transform = "translateY(0)";
+                        e.currentTarget.style.boxShadow = "0 0.0625rem 0.375rem rgba(0,0,0,0.07)";
+                      }
                     }}
                   >
                     <Link
                       to={`/product/${product._id}`}
                       style={{
-                        color: "#007abf",
-                        textDecoration: "none",
-                        fontWeight: "500",
-                        fontSize: "0.8rem",
-                        height: "2.4rem",
+                        width: "100%",
+                        aspectRatio: "4/3",
                         overflow: "hidden",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        lineHeight: "1.2",
-                        wordWrap: "break-word",
-                        hyphens: "auto",
+                        display: "block",
+                        textDecoration: "none",
+                        flexShrink: 0,
                       }}
                     >
-                      {product.name}
+                      <img
+                        src={product.images[0] || "https://via.placeholder.com/300"}
+                        alt={product.name}
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "contain",
+                          display: "block",
+                          backgroundColor: "#f9f9f9",
+                        }}
+                      />
                     </Link>
-                    
-                    <p 
-                      style={{ 
-                        fontSize: "0.875rem", 
-                        color: "#007abf",
-                        fontWeight: "600",
-                        margin: 0,
+
+                    <div
+                      style={{
+                        padding: "0.75rem",
+                        borderTop: "0.0625rem solid #eee",
+                        textAlign: "center",
+                        flex: 1,
+                        display: "flex",
+                        flexDirection: "column",
+                        justifyContent: "flex-start",
+                        gap: "0.5rem",
                       }}
                     >
-                      ${product.price}
-                    </p>
+                      <Link
+                        to={`/product/${product._id}`}
+                        style={{
+                          color: "#007abf",
+                          textDecoration: "none",
+                          fontWeight: "500",
+                          fontSize: "0.8rem",
+                          height: "2.4rem",
+                          overflow: "hidden",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          lineHeight: "1.2",
+                          wordWrap: "break-word",
+                          hyphens: "auto",
+                        }}
+                      >
+                        {product.name}
+                      </Link>
+                      
+                      <p 
+                        style={{ 
+                          fontSize: "0.875rem", 
+                          color: "#007abf",
+                          fontWeight: "600",
+                          margin: 0,
+                        }}
+                      >
+                        ${product.price}
+                      </p>
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+            </div>
           </div>
         </div>
       </div>
     </div>
-  </div>
-</section>
+  </section>
 
 {/* Flyers Section - Mobile Responsive */}
-<section style={{ 
-  backgroundColor: "#f5f8f6",
-  width: "100%",
-  margin: "0",
-  padding: "0",
-  boxSizing: "border-box",
-}}>
-  {/* Outer centered container - matches Header structure */}
-  <div style={{
-    maxWidth: "1440px",
-    margin: "0 auto",
+ <section style={{ 
+    backgroundColor: "#f5f8f6",
     width: "100%",
+    margin: "0",
+    padding: "0",
     boxSizing: "border-box",
   }}>
-    {/* Inner padding wrapper - matches Header padding */}
     <div style={{
-      paddingLeft: getPadding(),
-      paddingRight: getPadding(),
-      paddingTop: windowWidth < 1050 ? '1.5rem' : '1.875rem',
-      paddingBottom: windowWidth < 1050 ? '2rem' : '2.5rem',
+      maxWidth: "1440px",
+      margin: "0 auto",
+      width: "100%",
       boxSizing: "border-box",
-      textAlign: "center",
     }}>
-      <h2
-        style={{
-          fontSize: windowWidth < 768 ? "1.5rem" : "2rem",
-          marginBottom: "0.75rem",
-          fontWeight: "700",
-          color: "#111",
-          position: "relative",
-          display: "inline-block",
-          paddingBottom: "0.75rem",
-        }}
-      >
-        Our Flyers
-        <span
+      <div style={{
+        paddingLeft: getPadding(),
+        paddingRight: getPadding(),
+        paddingTop: windowWidth < 1050 ? '1.5rem' : '1.875rem',
+        paddingBottom: windowWidth < 1050 ? '2rem' : '2.5rem',
+        boxSizing: "border-box",
+        textAlign: "center",
+      }}>
+        <h2
           style={{
-            position: "absolute",
-            left: "50%",
-            bottom: "0",
-            transform: "translateX(-50%)",
-            width: "3.75rem",
-            height: "0.25rem",
-            backgroundColor: "#007abf",
-            borderRadius: "0.125rem",
+            fontSize: windowWidth < 768 ? "1.5rem" : "2rem",
+            marginBottom: "0.75rem",
+            fontWeight: "700",
+            color: "#111",
+            position: "relative",
+            display: "inline-block",
+            paddingBottom: "0.75rem",
           }}
-        ></span>
-      </h2>
+        >
+          Our Flyers
+          <span
+            style={{
+              position: "absolute",
+              left: "50%",
+              bottom: "0",
+              transform: "translateX(-50%)",
+              width: "3.75rem",
+              height: "0.25rem",
+              backgroundColor: "#007abf",
+              borderRadius: "0.125rem",
+            }}
+          ></span>
+        </h2>
 
-      <p
-        style={{
-          fontSize: windowWidth < 768 ? "0.9375rem" : "1.0625rem",
-          color: "#555",
-          marginBottom: windowWidth < 768 ? "1.875rem" : "3.125rem",
-          maxWidth: windowWidth < 768 ? "100%" : "43.75rem",
-          marginInline: "auto",
-          lineHeight: "1.6",
-          padding: "0",
-        }}
-      >
-        Showcase your business with professional, eye-catching flyers designed to leave a lasting impression.
-      </p>
+        <p
+          style={{
+            fontSize: windowWidth < 768 ? "0.9375rem" : "1.0625rem",
+            color: "#555",
+            marginBottom: windowWidth < 768 ? "1.875rem" : "3.125rem",
+            maxWidth: windowWidth < 768 ? "100%" : "43.75rem",
+            marginInline: "auto",
+            lineHeight: "1.6",
+            padding: "0",
+          }}
+        >
+          Showcase your business with professional, eye-catching flyers designed to leave a lasting impression.
+        </p>
 
-      <div
-        style={{
-          width: "100%",
-          position: "relative",
-          boxSizing: "border-box",
-        }}
-      >
-        <div style={{ 
-          display: "flex", 
-          flexDirection: "column", 
-          gap: windowWidth < 768 ? "1rem" : "1.25rem" 
-        }}>
-          {/* First Row */}
+        <div
+          style={{
+            width: "100%",
+            position: "relative",
+            boxSizing: "border-box",
+          }}
+        >
+          {/* Navigation Arrows for Mobile */}
+          {windowWidth < 640 && currentFlyerPage > 0 && (
+            <button
+              onClick={handlePrevFlyerPage}
+              style={{
+                position: "absolute",
+                left: "-0.625rem",
+                top: "50%",
+                transform: "translateY(-50%)",
+                backgroundColor: "rgba(255, 255, 255, 0.9)",
+                border: "0.0625rem solid #ddd",
+                borderRadius: "50%",
+                width: "2rem",
+                height: "2rem",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                cursor: "pointer",
+                zIndex: 10,
+                boxShadow: "0 0.125rem 0.375rem rgba(0,0,0,0.15)",
+              }}
+            >
+              <span style={{ fontSize: "1.25rem", color: "#007abf" }}>‹</span>
+            </button>
+          )}
+          
+          {windowWidth < 640 && currentFlyerPage < totalFlyerPages - 1 && (
+            <button
+              onClick={handleNextFlyerPage}
+              style={{
+                position: "absolute",
+                right: "-0.625rem",
+                top: "50%",
+                transform: "translateY(-50%)",
+                backgroundColor: "rgba(255, 255, 255, 0.9)",
+                border: "0.0625rem solid #ddd",
+                borderRadius: "50%",
+                width: "2rem",
+                height: "2rem",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                cursor: "pointer",
+                zIndex: 10,
+                boxShadow: "0 0.125rem 0.375rem rgba(0,0,0,0.15)",
+              }}
+            >
+              <span style={{ fontSize: "1.25rem", color: "#007abf" }}>›</span>
+            </button>
+          )}
+
           <div style={{ 
-            display: "grid", 
-            gridTemplateColumns: windowWidth < 640 
-              ? "1fr" 
-              : windowWidth < 1024 
-              ? "repeat(2, 1fr)" 
-              : windowWidth < 1280
-              ? "repeat(4, 1fr)"
-              : "repeat(5, 1fr)", 
+            display: "flex", 
+            flexDirection: "column", 
             gap: windowWidth < 768 ? "1rem" : "1.25rem" 
           }}>
-            {products
-              .filter((product) => {
-                const category = typeof product.category === "string" ? product.category.toLowerCase() : "";
-                const name = typeof product.name === "string" ? product.name.toLowerCase() : "";
-                return category.includes("flyer") || name.includes("flyer");
-              })
-              .slice(0, windowWidth < 640 ? 1 : windowWidth < 1024 ? 2 : windowWidth < 1280 ? 4 : 5)
-              .map((product) => (
-                <div
-                  key={product._id}
-                  style={{
-                    backgroundColor: "#fff",
-                    borderRadius: "0.375rem",
-                    overflow: "hidden",
-                    boxShadow: "0 0.0625rem 0.375rem rgba(0,0,0,0.07)",
-                    transition: "transform 0.2s ease, box-shadow 0.2s ease",
-                    cursor: "pointer",
-                    display: "flex",
-                    flexDirection: "column",
-                    height: "100%",
-                  }}
-                  onMouseEnter={(e) => {
-                    if (windowWidth >= 768) {
-                      e.currentTarget.style.transform = "translateY(-0.25rem)";
-                      e.currentTarget.style.boxShadow = "0 0.375rem 0.75rem rgba(0,0,0,0.15)";
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (windowWidth >= 768) {
-                      e.currentTarget.style.transform = "translateY(0)";
-                      e.currentTarget.style.boxShadow = "0 0.0625rem 0.375rem rgba(0,0,0,0.07)";
-                    }
-                  }}
-                >
-                  <Link
-                    to={`/product/${product._id}`}
-                    style={{
-                      width: "100%",
-                      aspectRatio: "4/3",
-                      overflow: "hidden",
-                      display: "block",
-                      textDecoration: "none",
-                      flexShrink: 0,
-                    }}
-                  >
-                    <img
-                      src={product.images[0] || "https://via.placeholder.com/300"}
-                      alt={product.name}
-                      style={{
-                        width: "100%",
-                        height: "100%",
-                        objectFit: "contain",
-                        display: "block",
-                        backgroundColor: "#f9f9f9",
-                      }}
-                    />
-                  </Link>
-
+            {/* First Row */}
+            <div style={{ 
+              display: "grid", 
+              gridTemplateColumns: windowWidth < 640 
+                ? "1fr" 
+                : windowWidth < 1024 
+                ? "repeat(2, 1fr)" 
+                : windowWidth < 1280
+                ? "repeat(4, 1fr)"
+                : "repeat(5, 1fr)", 
+              gap: windowWidth < 768 ? "1rem" : "1.25rem" 
+            }}>
+              {visibleFlyers
+                .slice(0, windowWidth < 640 ? 1 : windowWidth < 1024 ? 2 : windowWidth < 1280 ? 4 : 5)
+                .map((product) => (
                   <div
+                    key={product._id}
                     style={{
-                      padding: "0.75rem",
-                      borderTop: "0.0625rem solid #eee",
-                      textAlign: "center",
-                      flex: 1,
+                      backgroundColor: "#fff",
+                      borderRadius: "0.375rem",
+                      overflow: "hidden",
+                      boxShadow: "0 0.0625rem 0.375rem rgba(0,0,0,0.07)",
+                      transition: "transform 0.2s ease, box-shadow 0.2s ease",
+                      cursor: "pointer",
                       display: "flex",
                       flexDirection: "column",
-                      justifyContent: "flex-start",
-                      gap: "0.5rem",
+                      height: "100%",
+                    }}
+                    onMouseEnter={(e) => {
+                      if (windowWidth >= 768) {
+                        e.currentTarget.style.transform = "translateY(-0.25rem)";
+                        e.currentTarget.style.boxShadow = "0 0.375rem 0.75rem rgba(0,0,0,0.15)";
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (windowWidth >= 768) {
+                        e.currentTarget.style.transform = "translateY(0)";
+                        e.currentTarget.style.boxShadow = "0 0.0625rem 0.375rem rgba(0,0,0,0.07)";
+                      }
                     }}
                   >
                     <Link
                       to={`/product/${product._id}`}
                       style={{
-                        color: "#007abf",
-                        textDecoration: "none",
-                        fontWeight: "500",
-                        fontSize: "0.8rem",
-                        height: "2.4rem",
-                        overflow: "hidden",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        lineHeight: "1.2",
-                        wordWrap: "break-word",
-                        hyphens: "auto",
-                      }}
-                    >
-                      {product.name}
-                    </Link>
-                    
-                    <p 
-                      style={{ 
-                        fontSize: "0.875rem", 
-                        color: "#007abf",
-                        fontWeight: "600",
-                        margin: 0,
-                      }}
-                    >
-                      ${product.price}
-                    </p>
-                  </div>
-                </div>
-              ))}
-          </div>
-
-          {/* Second Row */}
-          <div style={{ 
-            display: "grid", 
-            gridTemplateColumns: windowWidth < 640 
-              ? "1fr" 
-              : windowWidth < 1024 
-              ? "repeat(2, 1fr)" 
-              : windowWidth < 1280
-              ? "repeat(4, 1fr)"
-              : "repeat(5, 1fr)", 
-            gap: windowWidth < 768 ? "1rem" : "1.25rem" 
-          }}>
-            {products
-              .filter((product) => {
-                const category = typeof product.category === "string" ? product.category.toLowerCase() : "";
-                const name = typeof product.name === "string" ? product.name.toLowerCase() : "";
-                return category.includes("flyer") || name.includes("flyer");
-              })
-              .slice(
-                windowWidth < 640 ? 1 : windowWidth < 1024 ? 2 : windowWidth < 1280 ? 4 : 5,
-                windowWidth < 640 ? 2 : windowWidth < 1024 ? 4 : 8
-              )
-              .map((product) => (
-                <div
-                  key={product._id}
-                  style={{
-                    backgroundColor: "#fff",
-                    borderRadius: "0.375rem",
-                    overflow: "hidden",
-                    boxShadow: "0 0.0625rem 0.375rem rgba(0,0,0,0.07)",
-                    transition: "transform 0.2s ease, box-shadow 0.2s ease",
-                    cursor: "pointer",
-                    display: "flex",
-                    flexDirection: "column",
-                    height: "100%",
-                  }}
-                  onMouseEnter={(e) => {
-                    if (windowWidth >= 768) {
-                      e.currentTarget.style.transform = "translateY(-0.25rem)";
-                      e.currentTarget.style.boxShadow = "0 0.375rem 0.75rem rgba(0,0,0,0.15)";
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (windowWidth >= 768) {
-                      e.currentTarget.style.transform = "translateY(0)";
-                      e.currentTarget.style.boxShadow = "0 0.0625rem 0.375rem rgba(0,0,0,0.07)";
-                    }
-                  }}
-                >
-                  <Link
-                    to={`/product/${product._id}`}
-                    style={{
-                      width: "100%",
-                      aspectRatio: "4/3",
-                      overflow: "hidden",
-                      display: "block",
-                      textDecoration: "none",
-                      flexShrink: 0,
-                    }}
-                  >
-                    <img
-                      src={product.images[0] || "https://via.placeholder.com/300"}
-                      alt={product.name}
-                      style={{
                         width: "100%",
-                        height: "100%",
-                        objectFit: "contain",
+                        aspectRatio: "4/3",
+                        overflow: "hidden",
                         display: "block",
-                        backgroundColor: "#f9f9f9",
+                        textDecoration: "none",
+                        flexShrink: 0,
                       }}
-                    />
-                  </Link>
+                    >
+                      <img
+                        src={product.images[0] || "https://via.placeholder.com/300"}
+                        alt={product.name}
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "contain",
+                          display: "block",
+                          backgroundColor: "#f9f9f9",
+                        }}
+                      />
+                    </Link>
 
+                    <div
+                      style={{
+                        padding: "0.75rem",
+                        borderTop: "0.0625rem solid #eee",
+                        textAlign: "center",
+                        flex: 1,
+                        display: "flex",
+                        flexDirection: "column",
+                        justifyContent: "flex-start",
+                        gap: "0.5rem",
+                      }}
+                    >
+                      <Link
+                        to={`/product/${product._id}`}
+                        style={{
+                          color: "#007abf",
+                          textDecoration: "none",
+                          fontWeight: "500",
+                          fontSize: "0.8rem",
+                          height: "2.4rem",
+                          overflow: "hidden",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          lineHeight: "1.2",
+                          wordWrap: "break-word",
+                          hyphens: "auto",
+                        }}
+                      >
+                        {product.name}
+                      </Link>
+                      
+                      <p 
+                        style={{ 
+                          fontSize: "0.875rem", 
+                          color: "#007abf",
+                          fontWeight: "600",
+                          margin: 0,
+                        }}
+                      >
+                        ${product.price}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+            </div>
+
+            {/* Second Row */}
+            <div style={{ 
+              display: "grid", 
+              gridTemplateColumns: windowWidth < 640 
+                ? "1fr" 
+                : windowWidth < 1024 
+                ? "repeat(2, 1fr)" 
+                : windowWidth < 1280
+                ? "repeat(4, 1fr)"
+                : "repeat(5, 1fr)", 
+              gap: windowWidth < 768 ? "1rem" : "1.25rem" 
+            }}>
+              {visibleFlyers
+                .slice(
+                  windowWidth < 640 ? 1 : windowWidth < 1024 ? 2 : windowWidth < 1280 ? 4 : 5,
+                  windowWidth < 640 ? 2 : windowWidth < 1024 ? 4 : 8
+                )
+                .map((product) => (
                   <div
+                    key={product._id}
                     style={{
-                      padding: "0.75rem",
-                      borderTop: "0.0625rem solid #eee",
-                      textAlign: "center",
-                      flex: 1,
+                      backgroundColor: "#fff",
+                      borderRadius: "0.375rem",
+                      overflow: "hidden",
+                      boxShadow: "0 0.0625rem 0.375rem rgba(0,0,0,0.07)",
+                      transition: "transform 0.2s ease, box-shadow 0.2s ease",
+                      cursor: "pointer",
                       display: "flex",
                       flexDirection: "column",
-                      justifyContent: "flex-start",
-                      gap: "0.5rem",
+                      height: "100%",
+                    }}
+                    onMouseEnter={(e) => {
+                      if (windowWidth >= 768) {
+                        e.currentTarget.style.transform = "translateY(-0.25rem)";
+                        e.currentTarget.style.boxShadow = "0 0.375rem 0.75rem rgba(0,0,0,0.15)";
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (windowWidth >= 768) {
+                        e.currentTarget.style.transform = "translateY(0)";
+                        e.currentTarget.style.boxShadow = "0 0.0625rem 0.375rem rgba(0,0,0,0.07)";
+                      }
                     }}
                   >
                     <Link
                       to={`/product/${product._id}`}
                       style={{
-                        color: "#007abf",
-                        textDecoration: "none",
-                        fontWeight: "500",
-                        fontSize: "0.8rem",
-                        height: "2.4rem",
+                        width: "100%",
+                        aspectRatio: "4/3",
                         overflow: "hidden",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        lineHeight: "1.2",
-                        wordWrap: "break-word",
-                        hyphens: "auto",
+                        display: "block",
+                        textDecoration: "none",
+                        flexShrink: 0,
                       }}
                     >
-                      {product.name}
+                      <img
+                        src={product.images[0] || "https://via.placeholder.com/300"}
+                        alt={product.name}
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "contain",
+                          display: "block",
+                          backgroundColor: "#f9f9f9",
+                        }}
+                      />
                     </Link>
-                    
-                    <p 
-                      style={{ 
-                        fontSize: "0.875rem", 
-                        color: "#007abf",
-                        fontWeight: "600",
-                        margin: 0,
+
+                    <div
+                      style={{
+                        padding: "0.75rem",
+                        borderTop: "0.0625rem solid #eee",
+                        textAlign: "center",
+                        flex: 1,
+                        display: "flex",
+                        flexDirection: "column",
+                        justifyContent: "flex-start",
+                        gap: "0.5rem",
                       }}
                     >
-                      ${product.price}
-                    </p>
+                      <Link
+                        to={`/product/${product._id}`}
+                        style={{
+                          color: "#007abf",
+                          textDecoration: "none",
+                          fontWeight: "500",
+                          fontSize: "0.8rem",
+                          height: "2.4rem",
+                          overflow: "hidden",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          lineHeight: "1.2",
+                          wordWrap: "break-word",
+                          hyphens: "auto",
+                        }}
+                      >
+                        {product.name}
+                      </Link>
+                      
+                      <p 
+                        style={{ 
+                          fontSize: "0.875rem", 
+                          color: "#007abf",
+                          fontWeight: "600",
+                          margin: 0,
+                        }}
+                      >
+                        ${product.price}
+                      </p>
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+            </div>
           </div>
         </div>
       </div>
     </div>
-  </div>
   </section>
       {/* CTA Banner */}
       <section

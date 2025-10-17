@@ -220,9 +220,9 @@ const arrowButtonStyle = (position) => ({
             alignItems: "center",
             justifyContent: "center",
             transition: "background-image 0.5s ease-in-out",
-            maxWidth: isMobile ? "100%" : "88%",
-    margin: "0 auto",
-    width: isMobile ? "100%" : "calc(100% - 2rem)",
+            width: "100%",
+    margin: "0",
+    padding: "0",
           }}
         >
           {/* <div
@@ -410,15 +410,51 @@ const arrowButtonStyle = (position) => ({
           {/* Slide Content */}
           
 
- <div className="all-products-container">
+<div className="all-products-container">
   <style>{`
-    /* Only add mobile responsive styles - Desktop stays exactly as inline styles */
-    
-    @media (max-width: 767px) {
-      .all-products-container .page-title {
-        font-size: 1.5rem !important;
-        padding: 0 1rem;
+    /* Aligned container - matches Header's maxWidth and padding */
+    .all-products-container {
+      maxWidth: 1440px;
+      margin: 0 auto;
+      width: 100%;
+      padding-left: 2.5rem;
+      padding-right: 2.5rem;
+      box-sizing: border-box;
+    }
+
+    @media (max-width: 1199px) {
+      .all-products-container {
+        padding-left: 1.5rem;
+        padding-right: 1.5rem;
       }
+    }
+
+    @media (max-width: 767px) {
+      .all-products-container {
+        padding-left: 1rem;
+        padding-right: 1rem;
+      }
+      
+      .page-title {
+        font-size: 1.5rem !important;
+      }
+    }
+
+    .page-title {
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 24px;
+      margin-top: 0;
+      text-align: center;
+      color: #222;
+    }
+
+    /* Desktop - 5 columns centered */
+    .all-products-responsive-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 1.25rem;
+      width: 100%;
     }
 
     /* Tablet and below - 4 columns */
@@ -431,36 +467,77 @@ const arrowButtonStyle = (position) => ({
     /* Small tablet - 3 columns */
     @media (max-width: 1023px) and (min-width: 768px) {
       .all-products-responsive-grid {
-        max-width: 100% !important;
         grid-template-columns: repeat(3, 1fr) !important;
         gap: 1rem !important;
-        padding: 0 1rem !important;
       }
     }
 
     /* Mobile landscape - 2 columns */
     @media (max-width: 767px) and (min-width: 480px) {
       .all-products-responsive-grid {
-        max-width: 100% !important;
         grid-template-columns: repeat(2, 1fr) !important;
         gap: 0.875rem !important;
-        padding: 0 0.75rem !important;
       }
     }
 
     /* Mobile portrait - 2 columns */
     @media (max-width: 479px) {
       .all-products-responsive-grid {
-        max-width: 100% !important;
         grid-template-columns: repeat(2, 1fr) !important;
         gap: 0.75rem !important;
-        padding: 0 0.5rem !important;
       }
+    }
+
+    .product-card-all-responsive {
+      background-color: #fff;
+      border-radius: 0.375rem;
+      overflow: hidden;
+      box-shadow: 0 0.0625rem 0.375rem rgba(0,0,0,0.07);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      width: 100%;
     }
 
     .product-card-all-responsive:hover {
       transform: translateY(-4px);
       box-shadow: 0 0.25rem 0.75rem rgba(0,0,0,0.12);
+    }
+
+    .product-image-wrapper-all {
+      width: 100%;
+      aspect-ratio: 4/3;
+      overflow: hidden;
+      display: block;
+      cursor: pointer;
+      background: #f9f9f9;
+    }
+
+    .product-image-all {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+
+    .product-info-all-responsive {
+      padding: 0.875rem;
+      border-top: 1px solid #eee;
+      text-align: center;
+    }
+
+    .product-name-all-responsive {
+      color: #007abf;
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 0.9375rem;
+      margin: 0 0 0.375rem 0;
+      cursor: pointer;
+    }
+
+    .product-price-all-responsive {
+      font-size: 0.875rem;
+      color: #444;
+      margin: 0;
+      font-weight: 600;
     }
 
     @media (max-width: 767px) {
@@ -477,6 +554,12 @@ const arrowButtonStyle = (position) => ({
       }
     }
 
+    .no-products-message {
+      text-align: center;
+      color: #666;
+      padding: 2rem 1rem;
+    }
+
     @media (max-width: 767px) {
       .no-products-message {
         padding: 2rem 1rem !important;
@@ -487,12 +570,13 @@ const arrowButtonStyle = (position) => ({
   <h2 className="page-title">
     {categoryName ? `All ${categoryName}` : "All Products"}
   </h2>
-{products.length === 0 ? (
-  <p className="no-products-message" style={{ textAlign: "center", color: "#666" }}>
-    No products found for this category.
-  </p>
-) : (
-  <div 
+
+  {products.length === 0 ? (
+    <p className="no-products-message">
+      No products found for this category.
+    </p>
+  ) : (
+    <div 
     className="all-products-responsive-grid"
     data-count={products.length <= 3 ? products.length : "more"}
     style={{

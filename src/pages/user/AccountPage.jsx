@@ -39,6 +39,29 @@ const AccountPage = () => {
   const [loadingOrders, setLoadingOrders] = useState(false);
   const [ordersError, setOrdersError] = useState("");
 
+
+
+
+  const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1440);
+
+useEffect(() => {
+  const handleResize = () => {
+    setWindowWidth(window.innerWidth);
+  };
+  window.addEventListener('resize', handleResize);
+  return () => window.removeEventListener('resize', handleResize);
+}, []);
+
+// ADD this helper function:
+const getPadding = () => {
+  if (windowWidth < 1050) return '1rem';
+  if (windowWidth < 1200) return '1.5rem';
+  return '2.5rem';
+};
+
+
+
+
   // New address form state
   const [newAddress, setNewAddress] = useState({
     fullName: "",
@@ -342,17 +365,17 @@ const AccountPage = () => {
   };
 
   // Responsive Styles
-  const containerStyle = {
-    display: "flex",
-    flexDirection: isMobile ? "column" : "row",
-    gap: isMobile ? "16px" : isTablet ? "20px" : "24px",
-    width: "100%",
-    maxWidth: isMobile ? "100%" : isTablet ? "90%" : "65%",
-    margin: isMobile ? "16px auto" : "24px auto",
-    padding: isMobile ? "0 16px" : isTablet ? "0 20px" : "0 24px",
-    boxSizing: "border-box",
-    alignItems: "flex-start"
-  };
+ const containerStyle = {
+  display: "flex",
+  flexDirection: isMobile ? "column" : "row",
+  gap: isMobile ? "16px" : isTablet ? "20px" : "24px",
+  width: "100%",
+  maxWidth: "1440px",
+  margin: isMobile ? "0 auto" : "0 auto",
+  padding: `${isMobile ? "1.5rem" : "1.875rem"} ${getPadding()}`,
+  boxSizing: "border-box",
+  alignItems: "flex-start"
+};
 
   const sidebarStyle = {
     background: "#fff",

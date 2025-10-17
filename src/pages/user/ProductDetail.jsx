@@ -977,16 +977,18 @@ const isButtonBadge = normalize(product?.name || "").includes("button badge") ||
       <Header onMenuStateChange={setMobileMenuOpen}/>
 
         {/* Main */}
-     <div style={{
-  maxWidth: isMobile ? "100%" : "65%",
-   margin: "0 auto",
-  padding: isMobile ? "16px" : "40px 20px",
+<div style={{
+  maxWidth: "1440px",
+  margin: "0 auto",
   width: "100%",
-  marginLeft: isMobile ? "0" : "17%",
-  marginRight: isMobile ? "0" : "9%",
+  paddingLeft: window.innerWidth < 1200 ? "1.5rem" : "2.5rem",
+  paddingRight: window.innerWidth < 1200 ? "1.5rem" : "2.5rem",
+  boxSizing: "border-box",
+  paddingTop: isMobile ? "1rem" : "2.5rem",
+  paddingBottom: isMobile ? "1rem" : "2.5rem",
 }}>
 
-           <div style={{
+  <div style={{
     display: 'flex',
     gap: isMobile ? '20px' : '30px',
     flexDirection: isMobile ? 'column' : 'row'

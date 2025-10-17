@@ -39,12 +39,29 @@ const readOption = (item, key) => {
   return String(v);
 };
 
+
+
 export default function OrderConfirmation() {
   const location = useLocation();
   const state = location.state || {};
   const [order, setOrder] = useState(state.order || null);
   const [loading, setLoading] = useState(false);
   const orderIdFromState = state.orderId || state.order?._id || null;
+
+
+
+    const isWindow = typeof window !== "undefined";
+const [windowWidth, setWindowWidth] = useState(isWindow ? window.innerWidth : 1440);
+
+useEffect(() => {
+  if (!isWindow) return;
+  const onResize = () => {
+    setWindowWidth(window.innerWidth);
+  };
+  window.addEventListener("resize", onResize);
+  return () => window.removeEventListener("resize", onResize);
+}, [isWindow]);
+
 
   useEffect(() => {
     if (!orderIdFromState) return;
@@ -134,21 +151,30 @@ export default function OrderConfirmation() {
 
   if (loading) return <div style={{ padding: 40, textAlign: "center" }}>Loading order…</div>;
 
+
+
+
+
+
+
+
   return (
     <div className="responsive-container">
       <Header />
       
       {/* Order Confirmation Section - Same alignment as Personalized Gifts */}
-      <section style={{  padding: "1.875rem 0 2.5rem", textAlign: "center", marginLeft: "7%", marginRight: "10%" }}>
+<section style={{
+  maxWidth: "1440px",
+  margin: "0 auto",
+  width: "100%",
+  paddingTop: "1.875rem",
+  paddingBottom: "2.5rem",
+  paddingLeft: windowWidth < 1050 ? "1rem" : windowWidth < 1200 ? "1.5rem" : "2.5rem",
+  paddingRight: windowWidth < 1050 ? "1rem" : windowWidth < 1200 ? "1.5rem" : "2.5rem",
+  textAlign: "center"
+}}>
         <style>{`
-          @media (max-width: 1023px) {
-            section[style*="marginLeft"] {
-              margin-left: 0 !important;
-              margin-right: 0 !important;
-              padding-left: 1rem !important;
-              padding-right: 1rem !important;
-            }
-          }
+      
 
           .confirmation-title-responsive {
             font-size: 32px;
@@ -181,7 +207,7 @@ export default function OrderConfirmation() {
           }
 
           .order-content-container-responsive {
-            max-width: 75%;
+            max-width: 100%;
             margin: 0 auto;
             padding: 0 1rem;
           }
@@ -190,7 +216,7 @@ export default function OrderConfirmation() {
             .order-content-container-responsive {
               max-width: 100%;
               margin: 0;
-              padding: 0 0.5rem;
+              padding: 0;
             }
           }
 
