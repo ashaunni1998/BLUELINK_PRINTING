@@ -52,6 +52,26 @@ const Footer = () => {
     setExpanded(expanded === index ? null : index);
   };
 
+
+  const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1440);
+
+useEffect(() => {
+  const handleResize = () => {
+    setWindowWidth(window.innerWidth);
+  };
+  window.addEventListener('resize', handleResize);
+  return () => window.removeEventListener('resize', handleResize);
+}, []);
+
+// ADD this helper function:
+const getPadding = () => {
+  if (windowWidth < 1050) return '1rem';
+  if (windowWidth < 1200) return '1.5rem';
+  return '2.5rem';
+};
+
+
+
   const sections = [
     {
       title: "Products",
@@ -120,19 +140,19 @@ const Footer = () => {
          
         }}
       >
-        <div
-          style={{
-            maxWidth: isMobile ? "100%" : "100%",
-            margin: "0 auto",
-            padding: "0 1.5rem",
-            width: "100%",
-            display: "flex",
-            flexWrap: "wrap",
-            justifyContent: "space-between",
-            alignItems: "center",
-            gap: isMobile ? "12px" : "10px",
-          }}
-        >
+         <div
+    style={{
+      maxWidth: "1440px",
+      margin: "0 auto",
+      padding: `0 ${getPadding()}`,
+      width: "100%",
+      display: "flex",
+      flexWrap: "wrap",
+      justifyContent: "space-between",
+      alignItems: "center",
+      gap: isMobile ? "12px" : "10px",
+    }}
+  >
           {/* Trustpilot Rating */}
           <div
             style={{
@@ -213,14 +233,15 @@ const Footer = () => {
           borderBottom: "1px solid #ddd",
         }}
       >
-        <div
-          style={{
-            maxWidth: isMobile ? "100%" : "100%",
-            margin: "0 auto",
-            padding: isMobile ? "12px 1rem" : "16px 1rem",
-            width: "100%",
-          }}
-        >
+ <div
+    style={{
+      maxWidth: "1440px",
+      margin: "0 auto",
+      padding: `${isMobile ? "12px" : "16px"} ${getPadding()}`,
+      width: "100%",
+    }}
+  >
+
           <GoogleTranslateDropdown />
         </div>
       </div>
@@ -232,14 +253,14 @@ const Footer = () => {
           
         }}
       >
-        <div
-          style={{
-            maxWidth: isMobile ? "100%" : "100%",
-           
-            padding: isMobile ? "20px 1rem" : "40px 1rem",
-            width: "100%",
-          }}
-        >
+         <div
+    style={{
+      maxWidth: "1440px",
+      margin: "0 auto",
+      padding: `${isMobile ? "20px" : "40px"} ${getPadding()}`,
+      width: "100%",
+    }}
+  >
           {!isMobile ? (
             // Desktop View - Maintains original layout
             <div
@@ -354,14 +375,14 @@ const Footer = () => {
           textAlign: "center",
         }}
       >
-        <div
-          style={{
-            maxWidth: isMobile ? "100%" : "100%",
-            margin: "0 auto",
-            padding: isMobile ? "16px 1rem" : "20px 1rem",
-            width: "100%",
-          }}
-        >
+       <div
+    style={{
+      maxWidth: "1440px",
+      margin: "0 auto",
+      padding: `${isMobile ? "16px" : "20px"} ${getPadding()}`,
+      width: "100%",
+    }}
+  >
           <div
             style={{
               display: "flex",

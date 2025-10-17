@@ -41,41 +41,30 @@ export default function Header() {
 
   const accountTimeoutRef = useRef(null);
   const hoverTimeoutRef = useRef(null);
-  const isWindow = typeof window !== "undefined";
-
+ 
+const isWindow = typeof window !== "undefined";
 const [isMobile, setIsMobile] = useState(isWindow ? window.innerWidth < 1050 : false);
 const [isTablet, setIsTablet] = useState(
   isWindow ? window.innerWidth >= 768 && window.innerWidth < 1050 : false
 );
-
-
 const [isOfferBarMobile, setIsOfferBarMobile] = useState(
   isWindow ? window.innerWidth <= 768 : false
 );
-
-// Add this useEffect right after your existing isMobile/isTablet useEffect:
-useEffect(() => {
-  if (!isWindow) return;
-  const onResize = () => {
-    setIsOfferBarMobile(window.innerWidth <= 768);
-  };
-  window.addEventListener("resize", onResize);
-  return () => window.removeEventListener("resize", onResize);
-}, [isWindow]);
-
-
-
 const [isLargeDesktop, setIsLargeDesktop] = useState(
   isWindow ? window.innerWidth >= 1920 : false
 );
+const [windowWidth, setWindowWidth] = useState(isWindow ? window.innerWidth : 1440);
 
-// Add this to the resize useEffect (around line 135)
+// REPLACE all your separate useEffect hooks with this SINGLE consolidated one:
 useEffect(() => {
   if (!isWindow) return;
   const onResize = () => {
-    setIsMobile(window.innerWidth < 1050);
-    setIsTablet(window.innerWidth >= 768 && window.innerWidth < 1050);
-    setIsLargeDesktop(window.innerWidth >= 1920);
+    const width = window.innerWidth;
+    setIsMobile(width < 1050);
+    setIsTablet(width >= 768 && width < 1050);
+    setIsOfferBarMobile(width <= 768);
+    setIsLargeDesktop(width >= 1920);
+    setWindowWidth(width);
   };
   window.addEventListener("resize", onResize);
   return () => window.removeEventListener("resize", onResize);
@@ -452,17 +441,20 @@ const styles = {
     top: "0",
     zIndex: "100",
   },
-  
-  topBar: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    padding: isMobile ? "0.5rem 1rem" : "0.5rem 2rem",
-    maxWidth: "100%",
-    margin: "0 auto",
-    width: "100%",
-    minHeight: "3.75rem", // Already in rem
-  },
+topBar: {
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
+  maxWidth: "1440px", // Centralized container like MOO
+  margin: "0 auto", // Center the container
+  width: "100%",
+  minHeight: "4.5rem",
+  paddingTop: isMobile ? "0.75rem" : "1rem",
+  paddingBottom: isMobile ? "0.75rem" : "1rem",
+  paddingLeft: isMobile ? "1rem" : windowWidth < 1200 ? "1.5rem" : "2.5rem",
+  paddingRight: isMobile ? "1rem" : windowWidth < 1200 ? "1.5rem" : "2.5rem",
+},
+
   
   overlay: {
     position: "fixed",
@@ -474,36 +466,38 @@ const styles = {
     zIndex: 998,
   },
   
-  logoWrapper: { 
-    display: "flex", 
-    alignItems: "center",
-    flexShrink: 0,
-  },
-  
-  logo: { 
-    height: "2.8rem", // Already in rem
-    width: "auto",
-    maxWidth: "7.5rem", // Already in rem
-    objectFit: "contain",
-  },
-  
-  topRightRow: { 
-    display: "flex", 
-    alignItems: "center", 
-    gap: "2rem", // Already in rem
-    marginLeft: "auto", 
-    marginRight: "1rem", // Already in rem
-  },
 
-  topLink: { 
-    cursor: "pointer", 
-    color: "#333", 
-    fontSize: "0.975rem", // Already in rem
-    textDecoration: "none",
-    whiteSpace: "nowrap",
-    fontWeight: "500",
-    fontFamily: "'Segoe UI', sans-serif",
-  },
+logoWrapper: { 
+  display: "flex", 
+  alignItems: "center",
+  flexShrink: 0,
+  marginRight: "0", // Add space after logo
+},
+
+logo: { 
+  height: isMobile ? "2.5rem" : "2.5rem", // Match MOO's logo size
+  width: "auto",
+  maxWidth: isMobile ? "7.5rem" : "8rem",
+  objectFit: "contain",
+},
+topRightRow: { 
+  display: "flex", 
+  alignItems: "center", 
+  gap: windowWidth < 1200 ? "1rem" : "1.5rem",
+  flexShrink: 0,
+  
+},
+
+topLink: { 
+  cursor: "pointer", 
+  color: "#333", 
+  fontSize: "0.875rem", // Smaller font size
+  textDecoration: "none",
+  whiteSpace: "nowrap",
+  fontWeight: "400", // Normal weight, not 500
+  fontFamily: "'Segoe UI', sans-serif",
+  transition: "color 0.2s ease",
+},
   
   accountContainer: { 
     position: "relative", 
@@ -511,20 +505,21 @@ const styles = {
     zIndex: 4000 
   },
   
-  searchWrapper: { 
-    position: "relative", 
-    width: isMobile ? "100%" : "18%", // Already in %
-    minWidth: "12rem", // Already in rem
-    zIndex: 4000 
-  },
-  
-  searchInput: { 
-    width: "100%", // Already in %
-    padding: "0.5rem 2.25rem 0.5rem 0.75rem", // Already in rem
-    border: "0.0625rem solid #ccc", // 1px = 0.0625rem
-    borderRadius: "0.375rem", // Already in rem
-    fontSize: "0.875rem", // Already in rem
-  },
+ searchWrapper: { 
+  position: "relative", 
+ width: windowWidth < 1200 ? "160px" : "200px",
+  minWidth: windowWidth < 1200 ? "140px" : "180px",
+  zIndex: 4000,
+},
+
+searchInput: { 
+  width: "100%",
+  padding: "0.5rem 2.5rem 0.5rem 0.875rem", // Smaller padding
+  border: "1px solid #ddd",
+  borderRadius: "0.25rem", // Less rounded
+  fontSize: "0.875rem",
+  transition: "border-color 0.2s ease",
+},
   
   searchIcon: { 
     position: "absolute", 
@@ -572,102 +567,113 @@ const styles = {
   },
   
   navBar: { 
-    backgroundColor: "white",
-    position: "relative",
-    zIndex: 100,
-    overflow: "visible",
-  },
+  backgroundColor: "white",
+  position: "relative",
+  zIndex: 100,
+  overflow: "visible",
+  // borderTop: "1px solid #e5e7eb",
+  borderBottom: "1px solid #e5e7eb",
   
-  navLinks: { 
-    display: "flex", 
-    gap: "0rem", // Already in rem
-    flexWrap: "nowrap", 
-    whiteSpace: "nowrap", 
-    maxWidth: "100%", // Already in %
-    margin: "0 auto", 
-    padding: "0 2rem", // Already in rem
-    width: "100%", // Already in %
-    overflowX: "auto",
-    scrollbarWidth: "none",
-    msOverflowStyle: "none",
-    overflow: "visible",
-  },
+},
+
+navLinks: { 
+  display: "flex", 
+  gap: "0",
+  justifyContent: "flex-start",
+  flexWrap: "nowrap", 
+  whiteSpace: "nowrap", 
+  maxWidth: "1440px",
+  margin: "0 auto", 
+padding: windowWidth < 1200 ? "0 1.5rem" : "0 2.5rem",
+  width: "100%",
+  overflowX: windowWidth < 1200 ? "auto" : "visible",
+  scrollbarWidth: "none",
+  msOverflowStyle: "none",
+  WebkitOverflowScrolling: "touch",
+},
+
 
   navItem: { 
     position: "relative",
     zIndex: 1,
   },
   
-  navLink: { 
-    fontSize: "0.975rem", // Already in rem
-    color: "#111", 
-    fontWeight: "500", 
-    textDecoration: "none", 
-    padding: window.innerWidth < 1280 ? "0.75rem 0.5rem" : "0.75rem 1rem", // Already in rem
-    display: "inline-block",
-    transition: "color 0.2s ease",
-  },
+     navLink: { 
+  fontSize: windowWidth < 1200 ? "0.875rem" : "0.9375rem",
+  color: "#333",
+  fontWeight: "400", // Normal weight like MOO
+  textDecoration: "none", 
+   padding: windowWidth < 1200 ? "0.75rem 1rem" : "0.875rem 1.5rem",
+  display: "inline-block",
+  transition: "color 0.2s ease",
+},
 
-  dropdown: {
+   dropdown: {
     position: "absolute",
-    top: "100%", // Already in %
-    left: "0",
+    top: "100%",
+    left: "50%", // Center dropdown under nav item
+    transform: "translateX(-50%)",
     backgroundColor: "#fff",
-    border: "0.0625rem solid #e0e6ed", // 1px = 0.0625rem
-    borderRadius: "0.5rem", // Already in rem
-    boxShadow: "0 0.375rem 1.25rem rgba(0,0,0,0.08)", // Already in rem
+    border: "1px solid #e5e7eb",
+    borderRadius: "0.5rem",
+    boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
     zIndex: 9999,
-    minWidth: "16rem", // Already in rem
-    maxWidth: "22rem", // Already in rem
-    padding: "0.5rem 0", // Already in rem
-    marginTop: "0.25rem", // Already in rem
+    minWidth: "200px",
+    maxWidth: "280px",
+    padding: "0.75rem 0",
+    marginTop: "0.5rem",
   },
   
   dropdownItem: {
     display: "block",
-    padding: "0.75rem 1.25rem", // Already in rem
+    padding: "0.75rem 1.5rem",
     textDecoration: "none",
-    color: "#4a5568",
-    fontSize: "0.9375rem", // Already in rem
+    color: "#4b5563",
+    fontSize: "0.9rem",
     fontWeight: "400",
-    borderBottom: "0.0625rem solid #f1f3f4", // 1px = 0.0625rem
-    transition: "all 0.15s ease",
+    borderBottom: "none", // Removed border
+    transition: "all 0.2s ease",
     position: "relative",
   },
+
   
-  dropdownItemFirst: {
+dropdownItemFirst: {
     display: "block",
-    padding: "0.75rem 1.25rem", // Already in rem
+    padding: "0.75rem 1.5rem",
     textDecoration: "none",
-    color: "#2d3748",
-    fontSize: "0.9375rem", // Already in rem
+    color: "#111",
+    fontSize: "0.9rem",
     fontWeight: "600",
-    borderBottom: "0.125rem solid #e2e8f0", // 2px = 0.125rem
-    backgroundColor: "#f8f9fa",
+    borderBottom: "1px solid #f3f4f6",
+    backgroundColor: "transparent", // Removed background
+    marginBottom: "0.5rem",
   },
+
 
   accountDropdown: { 
     position: "absolute", 
-    top: "100%", // Already in %
-    left: "50%", // Already in %
-    transform: "translateX(-50%)", // Already in %
+    top: "calc(100% + 0.5rem)",
+    right: "0", // Changed from center to right-aligned
+    transform: "none", // Removed translateX
     backgroundColor: "#fff", 
-    boxShadow: "0 0.375rem 1.125rem rgba(0,0,0,0.12)", // Already in rem
-    borderRadius: "0.5rem", // Already in rem
+    boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+    borderRadius: "0.5rem",
+    border: "1px solid #e5e7eb",
     display: "flex", 
     flexDirection: "column", 
     alignItems: "stretch", 
-    minWidth: "11.25rem", // Already in rem
-    padding: "0.625rem 0", // Already in rem
+    minWidth: "180px",
+    padding: "0.75rem 0",
     zIndex: 5002,
   },
   
   accountLink: { 
-    padding: "0.625rem 0.9375rem", // Already in rem
+    padding: "0.75rem 1.25rem",
     textDecoration: "none", 
-    color: "#0073e6", 
-    fontSize: "0.875rem", // Already in rem
-    fontWeight: "500" 
+    color: "#333",
+    fontSize: "0.9rem",
+    fontWeight: "500",
+    transition: "background-color 0.2s ease",
   },
   
   divider: { 
@@ -675,16 +681,17 @@ const styles = {
     marginTop: "0.5rem" // Already in rem
   },
   
-  logoutBtn: { 
-    margin: "0.625rem auto 0 auto", // Already in rem
-    padding: "0.5rem 1rem", // Already in rem
-    backgroundColor: "#0073e6", 
+logoutBtn: { 
+    margin: "0.5rem 0.75rem 0 0.75rem",
+    padding: "0.625rem 1rem",
+    backgroundColor: "#007BFF",
     color: "#fff", 
     border: "none", 
-    borderRadius: "0.375rem", // Already in rem
+    borderRadius: "0.5rem",
     cursor: "pointer", 
-    fontSize: "0.875rem", // Already in rem
-    fontWeight: "500" 
+    fontSize: "0.9rem",
+    fontWeight: "600",
+    transition: "background-color 0.2s ease",
   },
 
   // Mobile menu styles
@@ -902,16 +909,17 @@ const styles = {
     justifyContent: "center" 
   },
 
-  offerBar: { 
+ offerBar: { 
     backgroundColor: "#007BFF", 
     color: "#fff", 
     textAlign: "center", 
-    fontSize: isOfferBarMobile ? "0.75rem" : "0.875rem", // Already in rem
+    fontSize: isOfferBarMobile ? "0.8125rem" : "0.9375rem",
     fontWeight: "500", 
-    lineHeight: "1.4", 
+    lineHeight: "1.5",
+    padding: isOfferBarMobile ? "0.625rem 1rem" : "0.75rem 2rem",
     wordWrap: "break-word",
     boxSizing: "border-box",
-  }
+  },
 }
 
 

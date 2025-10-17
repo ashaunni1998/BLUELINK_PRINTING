@@ -88,6 +88,23 @@ const handleBuyNow = (productId) => {
     }
   }, []);
 
+const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1440);
+
+useEffect(() => {
+  const handleResize = () => {
+    setWindowWidth(window.innerWidth);
+  };
+  window.addEventListener('resize', handleResize);
+  return () => window.removeEventListener('resize', handleResize);
+}, []);
+
+
+  const getPadding = () => {
+  const width = window.innerWidth;
+  if (width <= 768) return "1rem";
+  if (width < 1200) return "1.5rem";
+  return "2.5rem";
+};
   const styles = {
     section: {
       backgroundColor: "#f7f9f7",
@@ -429,406 +446,418 @@ return (
 
 
 
+
+
 <section style={{ 
   backgroundColor: "#f5f8f6", 
-  padding: isMobile ? "1.5rem 1rem 2rem" : "1.875rem 2rem 2.5rem",
+  padding: "0",
   width: "100%",
   boxSizing: "border-box",
-  textAlign: "center" 
 }}>
-  <h2
-    style={{
-      fontSize: isMobile ? "1.5rem" : "2rem",
-      marginBottom: "0.75rem",
-      fontWeight: "700",
-      color: "#111",
-      position: "relative",
-      display: "inline-block",
-      paddingBottom: "0.75rem",
-    }}
-  >
-    Popular Products
-    <span
-      style={{
-        position: "absolute",
-        left: "50%",
-        bottom: "0",
-        transform: "translateX(-50%)",
-        width: "3.75rem",
-        height: "0.25rem",
-        backgroundColor: "#007abf",
-        borderRadius: "0.125rem",
-      }}
-    ></span>
-  </h2>
-
-  <p
-    style={{
-      fontSize: isMobile ? "0.9375rem" : "1.0625rem",
-      color: "#555",
-      marginBottom: isMobile ? "1.875rem" : "3.125rem",
-      maxWidth: isMobile ? "100%" : "43.75rem",
-      marginInline: "auto",
-      lineHeight: "1.6",
-      padding: isMobile ? "0 1rem" : "0",
-    }}
-  >
-    These are tried and true favorites that will have you set to get down to business.
-  </p>
-
+  {/* Wrapper matching Header layout */}
   <div
     style={{
-      maxWidth: isMobile ? "100%" : "88%",
+      maxWidth: "1440px",
       margin: "0 auto",
-      padding: isMobile ? "0 2.5rem" : "0 1rem",
-      position: "relative",
-      width: "100%",
+      padding: isMobile ? "1.5rem 1rem 2rem" : "1.875rem " + getPadding() + " 2.5rem",
       boxSizing: "border-box",
+      width: "100%",
+      textAlign: "center",
     }}
   >
-    <button
-      onClick={handlePrev}
-      disabled={currentIndex === 0}
+    <h2
       style={{
-        position: "absolute",
-        left: isMobile ? "0" : "-2.5rem",
-        top: "50%",
-        transform: "translateY(-50%)",
-        backgroundColor: "#fff",
-        border: "0.0625rem solid #ddd",
-        borderRadius: "50%",
-        width: isMobile ? "2rem" : "2.5rem",
-        height: isMobile ? "2rem" : "2.5rem",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        cursor: currentIndex === 0 ? "not-allowed" : "pointer",
-        opacity: currentIndex === 0 ? 0.5 : 1,
-        transition: "all 0.2s ease",
-        boxShadow: "0 0.125rem 0.5rem rgba(0,0,0,0.1)",
-        zIndex: 10,
-      }}
-      onMouseEnter={(e) => {
-        if (currentIndex !== 0) {
-          e.currentTarget.style.backgroundColor = "#007abf";
-          e.currentTarget.style.borderColor = "#007abf";
-          e.currentTarget.style.transform = "translateY(-50%) scale(1.1)";
-        }
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.backgroundColor = "#fff";
-        e.currentTarget.style.borderColor = "#ddd";
-        e.currentTarget.style.transform = "translateY(-50%) scale(1)";
+        fontSize: isMobile ? "1.5rem" : "2rem",
+        marginBottom: "0.75rem",
+        fontWeight: "700",
+        color: "#111",
+        position: "relative",
+        display: "inline-block",
+        paddingBottom: "0.75rem",
       }}
     >
-      <ChevronLeft size={isMobile ? 16 : 20} color={currentIndex === 0 ? "#ccc" : "#007abf"} />
-    </button>
-
-    <div style={{ overflow: "hidden" }}>
-      <div
+      Popular Products
+      <span
         style={{
+          position: "absolute",
+          left: "50%",
+          bottom: "0",
+          transform: "translateX(-50%)",
+          width: "3.75rem",
+          height: "0.25rem",
+          backgroundColor: "#007abf",
+          borderRadius: "0.125rem",
+        }}
+      ></span>
+    </h2>
+
+    <p
+      style={{
+        fontSize: isMobile ? "0.9375rem" : "1.0625rem",
+        color: "#555",
+        marginBottom: isMobile ? "1.875rem" : "3.125rem",
+        maxWidth: isMobile ? "100%" : "43.75rem",
+        marginInline: "auto",
+        lineHeight: "1.6",
+        padding: isMobile ? "0" : "0",
+      }}
+    >
+      These are tried and true favorites that will have you set to get down to business.
+    </p>
+
+    <div
+      style={{
+        width: "100%",
+        position: "relative",
+        boxSizing: "border-box",
+      }}
+    >
+      <button
+        onClick={handlePrev}
+        disabled={currentIndex === 0}
+        style={{
+          position: "absolute",
+          left: isMobile ? "-2.5rem" : "-3.75rem",
+          top: "50%",
+          transform: "translateY(-50%)",
+          backgroundColor: "#fff",
+          border: "0.0625rem solid #ddd",
+          borderRadius: "50%",
+          width: isMobile ? "2rem" : "2.5rem",
+          height: isMobile ? "2rem" : "2.5rem",
           display: "flex",
-          transition: "transform 0.4s ease-in-out",
-          transform: `translateX(-${currentIndex * 100}%)`,
+          alignItems: "center",
+          justifyContent: "center",
+          cursor: currentIndex === 0 ? "not-allowed" : "pointer",
+          opacity: currentIndex === 0 ? 0.5 : 1,
+          transition: "all 0.2s ease",
+          boxShadow: "0 0.125rem 0.5rem rgba(0,0,0,0.1)",
+          zIndex: 10,
+        }}
+        onMouseEnter={(e) => {
+          if (currentIndex !== 0) {
+            e.currentTarget.style.backgroundColor = "#007abf";
+            e.currentTarget.style.borderColor = "#007abf";
+            e.currentTarget.style.transform = "translateY(-50%) scale(1.1)";
+          }
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.backgroundColor = "#fff";
+          e.currentTarget.style.borderColor = "#ddd";
+          e.currentTarget.style.transform = "translateY(-50%) scale(1)";
         }}
       >
-        {Array.from({ length: Math.ceil(products.length / productsPerSlide) }).map((_, slideIndex) => (
-          <div
-            key={slideIndex}
-            style={{
-              flex: "0 0 100%",
-              padding: isMobile ? "0 0.5rem" : "0 0.625rem",
-              boxSizing: "border-box",
-            }}
-          >
-            <div style={{ 
-              display: "flex", 
-              flexDirection: "column", 
-              gap: isMobile ? "1rem" : "1.25rem" 
-            }}>
-              {/* First Row */}
+        <ChevronLeft size={isMobile ? 16 : 20} color={currentIndex === 0 ? "#ccc" : "#007abf"} />
+      </button>
+
+      <div style={{ overflow: "hidden" }}>
+        <div
+          style={{
+            display: "flex",
+            transition: "transform 0.4s ease-in-out",
+            transform: `translateX(-${currentIndex * 100}%)`,
+          }}
+        >
+          {Array.from({ length: Math.ceil(products.length / productsPerSlide) }).map((_, slideIndex) => (
+            <div
+              key={slideIndex}
+              style={{
+                flex: "0 0 100%",
+                padding: isMobile ? "0 0.5rem" : "0 0.625rem",
+                boxSizing: "border-box",
+              }}
+            >
               <div style={{ 
-                display: "grid", 
-                gridTemplateColumns: isMobile ? "1fr" : "repeat(5, 1fr)", 
+                display: "flex", 
+                flexDirection: "column", 
                 gap: isMobile ? "1rem" : "1.25rem" 
               }}>
-                {products
-                  .slice(slideIndex * productsPerSlide, slideIndex * productsPerSlide + (isMobile ? 1 : 5))
-                  .map((product) => (
-                    <div
-                      key={product._id}
-                      style={{
-                        backgroundColor: "#fff",
-                        borderRadius: "0.375rem",
-                        overflow: "hidden",
-                        boxShadow: "0 0.0625rem 0.375rem rgba(0,0,0,0.07)",
-                        transition: "transform 0.2s ease, box-shadow 0.2s ease",
-                        cursor: "pointer",
-                        display: "flex",
-                        flexDirection: "column",
-                        height: "100%",
-                      }}
-                      onMouseEnter={(e) => {
-                        if (!isMobile) {
-                          e.currentTarget.style.transform = "translateY(-0.25rem)";
-                          e.currentTarget.style.boxShadow = "0 0.375rem 0.75rem rgba(0,0,0,0.15)";
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        if (!isMobile) {
-                          e.currentTarget.style.transform = "translateY(0)";
-                          e.currentTarget.style.boxShadow = "0 0.0625rem 0.375rem rgba(0,0,0,0.07)";
-                        }
-                      }}
-                    >
-                      <Link
-                        to={`/allProducts/${product.categories && product.categories[0] ? product.categories[0] : ''}`}
-                        style={{
-                          width: "100%",
-                          aspectRatio: "4/3",
-                          overflow: "hidden",
-                          display: "block",
-                          textDecoration: "none",
-                          flexShrink: 0,
-                        }}
-                      >
-                        <img
-                          src={product.images[0] || "https://via.placeholder.com/300"}
-                          alt={product.name}
-                          style={{
-                            width: "100%",
-                            height: "100%",
-                            objectFit: "contain",
-                            display: "block",
-                            backgroundColor: "#f9f9f9",
-                          }}
-                        />
-                      </Link>
-
+                {/* First Row */}
+                <div style={{ 
+                  display: "grid", 
+                  gridTemplateColumns: isMobile ? "1fr" : "repeat(5, 1fr)", 
+                  gap: isMobile ? "1rem" : "1.25rem" 
+                }}>
+                  {products
+                    .slice(slideIndex * productsPerSlide, slideIndex * productsPerSlide + (isMobile ? 1 : 5))
+                    .map((product) => (
                       <div
+                        key={product._id}
                         style={{
-                          padding: "0.75rem",
-                          borderTop: "0.0625rem solid #eee",
-                          textAlign: "center",
-                          flex: 1,
+                          backgroundColor: "#fff",
+                          borderRadius: "0.375rem",
+                          overflow: "hidden",
+                          boxShadow: "0 0.0625rem 0.375rem rgba(0,0,0,0.07)",
+                          transition: "transform 0.2s ease, box-shadow 0.2s ease",
+                          cursor: "pointer",
                           display: "flex",
                           flexDirection: "column",
-                          justifyContent: "flex-start",
-                          gap: "0.5rem",
+                          height: "100%",
+                        }}
+                        onMouseEnter={(e) => {
+                          if (!isMobile) {
+                            e.currentTarget.style.transform = "translateY(-0.25rem)";
+                            e.currentTarget.style.boxShadow = "0 0.375rem 0.75rem rgba(0,0,0,0.15)";
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          if (!isMobile) {
+                            e.currentTarget.style.transform = "translateY(0)";
+                            e.currentTarget.style.boxShadow = "0 0.0625rem 0.375rem rgba(0,0,0,0.07)";
+                          }
                         }}
                       >
                         <Link
                           to={`/allProducts/${product.categories && product.categories[0] ? product.categories[0] : ''}`}
                           style={{
-                            color: "#007abf",
-                            textDecoration: "none",
-                            fontWeight: "500",
-                            fontSize: "0.8rem",
-                            height: "2.4rem",
-                            overflow: "hidden",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            lineHeight: "1.2",
-                            wordWrap: "break-word",
-                            hyphens: "auto",
-                          }}
-                        >
-                          {product.name}
-                        </Link>
-                        
-                        <p 
-                          style={{ 
-                            fontSize: "0.875rem", 
-                            color: "#007abf",
-                            fontWeight: "600",
-                            margin: 0,
-                          }}
-                        >
-                          ${product.price}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-              </div>
-
-              {/* Second Row */}
-              <div style={{ 
-                display: "grid", 
-                gridTemplateColumns: isMobile ? "1fr" : "repeat(5, 1fr)", 
-                gap: isMobile ? "1rem" : "1.25rem" 
-              }}>
-                {products
-                  .slice(
-                    slideIndex * productsPerSlide + (isMobile ? 1 : 5), 
-                    slideIndex * productsPerSlide + productsPerSlide
-                  )
-                  .map((product) => (
-                    <div
-                      key={product._id}
-                      style={{
-                        backgroundColor: "#fff",
-                        borderRadius: "0.375rem",
-                        overflow: "hidden",
-                        boxShadow: "0 0.0625rem 0.375rem rgba(0,0,0,0.07)",
-                        transition: "transform 0.2s ease, box-shadow 0.2s ease",
-                        cursor: "pointer",
-                        display: "flex",
-                        flexDirection: "column",
-                        height: "100%",
-                      }}
-                      onMouseEnter={(e) => {
-                        if (!isMobile) {
-                          e.currentTarget.style.transform = "translateY(-0.25rem)";
-                          e.currentTarget.style.boxShadow = "0 0.375rem 0.75rem rgba(0,0,0,0.15)";
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        if (!isMobile) {
-                          e.currentTarget.style.transform = "translateY(0)";
-                          e.currentTarget.style.boxShadow = "0 0.0625rem 0.375rem rgba(0,0,0,0.07)";
-                        }
-                      }}
-                    >
-                      <Link
-                        to={`/allProducts/${product.categories && product.categories[0] ? product.categories[0] : ''}`}
-                        style={{
-                          width: "100%",
-                          aspectRatio: "4/3",
-                          overflow: "hidden",
-                          display: "block",
-                          textDecoration: "none",
-                          flexShrink: 0,
-                        }}
-                      >
-                        <img
-                          src={product.images[0] || "https://via.placeholder.com/300"}
-                          alt={product.name}
-                          style={{
                             width: "100%",
-                            height: "100%",
-                            objectFit: "contain",
+                            aspectRatio: "4/3",
+                            overflow: "hidden",
                             display: "block",
-                            backgroundColor: "#f9f9f9",
+                            textDecoration: "none",
+                            flexShrink: 0,
                           }}
-                        />
-                      </Link>
+                        >
+                          <img
+                            src={product.images[0] || "https://via.placeholder.com/300"}
+                            alt={product.name}
+                            style={{
+                              width: "100%",
+                              height: "100%",
+                              objectFit: "contain",
+                              display: "block",
+                              backgroundColor: "#f9f9f9",
+                            }}
+                          />
+                        </Link>
 
+                        <div
+                          style={{
+                            padding: "0.75rem",
+                            borderTop: "0.0625rem solid #eee",
+                            textAlign: "center",
+                            flex: 1,
+                            display: "flex",
+                            flexDirection: "column",
+                            justifyContent: "flex-start",
+                            gap: "0.5rem",
+                          }}
+                        >
+                          <Link
+                            to={`/allProducts/${product.categories && product.categories[0] ? product.categories[0] : ''}`}
+                            style={{
+                              color: "#007abf",
+                              textDecoration: "none",
+                              fontWeight: "500",
+                              fontSize: "0.8rem",
+                              height: "2.4rem",
+                              overflow: "hidden",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              lineHeight: "1.2",
+                              wordWrap: "break-word",
+                              hyphens: "auto",
+                            }}
+                          >
+                            {product.name}
+                          </Link>
+                          
+                          <p 
+                            style={{ 
+                              fontSize: "0.875rem", 
+                              color: "#007abf",
+                              fontWeight: "600",
+                              margin: 0,
+                            }}
+                          >
+                            ${product.price}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                </div>
+
+                {/* Second Row */}
+                <div style={{ 
+                  display: "grid", 
+                  gridTemplateColumns: isMobile ? "1fr" : "repeat(5, 1fr)", 
+                  gap: isMobile ? "1rem" : "1.25rem" 
+                }}>
+                  {products
+                    .slice(
+                      slideIndex * productsPerSlide + (isMobile ? 1 : 5), 
+                      slideIndex * productsPerSlide + productsPerSlide
+                    )
+                    .map((product) => (
                       <div
+                        key={product._id}
                         style={{
-                          padding: "0.75rem",
-                          borderTop: "0.0625rem solid #eee",
-                          textAlign: "center",
-                          flex: 1,
+                          backgroundColor: "#fff",
+                          borderRadius: "0.375rem",
+                          overflow: "hidden",
+                          boxShadow: "0 0.0625rem 0.375rem rgba(0,0,0,0.07)",
+                          transition: "transform 0.2s ease, box-shadow 0.2s ease",
+                          cursor: "pointer",
                           display: "flex",
                           flexDirection: "column",
-                          justifyContent: "flex-start",
-                          gap: "0.5rem",
+                          height: "100%",
+                        }}
+                        onMouseEnter={(e) => {
+                          if (!isMobile) {
+                            e.currentTarget.style.transform = "translateY(-0.25rem)";
+                            e.currentTarget.style.boxShadow = "0 0.375rem 0.75rem rgba(0,0,0,0.15)";
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          if (!isMobile) {
+                            e.currentTarget.style.transform = "translateY(0)";
+                            e.currentTarget.style.boxShadow = "0 0.0625rem 0.375rem rgba(0,0,0,0.07)";
+                          }
                         }}
                       >
                         <Link
                           to={`/allProducts/${product.categories && product.categories[0] ? product.categories[0] : ''}`}
                           style={{
-                            color: "#007abf",
-                            textDecoration: "none",
-                            fontWeight: "500",
-                            fontSize: "0.8rem",
-                            height: "2.4rem",
+                            width: "100%",
+                            aspectRatio: "4/3",
                             overflow: "hidden",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            lineHeight: "1.2",
-                            wordWrap: "break-word",
-                            hyphens: "auto",
+                            display: "block",
+                            textDecoration: "none",
+                            flexShrink: 0,
                           }}
                         >
-                          {product.name}
+                          <img
+                            src={product.images[0] || "https://via.placeholder.com/300"}
+                            alt={product.name}
+                            style={{
+                              width: "100%",
+                              height: "100%",
+                              objectFit: "contain",
+                              display: "block",
+                              backgroundColor: "#f9f9f9",
+                            }}
+                          />
                         </Link>
-                        
-                        <p 
-                          style={{ 
-                            fontSize: "0.875rem", 
-                            color: "#007abf",
-                            fontWeight: "600",
-                            margin: 0,
+
+                        <div
+                          style={{
+                            padding: "0.75rem",
+                            borderTop: "0.0625rem solid #eee",
+                            textAlign: "center",
+                            flex: 1,
+                            display: "flex",
+                            flexDirection: "column",
+                            justifyContent: "flex-start",
+                            gap: "0.5rem",
                           }}
                         >
-                          ${product.price}
-                        </p>
+                          <Link
+                            to={`/allProducts/${product.categories && product.categories[0] ? product.categories[0] : ''}`}
+                            style={{
+                              color: "#007abf",
+                              textDecoration: "none",
+                              fontWeight: "500",
+                              fontSize: "0.8rem",
+                              height: "2.4rem",
+                              overflow: "hidden",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              lineHeight: "1.2",
+                              wordWrap: "break-word",
+                              hyphens: "auto",
+                            }}
+                          >
+                            {product.name}
+                          </Link>
+                          
+                          <p 
+                            style={{ 
+                              fontSize: "0.875rem", 
+                              color: "#007abf",
+                              fontWeight: "600",
+                              margin: 0,
+                            }}
+                          >
+                            ${product.price}
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
+
+      <button
+        onClick={handleNext}
+        disabled={currentIndex === maxIndex}
+        style={{
+          position: "absolute",
+          right: isMobile ? "-2.5rem" : "-3.75rem",
+          top: "50%",
+          transform: "translateY(-50%)",
+          backgroundColor: "#fff",
+          border: "0.0625rem solid #ddd",
+          borderRadius: "50%",
+          width: isMobile ? "2rem" : "2.5rem",
+          height: isMobile ? "2rem" : "2.5rem",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          cursor: currentIndex === maxIndex ? "not-allowed" : "pointer",
+          opacity: currentIndex === maxIndex ? 0.5 : 1,
+          transition: "all 0.2s ease",
+          boxShadow: "0 0.125rem 0.5rem rgba(0,0,0,0.1)",
+          zIndex: 10,
+        }}
+        onMouseEnter={(e) => {
+          if (currentIndex !== maxIndex) {
+            e.currentTarget.style.backgroundColor = "#007abf";
+            e.currentTarget.style.borderColor = "#007abf";
+            e.currentTarget.style.transform = "translateY(-50%) scale(1.1)";
+          }
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.backgroundColor = "#fff";
+          e.currentTarget.style.borderColor = "#ddd";
+          e.currentTarget.style.transform = "translateY(-50%) scale(1)";
+        }}
+      >
+        <ChevronRight size={isMobile ? 16 : 20} color={currentIndex === maxIndex ? "#ccc" : "#007abf"} />
+      </button>
     </div>
 
-    <button
-      onClick={handleNext}
-      disabled={currentIndex === maxIndex}
-      style={{
-        position: "absolute",
-        right: isMobile ? "0" : "-2.5rem",
-        top: "50%",
-        transform: "translateY(-50%)",
-        backgroundColor: "#fff",
-        border: "0.0625rem solid #ddd",
-        borderRadius: "50%",
-        width: isMobile ? "2rem" : "2.5rem",
-        height: isMobile ? "2rem" : "2.5rem",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        cursor: currentIndex === maxIndex ? "not-allowed" : "pointer",
-        opacity: currentIndex === maxIndex ? 0.5 : 1,
-        transition: "all 0.2s ease",
-        boxShadow: "0 0.125rem 0.5rem rgba(0,0,0,0.1)",
-        zIndex: 10,
-      }}
-      onMouseEnter={(e) => {
-        if (currentIndex !== maxIndex) {
-          e.currentTarget.style.backgroundColor = "#007abf";
-          e.currentTarget.style.borderColor = "#007abf";
-          e.currentTarget.style.transform = "translateY(-50%) scale(1.1)";
-        }
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.backgroundColor = "#fff";
-        e.currentTarget.style.borderColor = "#ddd";
-        e.currentTarget.style.transform = "translateY(-50%) scale(1)";
-      }}
-    >
-      <ChevronRight size={isMobile ? 16 : 20} color={currentIndex === maxIndex ? "#ccc" : "#007abf"} />
-    </button>
-  </div>
-
-  <div style={{ 
-    display: "flex", 
-    justifyContent: "center", 
-    gap: "0.5rem", 
-    marginTop: "1.5rem" 
-  }}>
-    {Array.from({ length: maxIndex + 1 }).map((_, index) => (
-      <button
-        key={index}
-        onClick={() => setCurrentIndex(index)}
-        style={{
-          width: isMobile ? "0.5rem" : "0.625rem",
-          height: isMobile ? "0.5rem" : "0.625rem",
-          borderRadius: "50%",
-          border: "none",
-          backgroundColor: currentIndex === index ? "#007abf" : "#ddd",
-          cursor: "pointer",
-          transition: "all 0.3s ease",
-        }}
-        aria-label={`Go to slide ${index + 1}`}
-      />
-    ))}
+    <div style={{ 
+      display: "flex", 
+      justifyContent: "center", 
+      gap: "0.5rem", 
+      marginTop: "1.5rem" 
+    }}>
+      {Array.from({ length: maxIndex + 1 }).map((_, index) => (
+        <button
+          key={index}
+          onClick={() => setCurrentIndex(index)}
+          style={{
+            width: isMobile ? "0.5rem" : "0.625rem",
+            height: isMobile ? "0.5rem" : "0.625rem",
+            borderRadius: "50%",
+            border: "none",
+            backgroundColor: currentIndex === index ? "#007abf" : "#ddd",
+            cursor: "pointer",
+            transition: "all 0.3s ease",
+          }}
+          aria-label={`Go to slide ${index + 1}`}
+        />
+      ))}
+    </div>
   </div>
 </section>
+
+
 
 
 
@@ -856,324 +885,640 @@ return (
 
 
 {/* Personalized Gifts Section - Mobile Responsive */}
- <section style={{ 
-  backgroundColor: "#f5f8f6", 
-  padding: "3rem 0 4rem", 
-  textAlign: "center",
+<section style={{ 
+  backgroundColor: "#f5f8f6",
   width: "100%",
-  margin: "0"
+  margin: "0",
+  padding: "0",
+  boxSizing: "border-box",
 }}>
-<style>{`
-  .section-container-wrapper {
-    padding: 0 1rem;
-  }
-  
-  @media (min-width: 768px) {
-    .section-container-wrapper {
-      padding: 0 2rem;
-    }
-  }
-  
-  @media (min-width: 1024px) {
-    .section-container-wrapper {
-      padding: 0 4rem;
-    }
-  }
-  
-  @media (min-width: 1280px) {
-    .section-container-wrapper {
-      padding: 0 6rem;
-    }
-  }
+  {/* Outer centered container - matches Header structure */}
+  <div style={{
+    maxWidth: "1440px",
+    margin: "0 auto",
+    width: "100%",
+    boxSizing: "border-box",
+  }}>
+    {/* Inner padding wrapper - matches Header padding */}
+    <div style={{
+      paddingLeft: getPadding(),
+      paddingRight: getPadding(),
+      paddingTop: windowWidth < 1050 ? '1.5rem' : '1.875rem',
+      paddingBottom: windowWidth < 1050 ? '2rem' : '2.5rem',
+      boxSizing: "border-box",
+      textAlign: "center",
+    }}>
+      <h2
+        style={{
+          fontSize: windowWidth < 768 ? "1.5rem" : "2rem",
+          marginBottom: "0.75rem",
+          fontWeight: "700",
+          color: "#111",
+          position: "relative",
+          display: "inline-block",
+          paddingBottom: "0.75rem",
+        }}
+      >
+        Personalized Gifts
+        <span
+          style={{
+            position: "absolute",
+            left: "50%",
+            bottom: "0",
+            transform: "translateX(-50%)",
+            width: "3.75rem",
+            height: "0.25rem",
+            backgroundColor: "#007abf",
+            borderRadius: "0.125rem",
+          }}
+        ></span>
+      </h2>
 
-  .section-title-responsive {
-    font-size: 2rem;
-    margin-bottom: 0.75rem;
-    font-weight: 700;
-    color: #111;
-  }
+      <p
+        style={{
+          fontSize: windowWidth < 768 ? "0.9375rem" : "1.0625rem",
+          color: "#555",
+          marginBottom: windowWidth < 768 ? "1.875rem" : "3.125rem",
+          maxWidth: windowWidth < 768 ? "100%" : "43.75rem",
+          marginInline: "auto",
+          lineHeight: "1.6",
+          padding: "0",
+        }}
+      >
+        Make every occasion special with personalized gifts designed to create lasting memories.
+      </p>
 
-  @media (min-width: 768px) {
-    .section-title-responsive {
-      font-size: 2.5rem;
-    }
-  }
-  
-  @media (min-width: 1024px) {
-    .section-title-responsive {
-      font-size: 3rem;
-    }
-  }
+      <div
+        style={{
+          width: "100%",
+          position: "relative",
+          boxSizing: "border-box",
+        }}
+      >
+        <div style={{ 
+          display: "flex", 
+          flexDirection: "column", 
+          gap: windowWidth < 768 ? "1rem" : "1.25rem" 
+        }}>
+          {/* First Row */}
+          <div style={{ 
+            display: "grid", 
+            gridTemplateColumns: windowWidth < 640 
+              ? "1fr" 
+              : windowWidth < 1024 
+              ? "repeat(2, 1fr)" 
+              : windowWidth < 1280
+              ? "repeat(4, 1fr)"
+              : "repeat(5, 1fr)", 
+            gap: windowWidth < 768 ? "1rem" : "1.25rem" 
+          }}>
+            {products
+              .filter((product) => {
+                const category = typeof product.category === "string" ? product.category.toLowerCase() : "";
+                const name = typeof product.name === "string" ? product.name.toLowerCase() : "";
+                return category.includes("photoframe") || name.includes("photo frame") || name.includes("mugs");
+              })
+              .slice(0, windowWidth < 640 ? 1 : windowWidth < 1024 ? 2 : windowWidth < 1280 ? 4 : 5)
+              .map((product) => (
+                <div
+                  key={product._id}
+                  style={{
+                    backgroundColor: "#fff",
+                    borderRadius: "0.375rem",
+                    overflow: "hidden",
+                    boxShadow: "0 0.0625rem 0.375rem rgba(0,0,0,0.07)",
+                    transition: "transform 0.2s ease, box-shadow 0.2s ease",
+                    cursor: "pointer",
+                    display: "flex",
+                    flexDirection: "column",
+                    height: "100%",
+                  }}
+                  onMouseEnter={(e) => {
+                    if (windowWidth >= 768) {
+                      e.currentTarget.style.transform = "translateY(-0.25rem)";
+                      e.currentTarget.style.boxShadow = "0 0.375rem 0.75rem rgba(0,0,0,0.15)";
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (windowWidth >= 768) {
+                      e.currentTarget.style.transform = "translateY(0)";
+                      e.currentTarget.style.boxShadow = "0 0.0625rem 0.375rem rgba(0,0,0,0.07)";
+                    }
+                  }}
+                >
+                  <Link
+                    to={`/product/${product._id}`}
+                    style={{
+                      width: "100%",
+                      aspectRatio: "4/3",
+                      overflow: "hidden",
+                      display: "block",
+                      textDecoration: "none",
+                      flexShrink: 0,
+                    }}
+                  >
+                    <img
+                      src={product.images[0] || "https://via.placeholder.com/300"}
+                      alt={product.name}
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "contain",
+                        display: "block",
+                        backgroundColor: "#f9f9f9",
+                      }}
+                    />
+                  </Link>
 
-  .section-description-responsive {
-    font-size: 1rem;
-    color: #555;
-    margin-bottom: 3rem;
-    max-width: 43.75rem;
-    margin-inline: auto;
-    line-height: 1.6;
-    padding: 0 1rem;
-  }
-
-  @media (min-width: 768px) {
-    .section-description-responsive {
-      font-size: 1.0625rem;
-      margin-bottom: 3.125rem;
-    }
-  }
-  
-  @media (min-width: 1024px) {
-    .section-description-responsive {
-      font-size: 1.125rem;
-      padding: 0;
-    }
-  }
-
-  .products-container-responsive {
-    max-width: 100%;
-    margin: 0 auto;
-    padding: 0;
-  }
-
-  .products-grid-responsive {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 0.75rem;
-  }
-
-  @media (min-width: 480px) {
-    .products-grid-responsive {
-      gap: 1rem;
-    }
-  }
-
-  @media (min-width: 768px) {
-    .products-grid-responsive {
-      grid-template-columns: repeat(3, 1fr);
-      gap: 1.25rem;
-    }
-  }
-
-  @media (min-width: 1024px) {
-    .products-grid-responsive {
-      grid-template-columns: repeat(4, 1fr);
-      gap: 1.5rem;
-    }
-  }
-
-  @media (min-width: 1280px) {
-    .products-grid-responsive {
-      grid-template-columns: repeat(5, 1fr);
-    }
-  }
-
-  .product-card-responsive {
-    background-color: #fff;
-    border-radius: 0.5rem;
-    overflow: hidden;
-    box-shadow: 0 0.125rem 0.5rem rgba(0,0,0,0.07);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-  }
-
-  .product-card-responsive:hover {
-    transform: translateY(-0.25rem);
-    box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.12);
-  }
-
-  .product-info-responsive {
-    padding: 0.75rem 0.5rem;
-    border-top: 0.0625rem solid #eee;
-    text-align: center;
-  }
-
-  @media (min-width: 768px) {
-    .product-info-responsive {
-      padding: 1rem 0.75rem;
-    }
-  }
-
-  .product-name-responsive {
-    color: #007abf;
-    text-decoration: none;
-    font-weight: 500;
-    font-size: 0.875rem;
-    display: block;
-    margin-bottom: 0.375rem;
-    line-height: 1.3;
-  }
-
-  @media (min-width: 768px) {
-    .product-name-responsive {
-      font-size: 0.9375rem;
-    }
-  }
-  
-  @media (min-width: 1024px) {
-    .product-name-responsive {
-      font-size: 1rem;
-    }
-  }
-
-  .product-name-responsive:hover {
-    text-decoration: underline;
-  }
-
-  .product-price-responsive {
-    font-size: 0.8125rem;
-    color: #444;
-    margin: 0;
-    font-weight: 600;
-  }
-
-  @media (min-width: 768px) {
-    .product-price-responsive {
-      font-size: 0.875rem;
-    }
-  }
-  
-  @media (min-width: 1024px) {
-    .product-price-responsive {
-      font-size: 0.9375rem;
-    }
-  }
-`}</style>
-<div className="section-container-wrapper">
-  <h2 className="section-title-responsive">
-    Personalized Gifts
-  </h2>
-  <p className="section-description-responsive">
-    Make every occasion special with personalized gifts designed to create
-    lasting memories.
-  </p>
-  <div className="products-container-responsive">
-    <div className="products-grid-responsive">
-      {products
-        .filter((product) => {
-          const category =
-            typeof product.category === "string"
-              ? product.category.toLowerCase()
-              : "";
-          const name =
-            typeof product.name === "string"
-              ? product.name.toLowerCase()
-              : "";
-          return category.includes("photoframe") || name.includes("photo frame") || name.includes("mugs");
-        })
-        .slice(0, 8)
-        .map((gift) => (
-          <div key={gift._id} className="product-card-responsive">
-            <Link
-              to={`/product/${gift._id}`}
-              style={{
-                width: "100%",
-                aspectRatio: "4/3",
-                overflow: "hidden",
-                display: "block",
-              }}
-            >
-              <img
-                src={gift.images[0] || "https://via.placeholder.com/300"}
-                alt={gift.name}
-                style={{
-                  width: "100%",
-                  height: "100%",
-                  objectFit: "contain",
-                  display: "block",
-                  backgroundColor: "#f9f9f9",
-                }}
-              />
-            </Link>
-
-            <div className="product-info-responsive">
-              <Link
-                to={`/product/${gift._id}`}
-                className="product-name-responsive"
-              >
-                {gift.name}
-              </Link>
-              <p className="product-price-responsive">
-                ${gift.price}
-              </p>
-            </div>
+                  <div
+                    style={{
+                      padding: "0.75rem",
+                      borderTop: "0.0625rem solid #eee",
+                      textAlign: "center",
+                      flex: 1,
+                      display: "flex",
+                      flexDirection: "column",
+                      justifyContent: "flex-start",
+                      gap: "0.5rem",
+                    }}
+                  >
+                    <Link
+                      to={`/product/${product._id}`}
+                      style={{
+                        color: "#007abf",
+                        textDecoration: "none",
+                        fontWeight: "500",
+                        fontSize: "0.8rem",
+                        height: "2.4rem",
+                        overflow: "hidden",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        lineHeight: "1.2",
+                        wordWrap: "break-word",
+                        hyphens: "auto",
+                      }}
+                    >
+                      {product.name}
+                    </Link>
+                    
+                    <p 
+                      style={{ 
+                        fontSize: "0.875rem", 
+                        color: "#007abf",
+                        fontWeight: "600",
+                        margin: 0,
+                      }}
+                    >
+                      ${product.price}
+                    </p>
+                  </div>
+                </div>
+              ))}
           </div>
-        ))}
+
+          {/* Second Row */}
+          <div style={{ 
+            display: "grid", 
+            gridTemplateColumns: windowWidth < 640 
+              ? "1fr" 
+              : windowWidth < 1024 
+              ? "repeat(2, 1fr)" 
+              : windowWidth < 1280
+              ? "repeat(4, 1fr)"
+              : "repeat(5, 1fr)", 
+            gap: windowWidth < 768 ? "1rem" : "1.25rem" 
+          }}>
+            {products
+              .filter((product) => {
+                const category = typeof product.category === "string" ? product.category.toLowerCase() : "";
+                const name = typeof product.name === "string" ? product.name.toLowerCase() : "";
+                return category.includes("photoframe") || name.includes("photo frame") || name.includes("mugs");
+              })
+              .slice(
+                windowWidth < 640 ? 1 : windowWidth < 1024 ? 2 : windowWidth < 1280 ? 4 : 5,
+                windowWidth < 640 ? 2 : windowWidth < 1024 ? 4 : 8
+              )
+              .map((product) => (
+                <div
+                  key={product._id}
+                  style={{
+                    backgroundColor: "#fff",
+                    borderRadius: "0.375rem",
+                    overflow: "hidden",
+                    boxShadow: "0 0.0625rem 0.375rem rgba(0,0,0,0.07)",
+                    transition: "transform 0.2s ease, box-shadow 0.2s ease",
+                    cursor: "pointer",
+                    display: "flex",
+                    flexDirection: "column",
+                    height: "100%",
+                  }}
+                  onMouseEnter={(e) => {
+                    if (windowWidth >= 768) {
+                      e.currentTarget.style.transform = "translateY(-0.25rem)";
+                      e.currentTarget.style.boxShadow = "0 0.375rem 0.75rem rgba(0,0,0,0.15)";
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (windowWidth >= 768) {
+                      e.currentTarget.style.transform = "translateY(0)";
+                      e.currentTarget.style.boxShadow = "0 0.0625rem 0.375rem rgba(0,0,0,0.07)";
+                    }
+                  }}
+                >
+                  <Link
+                    to={`/product/${product._id}`}
+                    style={{
+                      width: "100%",
+                      aspectRatio: "4/3",
+                      overflow: "hidden",
+                      display: "block",
+                      textDecoration: "none",
+                      flexShrink: 0,
+                    }}
+                  >
+                    <img
+                      src={product.images[0] || "https://via.placeholder.com/300"}
+                      alt={product.name}
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "contain",
+                        display: "block",
+                        backgroundColor: "#f9f9f9",
+                      }}
+                    />
+                  </Link>
+
+                  <div
+                    style={{
+                      padding: "0.75rem",
+                      borderTop: "0.0625rem solid #eee",
+                      textAlign: "center",
+                      flex: 1,
+                      display: "flex",
+                      flexDirection: "column",
+                      justifyContent: "flex-start",
+                      gap: "0.5rem",
+                    }}
+                  >
+                    <Link
+                      to={`/product/${product._id}`}
+                      style={{
+                        color: "#007abf",
+                        textDecoration: "none",
+                        fontWeight: "500",
+                        fontSize: "0.8rem",
+                        height: "2.4rem",
+                        overflow: "hidden",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        lineHeight: "1.2",
+                        wordWrap: "break-word",
+                        hyphens: "auto",
+                      }}
+                    >
+                      {product.name}
+                    </Link>
+                    
+                    <p 
+                      style={{ 
+                        fontSize: "0.875rem", 
+                        color: "#007abf",
+                        fontWeight: "600",
+                        margin: 0,
+                      }}
+                    >
+                      ${product.price}
+                    </p>
+                  </div>
+                </div>
+              ))}
+          </div>
+        </div>
+      </div>
     </div>
-  </div>
   </div>
 </section>
 
 {/* Flyers Section - Mobile Responsive */}
 <section style={{ 
-  backgroundColor: "#f5f8f6", 
-  padding: "3rem 0 4rem", 
-  textAlign: "center",
+  backgroundColor: "#f5f8f6",
   width: "100%",
-  margin: "0"
+  margin: "0",
+  padding: "0",
+  boxSizing: "border-box",
 }}>
-  <div className="section-container-wrapper">
-    <h2 className="section-title-responsive">
-    Our Flyers
-  </h2>
-  <p className="section-description-responsive">
-    Showcase your business with professional, eye-catching flyers designed to
-    leave a lasting impression.
-  </p>
-  <div className="products-container-responsive">
-    <div className="products-grid-responsive">
-      {products
-        .filter((product) => {
-          const category =
-            typeof product.category === "string"
-              ? product.category.toLowerCase()
-              : "";
-          const name =
-            typeof product.name === "string"
-              ? product.name.toLowerCase()
-              : "";
-          return category.includes("flyer") || name.includes("flyer");
-        })
-        .slice(0, 8)
-        .map((flyer) => (
-          <div key={flyer._id} className="product-card-responsive">
-            <Link
-              to={`/product/${flyer._id}`}
-              style={{
-                width: "100%",
-                aspectRatio: "4/3",
-                overflow: "hidden",
-                display: "block",
-              }}
-            >
-              <img
-                src={flyer.images[0] || "https://via.placeholder.com/300"}
-                alt={flyer.name}
-                style={{
-                  width: "100%",
-                  height: "100%",
-                  objectFit: "contain",
-                  display: "block",
-                  backgroundColor: "#f9f9f9",
-                }}
-              />
-            </Link>
+  {/* Outer centered container - matches Header structure */}
+  <div style={{
+    maxWidth: "1440px",
+    margin: "0 auto",
+    width: "100%",
+    boxSizing: "border-box",
+  }}>
+    {/* Inner padding wrapper - matches Header padding */}
+    <div style={{
+      paddingLeft: getPadding(),
+      paddingRight: getPadding(),
+      paddingTop: windowWidth < 1050 ? '1.5rem' : '1.875rem',
+      paddingBottom: windowWidth < 1050 ? '2rem' : '2.5rem',
+      boxSizing: "border-box",
+      textAlign: "center",
+    }}>
+      <h2
+        style={{
+          fontSize: windowWidth < 768 ? "1.5rem" : "2rem",
+          marginBottom: "0.75rem",
+          fontWeight: "700",
+          color: "#111",
+          position: "relative",
+          display: "inline-block",
+          paddingBottom: "0.75rem",
+        }}
+      >
+        Our Flyers
+        <span
+          style={{
+            position: "absolute",
+            left: "50%",
+            bottom: "0",
+            transform: "translateX(-50%)",
+            width: "3.75rem",
+            height: "0.25rem",
+            backgroundColor: "#007abf",
+            borderRadius: "0.125rem",
+          }}
+        ></span>
+      </h2>
 
-            <div className="product-info-responsive">
-              <Link
-                to={`/product/${flyer._id}`}
-                className="product-name-responsive"
-              >
-                {flyer.name}
-              </Link>
-              <p className="product-price-responsive">
-                ${flyer.price}
-              </p>
-            </div>
+      <p
+        style={{
+          fontSize: windowWidth < 768 ? "0.9375rem" : "1.0625rem",
+          color: "#555",
+          marginBottom: windowWidth < 768 ? "1.875rem" : "3.125rem",
+          maxWidth: windowWidth < 768 ? "100%" : "43.75rem",
+          marginInline: "auto",
+          lineHeight: "1.6",
+          padding: "0",
+        }}
+      >
+        Showcase your business with professional, eye-catching flyers designed to leave a lasting impression.
+      </p>
+
+      <div
+        style={{
+          width: "100%",
+          position: "relative",
+          boxSizing: "border-box",
+        }}
+      >
+        <div style={{ 
+          display: "flex", 
+          flexDirection: "column", 
+          gap: windowWidth < 768 ? "1rem" : "1.25rem" 
+        }}>
+          {/* First Row */}
+          <div style={{ 
+            display: "grid", 
+            gridTemplateColumns: windowWidth < 640 
+              ? "1fr" 
+              : windowWidth < 1024 
+              ? "repeat(2, 1fr)" 
+              : windowWidth < 1280
+              ? "repeat(4, 1fr)"
+              : "repeat(5, 1fr)", 
+            gap: windowWidth < 768 ? "1rem" : "1.25rem" 
+          }}>
+            {products
+              .filter((product) => {
+                const category = typeof product.category === "string" ? product.category.toLowerCase() : "";
+                const name = typeof product.name === "string" ? product.name.toLowerCase() : "";
+                return category.includes("flyer") || name.includes("flyer");
+              })
+              .slice(0, windowWidth < 640 ? 1 : windowWidth < 1024 ? 2 : windowWidth < 1280 ? 4 : 5)
+              .map((product) => (
+                <div
+                  key={product._id}
+                  style={{
+                    backgroundColor: "#fff",
+                    borderRadius: "0.375rem",
+                    overflow: "hidden",
+                    boxShadow: "0 0.0625rem 0.375rem rgba(0,0,0,0.07)",
+                    transition: "transform 0.2s ease, box-shadow 0.2s ease",
+                    cursor: "pointer",
+                    display: "flex",
+                    flexDirection: "column",
+                    height: "100%",
+                  }}
+                  onMouseEnter={(e) => {
+                    if (windowWidth >= 768) {
+                      e.currentTarget.style.transform = "translateY(-0.25rem)";
+                      e.currentTarget.style.boxShadow = "0 0.375rem 0.75rem rgba(0,0,0,0.15)";
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (windowWidth >= 768) {
+                      e.currentTarget.style.transform = "translateY(0)";
+                      e.currentTarget.style.boxShadow = "0 0.0625rem 0.375rem rgba(0,0,0,0.07)";
+                    }
+                  }}
+                >
+                  <Link
+                    to={`/product/${product._id}`}
+                    style={{
+                      width: "100%",
+                      aspectRatio: "4/3",
+                      overflow: "hidden",
+                      display: "block",
+                      textDecoration: "none",
+                      flexShrink: 0,
+                    }}
+                  >
+                    <img
+                      src={product.images[0] || "https://via.placeholder.com/300"}
+                      alt={product.name}
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "contain",
+                        display: "block",
+                        backgroundColor: "#f9f9f9",
+                      }}
+                    />
+                  </Link>
+
+                  <div
+                    style={{
+                      padding: "0.75rem",
+                      borderTop: "0.0625rem solid #eee",
+                      textAlign: "center",
+                      flex: 1,
+                      display: "flex",
+                      flexDirection: "column",
+                      justifyContent: "flex-start",
+                      gap: "0.5rem",
+                    }}
+                  >
+                    <Link
+                      to={`/product/${product._id}`}
+                      style={{
+                        color: "#007abf",
+                        textDecoration: "none",
+                        fontWeight: "500",
+                        fontSize: "0.8rem",
+                        height: "2.4rem",
+                        overflow: "hidden",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        lineHeight: "1.2",
+                        wordWrap: "break-word",
+                        hyphens: "auto",
+                      }}
+                    >
+                      {product.name}
+                    </Link>
+                    
+                    <p 
+                      style={{ 
+                        fontSize: "0.875rem", 
+                        color: "#007abf",
+                        fontWeight: "600",
+                        margin: 0,
+                      }}
+                    >
+                      ${product.price}
+                    </p>
+                  </div>
+                </div>
+              ))}
           </div>
-        ))}
+
+          {/* Second Row */}
+          <div style={{ 
+            display: "grid", 
+            gridTemplateColumns: windowWidth < 640 
+              ? "1fr" 
+              : windowWidth < 1024 
+              ? "repeat(2, 1fr)" 
+              : windowWidth < 1280
+              ? "repeat(4, 1fr)"
+              : "repeat(5, 1fr)", 
+            gap: windowWidth < 768 ? "1rem" : "1.25rem" 
+          }}>
+            {products
+              .filter((product) => {
+                const category = typeof product.category === "string" ? product.category.toLowerCase() : "";
+                const name = typeof product.name === "string" ? product.name.toLowerCase() : "";
+                return category.includes("flyer") || name.includes("flyer");
+              })
+              .slice(
+                windowWidth < 640 ? 1 : windowWidth < 1024 ? 2 : windowWidth < 1280 ? 4 : 5,
+                windowWidth < 640 ? 2 : windowWidth < 1024 ? 4 : 8
+              )
+              .map((product) => (
+                <div
+                  key={product._id}
+                  style={{
+                    backgroundColor: "#fff",
+                    borderRadius: "0.375rem",
+                    overflow: "hidden",
+                    boxShadow: "0 0.0625rem 0.375rem rgba(0,0,0,0.07)",
+                    transition: "transform 0.2s ease, box-shadow 0.2s ease",
+                    cursor: "pointer",
+                    display: "flex",
+                    flexDirection: "column",
+                    height: "100%",
+                  }}
+                  onMouseEnter={(e) => {
+                    if (windowWidth >= 768) {
+                      e.currentTarget.style.transform = "translateY(-0.25rem)";
+                      e.currentTarget.style.boxShadow = "0 0.375rem 0.75rem rgba(0,0,0,0.15)";
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (windowWidth >= 768) {
+                      e.currentTarget.style.transform = "translateY(0)";
+                      e.currentTarget.style.boxShadow = "0 0.0625rem 0.375rem rgba(0,0,0,0.07)";
+                    }
+                  }}
+                >
+                  <Link
+                    to={`/product/${product._id}`}
+                    style={{
+                      width: "100%",
+                      aspectRatio: "4/3",
+                      overflow: "hidden",
+                      display: "block",
+                      textDecoration: "none",
+                      flexShrink: 0,
+                    }}
+                  >
+                    <img
+                      src={product.images[0] || "https://via.placeholder.com/300"}
+                      alt={product.name}
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "contain",
+                        display: "block",
+                        backgroundColor: "#f9f9f9",
+                      }}
+                    />
+                  </Link>
+
+                  <div
+                    style={{
+                      padding: "0.75rem",
+                      borderTop: "0.0625rem solid #eee",
+                      textAlign: "center",
+                      flex: 1,
+                      display: "flex",
+                      flexDirection: "column",
+                      justifyContent: "flex-start",
+                      gap: "0.5rem",
+                    }}
+                  >
+                    <Link
+                      to={`/product/${product._id}`}
+                      style={{
+                        color: "#007abf",
+                        textDecoration: "none",
+                        fontWeight: "500",
+                        fontSize: "0.8rem",
+                        height: "2.4rem",
+                        overflow: "hidden",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        lineHeight: "1.2",
+                        wordWrap: "break-word",
+                        hyphens: "auto",
+                      }}
+                    >
+                      {product.name}
+                    </Link>
+                    
+                    <p 
+                      style={{ 
+                        fontSize: "0.875rem", 
+                        color: "#007abf",
+                        fontWeight: "600",
+                        margin: 0,
+                      }}
+                    >
+                      ${product.price}
+                    </p>
+                  </div>
+                </div>
+              ))}
+          </div>
+        </div>
+      </div>
     </div>
   </div>
-  </div>
-</section>
+  </section>
       {/* CTA Banner */}
       <section
   style={{
