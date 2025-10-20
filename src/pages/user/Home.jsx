@@ -326,7 +326,7 @@ const maxIndex = Math.ceil(products.length / productsPerSlide) - 1;
 
 
 return (
-    
+     <div style={{ backgroundColor: "#e6f2ff", width: "100%", minHeight: "100vh" }}>
     <div className="responsive-container"  >
       {/* <nav
         style={{
@@ -1698,7 +1698,7 @@ return (
 
 
     </div>
-
+</div>
 
   );
 };
