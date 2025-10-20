@@ -22,11 +22,37 @@ try {
 }
 
 export default function UploadDesign() {
+
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 1050);
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+
+  // Consolidated resize handler matching Header.jsx
+  useEffect(() => {
+    const handleResize = () => {
+      const width = window.innerWidth;
+      setWindowWidth(width);
+      setIsMobile(width < 1050);
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  // Responsive padding function (match HomeSlider.jsx pattern)
+  const getPadding = () => {
+    if (isMobile) return "1rem";
+    if (windowWidth < 1200) return "1.5rem";
+    return "2.5rem";
+  };
+
+  const padding = getPadding();
+
+
   const routeParams = useParams();
   const navigate = useNavigate();
   const location = useLocation();
   const param = new URLSearchParams(location.search);
   const productId = param.get("productId");
+
 
   // previews & files
   const [frontPreview, setFrontPreview] = useState(null);
@@ -66,6 +92,8 @@ export default function UploadDesign() {
     'application/x-indesign': '.indd',
     'application/octet-stream': '' // fallback for .ai, .psd, .indd
   };
+
+ 
 
   const params = new URLSearchParams(location.search);
   const designTypeFromQuery = params.get("designType") || "single";
@@ -623,12 +651,24 @@ export default function UploadDesign() {
         }
 
         .ud-container {
-          width:100%;
-          max-width:62%;
-          margin: 14px 15% 14px 18%;
-          padding: 12px;
-          box-sizing:border-box;
-          flex:1 0 auto;
+          width: 100%;
+          max-width: 1440px;
+          margin: 14px auto;
+          padding: 0 1rem;
+          box-sizing: border-box;
+          flex: 1 0 auto;
+        }
+
+        @media (min-width: 769px) and (max-width: 1199px) {
+          .ud-container {
+            padding: 0 1.5rem;
+          }
+        }
+
+        @media (min-width: 1200px) {
+          .ud-container {
+            padding: 0 2.5rem;
+          }
         }
 
         .ud-card {
@@ -708,7 +748,6 @@ export default function UploadDesign() {
 
         .preview-img { width:100%; height:160px; object-fit:contain; border-radius:8px; background:#f8fafc; display:block; }
 
-        /* File preview styles for non-images */
         .file-preview {
           display: flex;
           flex-direction: column;
@@ -764,7 +803,6 @@ export default function UploadDesign() {
         .ud-back { background:white; border:1px solid rgba(2,6,23,0.06); padding:10px 14px; border-radius:10px; cursor:pointer; font-weight:700; }
         .ud-submit { background: linear-gradient(90deg,#06b6d4,var(--blue-600)); color:white; border:none; padding:10px 14px; border-radius:10px; cursor:pointer; font-weight:800; }
 
-        /* Crop modal */
         .crop-overlay {
           position:fixed;
           inset:0;
@@ -821,14 +859,12 @@ export default function UploadDesign() {
 
         .crop-inputs { display: flex; flex-direction: column; gap: 12px; }
 
-        /* Desktop layout for crop */
         @media (min-width:880px) {
           .crop-body { flex-direction:row; }
           .crop-sidebar { width:300px; }
           .crop-area { min-height:420px; }
         }
 
-        /* small tweaks */
         @media (max-width:420px) {
           .ud-choose-btn, .ud-ghost-btn, .ud-back, .ud-submit { padding:10px 12px; border-radius:10px; font-size:14px; }
           .preview-img { height:140px; }

@@ -600,8 +600,8 @@ padding: windowWidth < 1200 ? "0 1.5rem" : "0 2.5rem",
   
      navLink: { 
   fontSize: windowWidth < 1200 ? "0.875rem" : "0.9375rem",
-  color: "#333",
-  fontWeight: "400", // Normal weight like MOO
+  color: "#0c0c0cff",
+  fontWeight: "600", // Normal weight like MOO
   textDecoration: "none", 
    padding: windowWidth < 1200 ? "0.75rem 1rem" : "0.875rem 1.5rem",
   display: "inline-block",

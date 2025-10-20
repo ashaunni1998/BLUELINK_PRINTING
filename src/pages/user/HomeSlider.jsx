@@ -136,15 +136,6 @@ export default function HomeSlider() {
 
   const padding = getPadding();
 
-  // Responsive content positioning
-  const getContentLeft = () => {
-    if (isMobile) return "1rem";
-    if (windowWidth < 1200) return "1.5rem";
-    return "2.5rem";
-  };
-
-  const contentLeft = getContentLeft();
-
   return (
     <>
       {/* Background Image Section - Full Width */}
@@ -163,133 +154,162 @@ export default function HomeSlider() {
           transition: "background-image 1s ease-in-out",
         }}
       >
-        {/* Arrows (hidden on mobile) */}
+        {/* Arrows and Content - Desktop Only */}
         {!isMobile && (
           <>
+            {/* Left Arrow */}
             <button
               onClick={goToPrev}
-              style={arrowButtonStyle("left")}
+              style={{
+                position: "absolute",
+                top: "50%",
+                left: "0.625rem",
+                transform: "translateY(-50%)",
+                backgroundColor: "rgba(0,0,0,0.5)",
+                color: "#fff",
+                border: "none",
+                padding: "0.625rem 0.9375rem",
+                fontSize: "0.9375rem",
+                cursor: "pointer",
+                borderRadius: "40%",
+                zIndex: 3,
+              }}
               aria-label="Previous Slide"
             >
               &#10094;
             </button>
+
+            {/* Slide Content Wrapper */}
+            <div
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                display: "flex",
+                alignItems: "center",
+                pointerEvents: "none",
+              }}
+            >
+              {/* Content Container */}
+              <div
+                style={{
+                  maxWidth: "1440px",
+                  width: "100%",
+                  margin: "0 auto",
+                  padding: `0 ${padding}`,
+                  boxSizing: "border-box",
+                  pointerEvents: "auto",
+                  display: "block",
+                }}
+              >
+                <div
+                  style={{
+                    color: "black",
+                    maxWidth: "31.25rem",
+                    textAlign: "left",
+                    marginLeft: windowWidth < 1200 ? "2rem" : "0",
+                  }}
+                >
+                  <h2 style={{ fontSize: "2rem", marginBottom: "0.9375rem" }}>
+                    {slide.title}
+                  </h2>
+                  <p style={{ fontSize: "1rem", marginBottom: "1.5625rem" }}>
+                    {slide.description}
+                  </p>
+                  <a href="/AllProducts">
+                    <button
+                      style={{
+                        padding: "0.3125rem 0.625rem",
+                        backgroundColor: "#007bff",
+                        color: "#fff",
+                        border: "none",
+                        borderRadius: "0.3125rem",
+                        fontSize: "1rem",
+                        cursor: "pointer",
+                        marginBottom: "0.9375rem",
+                      }}
+                    >
+                      View Our Products
+                    </button>
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            {/* Right Arrow */}
             <button
               onClick={goToNext}
-              style={arrowButtonStyle("right")}
+              style={{
+                position: "absolute",
+                top: "50%",
+                right: "0.625rem",
+                transform: "translateY(-50%)",
+                backgroundColor: "rgba(0,0,0,0.5)",
+                color: "#fff",
+                border: "none",
+                padding: "0.625rem 0.9375rem",
+                fontSize: "0.9375rem",
+                cursor: "pointer",
+                borderRadius: "40%",
+                zIndex: 3,
+              }}
               aria-label="Next Slide"
             >
               &#10095;
             </button>
-          </>
-        )}
 
-        {/* Slide Content Wrapper - Aligned with Header */}
-        <div
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            display: "flex",
-            alignItems: "center",
-            pointerEvents: "none",
-          }}
-        >
-          {/* Content Container - Matches Header layout */}
-          <div
-            style={{
-              maxWidth: "1440px",
-              width: "100%",
-              margin: "0 auto",
-              padding: `0 ${padding}`,
-              boxSizing: "border-box",
-              pointerEvents: "auto",
-              display: isMobile ? "none" : "block",
-            }}
-          >
+            {/* Progress Bars - Desktop Only */}
             <div
               style={{
-                color: "black",
-                maxWidth: "31.25rem",
-                textAlign: "left",
-              }}
-            >
-              <h2 style={{ fontSize: "2rem", marginBottom: "0.9375rem" }}>
-                {slide.title}
-              </h2>
-              <p style={{ fontSize: "1rem", marginBottom: "1.5625rem" }}>
-                {slide.description}
-              </p>
-              <a href="/AllProducts">
-                <button
-                  style={{
-                    padding: "0.3125rem 0.625rem",
-                    backgroundColor: "#007bff",
-                    color: "#fff",
-                    border: "none",
-                    borderRadius: "0.3125rem",
-                    fontSize: "1rem",
-                    cursor: "pointer",
-                    marginBottom: "0.9375rem",
-                  }}
-                >
-                  View Our Products
-                </button>
-              </a>
-            </div>
-          </div>
-        </div>
-
-        {/* Progress Bars - Desktop Only */}
-        {!isMobile && (
-          <div
-            style={{
-              position: "absolute",
-              bottom: "1.25rem",
-              left: 0,
-              right: 0,
-              display: "flex",
-              justifyContent: "flex-start",
-              padding: `0 ${padding}`,
-              boxSizing: "border-box",
-              maxWidth: "1440px",
-              margin: "0 auto",
-              width: "100%",
-            }}
-          >
-            <div
-              style={{
+                position: "absolute",
+                bottom: "1.25rem",
+                left: 0,
+                right: 0,
                 display: "flex",
-                gap: "0.375rem",
-                marginLeft: "0",
+                justifyContent: "center",
+                boxSizing: "border-box",
+                width: "100%",
               }}
             >
-              {homeSlides.map((_, index) => (
-                <div
-                  key={index}
-                  style={{
-                    height: "0.0625rem",
-                    backgroundColor: "#ddd",
-                    borderRadius: "0.625rem",
-                    overflow: "hidden",
-                    position: "relative",
-                    width: "3.125rem",
-                  }}
-                >
+              <div
+                style={{
+                  maxWidth: "1440px",
+                  width: "100%",
+                  padding: `0 ${padding}`,
+                  boxSizing: "border-box",
+                  display: "flex",
+                  gap: "0.375rem",
+                  marginLeft: windowWidth < 1200 ? "2rem" : "0",
+                }}
+              >
+                {homeSlides.map((_, index) => (
                   <div
+                    key={index}
                     style={{
-                      height: "100%",
-                      width: index === currentSlide ? "100%" : "0%",
-                      backgroundColor: "#333",
-                      transition:
-                        index === currentSlide ? "width 7s linear" : "none",
+                      height: "0.0625rem",
+                      backgroundColor: "#ddd",
+                      borderRadius: "0.625rem",
+                      overflow: "hidden",
+                      position: "relative",
+                      width: "3.125rem",
                     }}
-                  />
-                </div>
-              ))}
+                  >
+                    <div
+                      style={{
+                        height: "100%",
+                        width: index === currentSlide ? "100%" : "0%",
+                        backgroundColor: "#333",
+                        transition:
+                          index === currentSlide ? "width 7s linear" : "none",
+                      }}
+                    />
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
+          </>
         )}
       </section>
 
@@ -390,18 +410,3 @@ export default function HomeSlider() {
     </>
   );
 }
-
-const arrowButtonStyle = (side) => ({
-  position: "absolute",
-  top: "50%",
-  [side]: "1.25rem",
-  transform: "translateY(-50%)",
-  backgroundColor: "rgba(0,0,0,0.5)",
-  color: "#fff",
-  border: "none",
-  padding: "0.625rem 0.9375rem",
-  fontSize: "0.9375rem",
-  cursor: "pointer",
-  borderRadius: "40%",
-  zIndex: 2,
-});
