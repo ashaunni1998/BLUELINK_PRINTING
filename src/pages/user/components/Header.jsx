@@ -599,7 +599,7 @@ padding: windowWidth < 1200 ? "0 1.5rem" : "0 2.5rem",
   },
   
      navLink: { 
-  fontSize: windowWidth < 1200 ? "0.875rem" : "0.9375rem",
+  fontSize: windowWidth < 1200 ? "0.875rem" : "0.905rem",
   color: "#0c0c0cff",
   fontWeight: "600", // Normal weight like MOO
   textDecoration: "none", 

@@ -1061,8 +1061,14 @@ const handleApplyCoupon = async () => {
               value={newAddress.addressType || "Home"}
               onChange={(e) => setNewAddress({ ...newAddress, addressType: e.target.value })}
               className="select-pro"
+              disabled
+                 style={{ 
+      cursor: 'not-allowed', 
+      opacity: 0.6,
+      background: '#f3f4f6'
+    }}
             >
-              <option value="Home">Home</option>
+              <option value="Home">Null</option>
               <option value="Work">Work</option>
               <option value="Other">Other</option>
             </select>

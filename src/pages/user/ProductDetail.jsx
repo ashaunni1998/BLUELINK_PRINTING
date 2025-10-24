@@ -53,6 +53,7 @@ const [backPreview, setBackPreview] = useState(null);
 const [croppingSide, setCroppingSide] = useState(null); // "front" | "back"
 const [croppedImages, setCroppedImages] = useState({ front: null, back: null });
 
+  const [isSizeDropdownOpen, setIsSizeDropdownOpen] = useState(false);
 
 
 
@@ -246,6 +247,8 @@ const isMobile = useMediaQuery("(max-width: 768px)");
 
         const data = await res.json();
         const productData = data.data || data;
+
+        console.log("🧾 Product data structure:", JSON.stringify(productData, null, 2));
         setProduct(productData);
         if (productData.sizes?.length) setSelectedSize(productData.sizes[0].label);
         if (productData.finishes?.length) setSelectedFinish(productData.finishes[0].label);
@@ -694,10 +697,13 @@ const handlePrepareAndUpload = async () => {
       return;
     }
 
+    // Show loading state
+    console.log("🔄 Starting image preparation...");
+
     // Prepare canvas size and draw photo + frame + optional text
     const canvas = document.createElement("canvas");
     const outputW = 1200;
-    const outputH = 1200; // square output works better for your frame
+    const outputH = 1200;
     canvas.width = outputW;
     canvas.height = outputH;
     const ctx = canvas.getContext("2d");
@@ -706,12 +712,21 @@ const handlePrepareAndUpload = async () => {
     ctx.fillStyle = "#ffffff";
     ctx.fillRect(0, 0, outputW, outputH);
 
-    // load uploaded image
+    // Load uploaded image with better error handling
     const photo = await new Promise((resolve, reject) => {
       const img = new Image();
-      img.crossOrigin = "anonymous";
-      img.onload = () => resolve(img);
-      img.onerror = () => reject(new Error("Failed to load uploaded image"));
+      // Don't set crossOrigin for blob: URLs
+      if (!uploadedImage.startsWith('blob:')) {
+        img.crossOrigin = "anonymous";
+      }
+      img.onload = () => {
+        console.log("✅ Photo loaded successfully");
+        resolve(img);
+      };
+      img.onerror = (err) => {
+        console.error("❌ Failed to load uploaded image:", err);
+        reject(new Error("Failed to load uploaded image"));
+      };
       img.src = uploadedImage;
     });
 
@@ -731,65 +746,244 @@ const handlePrepareAndUpload = async () => {
       ctx.fillText(customText.trim(), outputW / 2, outputH - 60);
     }
 
-    // load frame image
-    const frameImg = await new Promise((resolve, reject) => {
-      const f = new Image();
-      f.crossOrigin = "anonymous";
-      f.onload = () => resolve(f);
-      f.onerror = () => reject(new Error("Failed to load frame image"));
-      f.src = FRAME_URL;
-    });
+    // Load frame image with better error handling
+    if (FRAME_URL) {
+      try {
+        const frameImg = await new Promise((resolve, reject) => {
+          const f = new Image();
+          f.crossOrigin = "anonymous";
+          f.onload = () => {
+            console.log("✅ Frame loaded successfully");
+            resolve(f);
+          };
+          f.onerror = (err) => {
+            console.error("❌ Failed to load frame image:", err);
+            reject(new Error("Failed to load frame image"));
+          };
+          f.src = FRAME_URL;
+        });
 
-    // create offscreen canvas to process frame
-    const fCanvas = document.createElement("canvas");
-    fCanvas.width = outputW;
-    fCanvas.height = outputH;
-    const fCtx = fCanvas.getContext("2d");
-    fCtx.drawImage(frameImg, 0, 0, outputW, outputH);
+        // create offscreen canvas to process frame
+        const fCanvas = document.createElement("canvas");
+        fCanvas.width = outputW;
+        fCanvas.height = outputH;
+        const fCtx = fCanvas.getContext("2d");
+        fCtx.drawImage(frameImg, 0, 0, outputW, outputH);
 
-    // make near-white pixels transparent
-    const imgData = fCtx.getImageData(0, 0, outputW, outputH);
-    const data = imgData.data;
-    const threshold = 245; // tweak if needed
-    for (let i = 0; i < data.length; i += 4) {
-      const r = data[i], g = data[i + 1], b = data[i + 2];
-      if (r >= threshold && g >= threshold && b >= threshold) {
-        data[i + 3] = 0; // transparent
+        // make near-white pixels transparent
+        try {
+          const imgData = fCtx.getImageData(0, 0, outputW, outputH);
+          const data = imgData.data;
+          const threshold = 245;
+          for (let i = 0; i < data.length; i += 4) {
+            const r = data[i], g = data[i + 1], b = data[i + 2];
+            if (r >= threshold && g >= threshold && b >= threshold) {
+              data[i + 3] = 0;
+            }
+          }
+          fCtx.putImageData(imgData, 0, 0);
+        } catch (pixelErr) {
+          console.warn("⚠️ Could not process frame transparency:", pixelErr);
+        }
+
+        // draw cleaned frame on main canvas
+        ctx.drawImage(fCanvas, 0, 0, outputW, outputH);
+      } catch (frameErr) {
+        console.warn("⚠️ Frame processing failed, continuing without frame:", frameErr);
       }
     }
-    fCtx.putImageData(imgData, 0, 0);
 
-    // draw cleaned frame on main canvas
-    ctx.drawImage(fCanvas, 0, 0, outputW, outputH);
-
-    // create preview + upload
-    const finalDataUrl = canvas.toDataURL("image/png");
+    // create preview
+    const finalDataUrl = canvas.toDataURL("image/png", 0.9);
     setPreparedPreview(finalDataUrl);
+    
+    console.log("🔄 Uploading to imgbb...");
 
-    // upload to imgbb
+    // Upload to imgbb with better error handling
     const base64 = finalDataUrl.split(",")[1];
-    const form = new FormData();
-    form.append("key", IMGBB_API_KEY);
-    form.append("image", base64);
-    form.append("name", `product_${id || "preview"}`);
+    const formData = new FormData();
+    formData.append("key", IMGBB_API_KEY);
+    formData.append("image", base64);
+    formData.append("name", `product_${id || "preview"}_${Date.now()}`);
 
     const uploadRes = await fetch("https://api.imgbb.com/1/upload", {
       method: "POST",
-      body: form,
+      body: formData,
     });
-    const uploadJson = await uploadRes.json();
-    if (!uploadJson?.data?.url) {
-      throw new Error("Upload failed");
+
+    console.log("📡 Upload response status:", uploadRes.status);
+
+    if (!uploadRes.ok) {
+      const errorText = await uploadRes.text();
+      console.error("❌ ImgBB upload failed:", errorText);
+      throw new Error(`Upload failed with status ${uploadRes.status}`);
     }
 
-    setUploadedUrl(uploadJson.data.url);
-    alert("âœ… Prepared image uploaded successfully!");
+    const uploadJson = await uploadRes.json();
+    console.log("📦 Upload response:", uploadJson);
+
+    if (!uploadJson?.data?.url) {
+      throw new Error("Upload successful but no URL returned");
+    }
+
+    const uploadedUrlFromApi = uploadJson.data.url;
+    setUploadedUrl(uploadedUrlFromApi);
+    
+    console.log("✅ Image uploaded successfully:", uploadedUrlFromApi);
+    
+    // ✅ Add to cart after successful upload
+    await addPersonalizedGiftToCart(uploadedUrlFromApi, finalDataUrl);
+    
   } catch (err) {
-    console.error(err);
-    alert("âŒ Error preparing or uploading image: " + (err.message || err));
+    console.error("❌ Full error details:", err);
+    
+    // More specific error messages
+    let errorMessage = "Error preparing or uploading image";
+    
+    if (err.message.includes("Failed to load")) {
+      errorMessage = "Could not load image. Please try uploading again.";
+    } else if (err.message.includes("Upload failed")) {
+      errorMessage = "Image upload failed. Please check your internet connection.";
+    } else if (err.message.includes("network")) {
+      errorMessage = "Network error. Please check your internet connection.";
+    }
+    
+    alert(`❌ ${errorMessage}: ${err.message || err}`);
   }
 };
 
+// ✅ NEW FUNCTION: Add personalized gift to cart
+// ✅ NEW FUNCTION: Add personalized gift to cart
+// ✅ NEW FUNCTION: Add personalized gift to cart
+const addPersonalizedGiftToCart = async (uploadedUrl, preparedPreview) => {
+  try {
+    if (!product?._id) {
+      alert("Product not loaded yet.");
+      return;
+    }
+
+    const qty = Number(selectedTier?.qty || 1) || 1;
+
+    // Normalize option values
+    const normalizeOption = (opt) => {
+      if (opt === null || opt === undefined) return null;
+      if (typeof opt === "string" || typeof opt === "number") return String(opt);
+      if (typeof opt === "object") {
+        return String(opt?.name ?? opt?.label ?? opt?.value ?? opt?.id ?? JSON.stringify(opt));
+      }
+      return String(opt);
+    };
+
+    const sizeVal = normalizeOption(selectedSize);
+    const finishVal = normalizeOption(selectedFinish);
+    const cornerVal = normalizeOption(selectedCorner);
+    const paperVal = normalizeOption(selectedPaper);
+
+    // Calculate weight
+    const getProductWeight = () => {
+      if (selectedTier?.weightGrams && Number(selectedTier.weightGrams) > 0) {
+        return Number(selectedTier.weightGrams);
+      }
+      if (product.weightGrams && Number(product.weightGrams) > 0) {
+        return Number(product.weightGrams);
+      }
+      if (product.weight && Number(product.weight) > 0) {
+        return Number(product.weight);
+      }
+      return 150;
+    };
+    
+    const productWeight = getProductWeight();
+
+    // ✅ Convert preparedPreview (base64 data URL) to File object for upload
+    const dataURLtoFile = async (dataURL, filename) => {
+      const res = await fetch(dataURL);
+      const blob = await res.blob();
+      return new File([blob], filename, { type: blob.type || "image/jpeg" });
+    };
+
+    // Create File object from preparedPreview
+    let imageFile = null;
+    if (preparedPreview) {
+      imageFile = await dataURLtoFile(preparedPreview, `personalized-${product._id}-${Date.now()}.jpg`);
+    }
+
+    if (!imageFile) {
+      alert("Please generate a preview before adding to cart.");
+      return;
+    }
+
+    // ✅ Use FormData to match UploadDesign.jsx pattern
+    const formData = new FormData();
+    
+    // Append the image file (matches "images" field name from UploadDesign.jsx)
+    formData.append("images", imageFile, imageFile.name);
+    
+    // Append product details
+    formData.append("productId", String(product._id));
+    formData.append("quantity", String(qty));
+    formData.append("designType", selectedDesignType || "single");
+    
+    // ✅ Append options as JSON (matches UploadDesign.jsx structure)
+    formData.append("options", JSON.stringify({
+      designType: selectedDesignType || "single",
+      size: sizeVal || null,
+      finish: finishVal || null,
+      corner: cornerVal || null,
+      paper: paperVal || null,
+      customText: customText || null,
+      frameType: selectedFrame || null,
+      weight: productWeight,
+      isCustomized: true,
+      raw: {
+        size: selectedSize ?? null,
+        finish: selectedFinish ?? null,
+        corner: selectedCorner ?? null,
+        paper: selectedPaper ?? null,
+        customText: customText ?? null,
+        frameType: selectedFrame ?? null,
+        designType: selectedDesignType ?? null,
+      }
+    }));
+
+    console.log("🔍 DEBUG FormData payload:", {
+      productId: product._id,
+      quantity: qty,
+      designType: selectedDesignType,
+      fileName: imageFile.name,
+      fileSize: imageFile.size,
+      fileType: imageFile.type
+    });
+
+    // ✅ Use the same API endpoint as UploadDesign.jsx
+    const res = await fetch(`${API_BASE_URL}/addToCartWithDesign`, {
+      method: "POST",
+      credentials: "include",
+      body: formData, // Send as FormData, not JSON
+    });
+
+    const data = await res.json().catch(() => ({ message: "Invalid JSON response" }));
+
+    if (res.ok) {
+      console.log("✅ addToCartWithDesign success:", data);
+      alert("✅ Personalized gift added to cart successfully!");
+      navigate("/cart");
+    } else if (res.status === 401) {
+      alert("❌ Session expired. Please login again.");
+      navigate("/signin");
+    } else {
+      const errorMsg = data?.message || data?.error || "Failed to add product to cart.";
+      alert(`❌ ${errorMsg}`);
+      console.error("❌ addToCartWithDesign error:", {
+        status: res.status,
+        data: data
+      });
+    }
+  } catch (err) {
+    console.error("❌ Add to cart failed:", err);
+    alert(`❌ Network error. Please try again.`);
+  }
+};
 
 
   // âœ… handle submit
@@ -1088,148 +1282,364 @@ const isButtonBadge = normalize(product?.name || "").includes("button badge") ||
   {/* Sizes */}
 {/* Sizes */}
 
-{product.sizes?.length > 0 && (
-  <div style={{ marginBottom: "16px" }}>
-    <h3 style={{ 
-      fontSize: isMobile ? "16px" : "18px", 
-      fontWeight: "600", 
-      marginBottom: "12px" 
-    }}>
-      Available Sizes
-    </h3>
-
-    <div
-      style={{
-        display: "grid",
-        gridTemplateColumns: isMobile 
-          ? "repeat(auto-fit, minmax(140px, 1fr))" 
-          : "repeat(auto-fit, minmax(160px, 1fr))",
-        gap: isMobile ? "12px" : "16px",
-      }}
-    >
-      {product.sizes.map((s, i) => {
-        // Map size name to image - Only Standard and Square
-        const sizeImages = {
-          standard: "https://www.moo.com/static-assets/product-images/b199bfe46c94ed9b044c2e52d18b9042f176b7f8/sizes/business_card-standard-526x325.jpg",
-          square: "https://www.moo.com/static-assets/product-images/b199bfe46c94ed9b044c2e52d18b9042f176b7f8/sizes/business_card-square-526x325.jpg"
-        };
-
-        // Get the size name - handle both string and object formats
-        const sizeName = typeof s === 'string' ? s : (s.name || s.label || '');
-        const sizeKey = sizeName.toLowerCase().trim();
+{/* Sizes - Conditional rendering based on category */}
+{/* Sizes - Conditional rendering based on category */}
+{/* Sizes - Conditional rendering based on category */}
+{product.sizes?.length > 0 && (() => {
+  // Check if category is flex or banner
+  const normalizedCategory = normalize(categoryName);
+  const normalizedProductName = normalize(product?.name || "");
+  
+  // Debug log
+  console.log("Category:", categoryName, "| Normalized:", normalizedCategory);
+  console.log("Product Name:", product?.name, "| Normalized:", normalizedProductName);
+  
+  const isFlexOrBanner = normalizedCategory.includes("flex") || 
+                         normalizedCategory.includes("banner") ||
+                         normalizedProductName.includes("flex") ||
+                         normalizedProductName.includes("banner");
+  
+  console.log("Is Flex or Banner?", isFlexOrBanner);
+  
+  if (isFlexOrBanner) {
+    // Dropdown style for flex and banner
+    return (
+      <div style={{ marginBottom: "32px" }}>
+        <div style={{ 
+          display: "flex", 
+          alignItems: "center", 
+          justifyContent: "space-between",
+          marginBottom: "12px"
+        }}>
+          <div>
+            <h3 style={{ 
+              fontSize: "22px", 
+              fontWeight: "700", 
+              marginBottom: "4px",
+              color: "#0f172a",
+              fontFamily: "'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif",
+              letterSpacing: "-0.02em"
+            }}>
+              Choose Size
+            </h3>
+            <p style={{
+              fontSize: "14px",
+              color: "#64748b",
+              fontFamily: "'SF Pro Text', -apple-system, BlinkMacSystemFont, sans-serif",
+              fontWeight: "500"
+            }}>
+              Select your preferred dimensions
+            </p>
+          </div>
+          <div style={{
+            padding: "8px 12px",
+            backgroundColor: selectedSize ? "#007abf" : "#e2e8f0",
+            borderRadius: "20px",
+            fontSize: "12px",
+            fontWeight: "600",
+            color: selectedSize ? "#ffffff" : "#64748b",
+            transition: "all 0.3s ease",
+            textTransform: "uppercase",
+            letterSpacing: "0.05em"
+          }}>
+            {selectedSize ? "Selected" : "Choose"}
+          </div>
+        </div>
         
-        // Skip if not standard or square
-        if (sizeKey !== 'standard' && sizeKey !== 'square') {
-          return null;
-        }
-
-        const imgUrl = sizeImages[sizeKey];
-
-        // FIXED: Better comparison logic
-        let isSelected = false;
-        
-        if (selectedSize) {
-          // If selectedSize is a string
-          if (typeof selectedSize === 'string') {
-            isSelected = selectedSize.toLowerCase().trim() === sizeKey;
-          } 
-          // If selectedSize is an object
-          else if (typeof selectedSize === 'object') {
-            const selectedSizeName = (selectedSize.name || selectedSize.label || '').toLowerCase().trim();
-            isSelected = selectedSizeName === sizeKey;
-          }
-        }
-
-        return (
+        <div style={{ position: "relative" }}>
           <div
-            key={i}
-            onClick={() => setSelectedSize(s)}
+            onClick={() => setIsSizeDropdownOpen(!isSizeDropdownOpen)}
             style={{
-              border: isSelected
-                ? "3px solid #007bff"
-                : "2px solid #ddd",
-              borderRadius: "8px",
-              padding: isMobile ? "8px" : "10px",
+              backgroundColor: isSizeDropdownOpen ? "#007abf" : "#f8fafc",
+              border: `3px solid ${isSizeDropdownOpen ? "#007abf" : "#e2e8f0"}`,
+              borderRadius: "16px",
+              padding: "16px 20px",
               cursor: "pointer",
-              textAlign: "center",
-              transition: "all 0.2s ease-in-out",
-              boxShadow: isSelected
-                ? "0px 4px 12px rgba(0, 123, 255, 0.3)"
-                : "0px 2px 4px rgba(0, 0, 0, 0.05)",
-              backgroundColor: isSelected ? "#f0f8ff" : "#fff",
-              transform: isSelected ? "scale(1.02)" : "scale(1)",
-            }}
-            onMouseEnter={(e) => {
-              if (!isSelected) {
-                e.currentTarget.style.borderColor = "#007bff";
-                e.currentTarget.style.transform = "scale(1.02)";
-                e.currentTarget.style.boxShadow = "0px 4px 12px rgba(0, 123, 255, 0.15)";
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (!isSelected) {
-                e.currentTarget.style.borderColor = "#ddd";
-                e.currentTarget.style.transform = "scale(1)";
-                e.currentTarget.style.boxShadow = "0px 2px 4px rgba(0, 0, 0, 0.05)";
-              }
-            }}
-          >
-            {imgUrl && (
-              <img
-                src={imgUrl}
-                alt={sizeName}
-                style={{
-                  width: "100%",
-                  height: isMobile ? "80px" : "100px",
-                  objectFit: "contain",
-                  marginBottom: "8px",
-                  borderRadius: "6px",
-                  opacity: isSelected ? 1 : 0.85,
-                  transition: "opacity 0.2s ease"
-                }}
-              />
-            )}
-            <div style={{ 
-              fontSize: isMobile ? "13px" : "14px", 
-              fontWeight: isSelected ? "700" : "500",
-              textTransform: "capitalize",
-              color: isSelected ? "#007bff" : "#333",
+              transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
+              boxShadow: isSizeDropdownOpen 
+                ? "0 20px 40px -12px rgba(0, 122, 191, 0.3), 0 0 0 1px rgba(255,255,255,0.1)" 
+                : "0 4px 15px -3px rgba(0, 0, 0, 0.1), 0 2px 6px -2px rgba(0, 0, 0, 0.05)",
               display: "flex",
               alignItems: "center",
-              justifyContent: "center",
-              gap: "6px",
-              marginBottom: "4px"
-            }}>
-              {sizeName}
-              {isSelected && (
-                <span style={{ 
-                  display: "inline-flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  width: "18px",
-                  height: "18px",
-                  borderRadius: "50%",
-                  backgroundColor: "#007bff",
-                  color: "#fff",
-                  fontSize: "10px"
+              justifyContent: "space-between",
+              minHeight: "60px",
+              transform: isSizeDropdownOpen ? "translateY(-2px)" : "translateY(0)",
+            }}
+          >
+            <div style={{ flex: 1 }}>
+              <div style={{
+                fontSize: "16px",
+                fontWeight: "700",
+                color: isSizeDropdownOpen ? "#ffffff" : "#0f172a",
+                fontFamily: "'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif",
+                letterSpacing: "-0.01em",
+                transition: "color 0.3s ease"
+              }}>
+                {selectedSize 
+                  ? (typeof selectedSize === 'string' ? selectedSize : selectedSize.name || selectedSize.label)
+                  : "Select Size"}
+              </div>
+              {selectedSize && selectedSize.size && (
+                <div style={{
+                  fontSize: "12px",
+                  color: isSizeDropdownOpen ? "rgba(255,255,255,0.8)" : "#64748b",
+                  fontFamily: "'SF Pro Text', -apple-system, BlinkMacSystemFont, sans-serif",
+                  fontWeight: "500",
+                  marginTop: "4px"
                 }}>
-                  ✓
-                </span>
+                  {selectedSize.size.width} × {selectedSize.size.height}
+                </div>
               )}
             </div>
-            <div style={{ 
-              fontSize: isMobile ? "12px" : "13px", 
-              color: isSelected ? "#0066cc" : "#555",
-              fontWeight: isSelected ? "600" : "400"
+            
+            <div style={{
+              transform: isSizeDropdownOpen ? "rotate(180deg)" : "rotate(0deg)",
+              transition: "transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
+              color: isSizeDropdownOpen ? "#ffffff" : "#64748b"
             }}>
-              {s.size ? `${s.size.width} × ${s.size.height}` : ''}
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <polyline points="6,9 12,15 18,9"></polyline>
+              </svg>
             </div>
           </div>
-        );
-      })}
-    </div>
-  </div>
-)}
+          
+          {isSizeDropdownOpen && (
+            <div style={{
+              position: "absolute",
+              top: "calc(100% + 8px)",
+              left: 0,
+              right: 0,
+              backgroundColor: "#ffffff",
+              border: "2px solid #e2e8f0",
+              borderRadius: "16px",
+              boxShadow: "0 20px 40px -12px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0,0,0,0.05)",
+              zIndex: 100,
+              overflow: "hidden",
+              animation: "dropdownSlide 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
+              maxHeight: "300px",
+              overflowY: "auto"
+            }}>
+              {product.sizes.map((s, i) => {
+                const sizeName = typeof s === 'string' ? s : (s.name || s.label || '');
+                const isSelected = selectedSize 
+                  ? (typeof selectedSize === 'string' 
+                      ? selectedSize === sizeName 
+                      : (selectedSize.name || selectedSize.label) === sizeName)
+                  : false;
+                
+                return (
+                  <div
+                    key={i}
+                    onClick={() => {
+                      setSelectedSize(s);
+                      setIsSizeDropdownOpen(false);
+                    }}
+                    style={{
+                      padding: "14px 16px",
+                      cursor: "pointer",
+                      borderBottom: i < product.sizes.length - 1 ? "1px solid #f1f5f9" : "none",
+                      backgroundColor: isSelected ? "#f0f9ff" : "transparent",
+                      transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                      position: "relative"
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!isSelected) {
+                        e.target.style.backgroundColor = "#f8fafc";
+                        e.target.style.transform = "translateX(4px)";
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!isSelected) {
+                        e.target.style.backgroundColor = "transparent";
+                        e.target.style.transform = "translateX(0)";
+                      }
+                    }}
+                  >
+                    <div style={{
+                      fontSize: "14px",
+                      fontWeight: "700",
+                      color: "#0f172a",
+                      marginBottom: s.size ? "4px" : "0"
+                    }}>
+                      {sizeName}
+                    </div>
+                    {s.size && (
+                      <div style={{
+                        fontSize: "12px",
+                        color: "#64748b"
+                      }}>
+                        {s.size.width} × {s.size.height}
+                      </div>
+                    )}
+                    {isSelected && (
+                      <div style={{
+                        position: "absolute",
+                        right: "16px",
+                        top: "50%",
+                        transform: "translateY(-50%)",
+                        width: "20px",
+                        height: "20px",
+                        borderRadius: "50%",
+                        backgroundColor: "#007abf",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center"
+                      }}>
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="white">
+                          <path d="M20.285 2l-11.285 11.567-5.286-5.011-3.714 3.716 9 8.728 15-15.285z"/>
+                        </svg>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  } else {
+    // Card-based layout for other categories (original design)
+    return (
+      <div style={{ marginBottom: "16px" }}>
+        <h3 style={{ 
+          fontSize: isMobile ? "16px" : "18px", 
+          fontWeight: "600", 
+          marginBottom: "12px" 
+        }}>
+          Available Sizes
+        </h3>
+
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: isMobile 
+              ? "repeat(auto-fit, minmax(140px, 1fr))" 
+              : "repeat(auto-fit, minmax(160px, 1fr))",
+            gap: isMobile ? "12px" : "16px",
+          }}
+        >
+          {product.sizes.map((s, i) => {
+            const sizeImages = {
+              standard: "https://www.moo.com/static-assets/product-images/b199bfe46c94ed9b044c2e52d18b9042f176b7f8/sizes/business_card-standard-526x325.jpg",
+              square: "https://www.moo.com/static-assets/product-images/b199bfe46c94ed9b044c2e52d18b9042f176b7f8/sizes/business_card-square-526x325.jpg",
+              normal: "https://www.moo.com/static-assets/product-images/b199bfe46c94ed9b044c2e52d18b9042f176b7f8/sizes/business_card-standard-526x325.jpg"
+            };
+
+            const sizeName = typeof s === 'string' ? s : (s.name || s.label || '');
+            const sizeKey = sizeName.toLowerCase().trim();
+            
+            // Only show standard, square, and normal sizes for card layout
+            if (sizeKey !== 'standard' && sizeKey !== 'square' && sizeKey !== 'normal') {
+              return null;
+            }
+
+            const imgUrl = sizeImages[sizeKey];
+
+            let isSelected = false;
+            
+            if (selectedSize) {
+              if (typeof selectedSize === 'string') {
+                isSelected = selectedSize.toLowerCase().trim() === sizeKey;
+              } 
+              else if (typeof selectedSize === 'object') {
+                const selectedSizeName = (selectedSize.name || selectedSize.label || '').toLowerCase().trim();
+                isSelected = selectedSizeName === sizeKey;
+              }
+            }
+
+            return (
+              <div
+                key={i}
+                onClick={() => setSelectedSize(s)}
+                style={{
+                  border: isSelected
+                    ? "3px solid #007bff"
+                    : "2px solid #ddd",
+                  borderRadius: "8px",
+                  padding: isMobile ? "8px" : "10px",
+                  cursor: "pointer",
+                  textAlign: "center",
+                  transition: "all 0.2s ease-in-out",
+                  boxShadow: isSelected
+                    ? "0px 4px 12px rgba(0, 123, 255, 0.3)"
+                    : "0px 2px 4px rgba(0, 0, 0, 0.05)",
+                  backgroundColor: isSelected ? "#f0f8ff" : "#fff",
+                  transform: isSelected ? "scale(1.02)" : "scale(1)",
+                }}
+                onMouseEnter={(e) => {
+                  if (!isSelected) {
+                    e.currentTarget.style.borderColor = "#007bff";
+                    e.currentTarget.style.transform = "scale(1.02)";
+                    e.currentTarget.style.boxShadow = "0px 4px 12px rgba(0, 123, 255, 0.15)";
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!isSelected) {
+                    e.currentTarget.style.borderColor = "#ddd";
+                    e.currentTarget.style.transform = "scale(1)";
+                    e.currentTarget.style.boxShadow = "0px 2px 4px rgba(0, 0, 0, 0.05)";
+                  }
+                }}
+              >
+                {imgUrl && (
+                  <img
+                    src={imgUrl}
+                    alt={sizeName}
+                    style={{
+                      width: "100%",
+                      height: isMobile ? "80px" : "100px",
+                      objectFit: "contain",
+                      marginBottom: "8px",
+                      borderRadius: "6px",
+                      opacity: isSelected ? 1 : 0.85,
+                      transition: "opacity 0.2s ease"
+                    }}
+                  />
+                )}
+                <div style={{ 
+                  fontSize: isMobile ? "13px" : "14px", 
+                  fontWeight: isSelected ? "700" : "500",
+                  textTransform: "capitalize",
+                  color: isSelected ? "#007bff" : "#333",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "6px",
+                  marginBottom: "4px"
+                }}>
+                  {sizeName}
+                  {isSelected && (
+                    <span style={{ 
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      width: "18px",
+                      height: "18px",
+                      borderRadius: "50%",
+                      backgroundColor: "#007bff",
+                      color: "#fff",
+                      fontSize: "10px"
+                    }}>
+                      ✓
+                    </span>
+                  )}
+                </div>
+                <div style={{ 
+                  fontSize: isMobile ? "12px" : "13px", 
+                  color: isSelected ? "#0066cc" : "#555",
+                  fontWeight: isSelected ? "600" : "400"
+                }}>
+                  {s.size ? `${s.size.width} × ${s.size.height}` : ''}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
+})()}
 
 
 
@@ -2118,7 +2528,81 @@ const isButtonBadge = normalize(product?.name || "").includes("button badge") ||
  {/* ===== Enhanced Quantity + Price Selector ===== */}
 <div style={{ marginTop: "40px" }}>
   
-  {/* Conditional rendering: Button Badge text input OR Design type selection */}
+  
+  <h2 style={{ fontSize: "24px", fontWeight: "600", marginBottom: "20px" }}>
+    Choose your Quantity
+  </h2>
+
+  {/* Pricing table */}
+  <table style={{
+    width: "100%",
+    borderCollapse: "collapse",
+    fontSize: "16px",
+  }}>
+    <thead>
+      <tr style={{ textAlign: "left", borderBottom: "2px solid #ddd" }}>
+        <th style={{ padding: "12px" }}>Quantity</th>
+        <th style={{ padding: "12px" }}>Price per card</th>
+        <th style={{ padding: "12px" }}>Pack price</th>
+      </tr>
+    </thead>
+    <tbody>
+      {product?.priceTiers?.map((tier, idx) => {
+        const isSelected = selectedTier?.qty === tier.qty;
+        const currentPrice = getPrice(tier);
+
+        return (
+          <tr
+            key={idx}
+            onClick={() => setSelectedTier(tier)}
+            style={{
+              cursor: "pointer",
+              background: isSelected ? "#f0f9ff" : "transparent",
+              borderBottom: "1px solid #eee",
+              border: isSelected ? "2px solid #22c55e" : "1px solid #eee",
+            }}
+          >
+            <td style={{ padding: "12px", fontWeight: isSelected ? "600" : "400" }}>
+              {tier.qty}
+            </td>
+            <td style={{ padding: "12px" }}>
+              ${(currentPrice / tier.qty).toFixed(2)}
+            </td>
+            <td style={{ padding: "12px", fontWeight: "600" }}>
+              ${currentPrice}
+              {tier.originalPrice && (
+                <span style={{
+                  marginLeft: "8px",
+                  color: "#999",
+                  textDecoration: "line-through",
+                  fontWeight: "400",
+                }}>
+                  ${tier.originalPrice}
+                </span>
+              )}
+            </td>
+          </tr>
+        );
+      })}
+    </tbody>
+  </table>
+
+  {/* Selection summary */}
+  {selectedTier && (
+    <div style={{
+      marginTop: "20px",
+      padding: "16px",
+      border: "1px solid #ddd",
+      borderRadius: "8px",
+      background: "#fafafa",
+    }}>
+      <strong>{selectedTier.qty}</strong> cards selected (
+      {selectedDesignType} side) — Total:{" "}
+      <strong>${getPrice(selectedTier)}</strong> (
+      {(getPrice(selectedTier) / selectedTier.qty).toFixed(2)} each)
+    </div>
+  )}
+{/* Conditional rendering: Button Badge text input OR Design type selection */}
   {isButtonBadge ? (
     // Button Badge Content Input
     <>
@@ -2440,67 +2924,63 @@ const isButtonBadge = normalize(product?.name || "").includes("button badge") ||
           </div>
 
           {/* Action Buttons */}
-          <div
-            style={{
-              display: "flex",
-              gap: "12px",
-              marginTop: "24px",
-              justifyContent: "center",
-              flexWrap: "wrap",
-            }}
-          >
-            <button
-              onClick={handlePrepareAndUpload}
-              style={{
-                padding: "12px 28px",
-                background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
-                color: "#fff",
-                borderRadius: "12px",
-                border: "none",
-                cursor: "pointer",
-                fontWeight: "600",
-                fontSize: "15px",
-                boxShadow: "0 4px 15px rgba(16, 185, 129, 0.4)",
-                transition: "transform 0.2s, box-shadow 0.2s",
-              }}
-              onMouseOver={(e) => {
-                e.currentTarget.style.transform = "translateY(-2px)";
-                e.currentTarget.style.boxShadow = "0 6px 20px rgba(16, 185, 129, 0.6)";
-              }}
-              onMouseOut={(e) => {
-                e.currentTarget.style.transform = "translateY(0)";
-                e.currentTarget.style.boxShadow = "0 4px 15px rgba(16, 185, 129, 0.4)";
-              }}
-            >
-              ✅ Prepare & Upload
-            </button>
+        <div
+  style={{
+    display: "flex",
+    gap: "12px",
+    marginTop: "24px",
+    justifyContent: "center",
+    flexWrap: "wrap",
+  }}
+>
+  <button
+    onClick={handlePrepareAndUpload}
+    disabled={!uploadedImage}
+    style={{
+      padding: "14px 32px",
+      background: uploadedImage 
+        ? "linear-gradient(135deg, #10b981 0%, #059669 100%)"
+        : "#9ca3af",
+      color: "#fff",
+      borderRadius: "12px",
+      border: "none",
+      cursor: uploadedImage ? "pointer" : "not-allowed",
+      fontWeight: "600",
+      fontSize: "16px",
+      boxShadow: uploadedImage 
+        ? "0 4px 15px rgba(16, 185, 129, 0.4)"
+        : "none",
+      transition: "transform 0.2s, box-shadow 0.2s",
+      opacity: uploadedImage ? 1 : 0.6,
+    }}
+    onMouseOver={(e) => {
+      if (uploadedImage) {
+        e.currentTarget.style.transform = "translateY(-2px)";
+        e.currentTarget.style.boxShadow = "0 6px 20px rgba(16, 185, 129, 0.6)";
+      }
+    }}
+    onMouseOut={(e) => {
+      if (uploadedImage) {
+        e.currentTarget.style.transform = "translateY(0)";
+        e.currentTarget.style.boxShadow = "0 4px 15px rgba(16, 185, 129, 0.4)";
+      }
+    }}
+  >
+    ✅ Prepare & Add to Cart
+  </button>
+</div>
 
-            <button
-              onClick={handleAddToCart}
-              style={{
-                padding: "12px 28px",
-                background: "linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)",
-                color: "#fff",
-                borderRadius: "12px",
-                border: "none",
-                cursor: "pointer",
-                fontWeight: "600",
-                fontSize: "15px",
-                boxShadow: "0 4px 15px rgba(59, 130, 246, 0.4)",
-                transition: "transform 0.2s, box-shadow 0.2s",
-              }}
-              onMouseOver={(e) => {
-                e.currentTarget.style.transform = "translateY(-2px)";
-                e.currentTarget.style.boxShadow = "0 6px 20px rgba(59, 130, 246, 0.6)";
-              }}
-              onMouseOut={(e) => {
-                e.currentTarget.style.transform = "translateY(0)";
-                e.currentTarget.style.boxShadow = "0 4px 15px rgba(59, 130, 246, 0.4)";
-              }}
-            >
-              🛒 Add to Cart
-            </button>
-          </div>
+{!uploadedImage && (
+  <p style={{ 
+    marginTop: "12px", 
+    color: "#6b7280", 
+    fontSize: "14px",
+    fontStyle: "italic",
+    textAlign: "center"
+  }}>
+    Please upload a photo first
+  </p>
+)}
         </div>
       </div>
     )}
@@ -2559,83 +3039,17 @@ const isButtonBadge = normalize(product?.name || "").includes("button badge") ||
     </>
   )}
 
-  <h2 style={{ fontSize: "24px", fontWeight: "600", marginBottom: "20px" }}>
-    Choose your Quantity
-  </h2>
-
-  {/* Pricing table */}
-  <table style={{
-    width: "100%",
-    borderCollapse: "collapse",
-    fontSize: "16px",
-  }}>
-    <thead>
-      <tr style={{ textAlign: "left", borderBottom: "2px solid #ddd" }}>
-        <th style={{ padding: "12px" }}>Quantity</th>
-        <th style={{ padding: "12px" }}>Price per card</th>
-        <th style={{ padding: "12px" }}>Pack price</th>
-      </tr>
-    </thead>
-    <tbody>
-      {product?.priceTiers?.map((tier, idx) => {
-        const isSelected = selectedTier?.qty === tier.qty;
-        const currentPrice = getPrice(tier);
-
-        return (
-          <tr
-            key={idx}
-            onClick={() => setSelectedTier(tier)}
-            style={{
-              cursor: "pointer",
-              background: isSelected ? "#f0f9ff" : "transparent",
-              borderBottom: "1px solid #eee",
-              border: isSelected ? "2px solid #22c55e" : "1px solid #eee",
-            }}
-          >
-            <td style={{ padding: "12px", fontWeight: isSelected ? "600" : "400" }}>
-              {tier.qty}
-            </td>
-            <td style={{ padding: "12px" }}>
-              ${(currentPrice / tier.qty).toFixed(2)}
-            </td>
-            <td style={{ padding: "12px", fontWeight: "600" }}>
-              ${currentPrice}
-              {tier.originalPrice && (
-                <span style={{
-                  marginLeft: "8px",
-                  color: "#999",
-                  textDecoration: "line-through",
-                  fontWeight: "400",
-                }}>
-                  ${tier.originalPrice}
-                </span>
-              )}
-            </td>
-          </tr>
-        );
-      })}
-    </tbody>
-  </table>
-
-  {/* Selection summary */}
-  {selectedTier && (
-    <div style={{
-      marginTop: "20px",
-      padding: "16px",
-      border: "1px solid #ddd",
-      borderRadius: "8px",
-      background: "#fafafa",
-    }}>
-      <strong>{selectedTier.qty}</strong> cards selected (
-      {selectedDesignType} side) — Total:{" "}
-      <strong>${getPrice(selectedTier)}</strong> (
-      {(getPrice(selectedTier) / selectedTier.qty).toFixed(2)} each)
-    </div>
-  )}
+  
 </div>
 
 {/* Upload Your Design Button - Added after quantity selector */}
-{!(isPersonalisedGift && normalize(product.name).includes("photo frame")) && (
+{/* Upload Design Button - Exclude personalized gifts and button badges */}
+{!(
+  (isPersonalisedGift && normalize(product.name).includes("photo frame")) ||
+  normalize(product.name).includes("button badge") ||
+  normalize(product.name).includes("button-badge") ||
+  normalize(product.name).includes("badge")
+) && (
   <div style={{ 
     marginTop: "30px", 
     textAlign: "center",
@@ -2961,70 +3375,64 @@ const isButtonBadge = normalize(product?.name || "").includes("button badge") ||
   </div>
 
   {/* Action Buttons */}
-  <div
+<div
+  style={{
+    display: "flex",
+    gap: "12px",
+    marginTop: "24px",
+    justifyContent: "center",
+    flexWrap: "wrap",
+  }}
+>
+  <button
+    onClick={handlePrepareAndUpload}
+    disabled={!uploadedImage}
     style={{
-      display: "flex",
-      gap: "12px",
-      marginTop: "24px",
-      justifyContent: "center",
-      flexWrap: "wrap",
+      padding: "14px 32px",
+      background: uploadedImage 
+        ? "linear-gradient(135deg, #10b981 0%, #059669 100%)"
+        : "#9ca3af",
+      color: "#fff",
+      borderRadius: "12px",
+      border: "none",
+      cursor: uploadedImage ? "pointer" : "not-allowed",
+      fontWeight: "600",
+      fontSize: "16px",
+      boxShadow: uploadedImage 
+        ? "0 4px 15px rgba(16, 185, 129, 0.4)"
+        : "none",
+      transition: "transform 0.2s, box-shadow 0.2s",
+      opacity: uploadedImage ? 1 : 0.6,
     }}
-  >
-    <button
-      onClick={handlePrepareAndUpload}
-      style={{
-        padding: "12px 28px",
-        background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
-        color: "#fff",
-        borderRadius: "12px",
-        border: "none",
-        cursor: "pointer",
-        fontWeight: "600",
-        fontSize: "15px",
-        boxShadow: "0 4px 15px rgba(16, 185, 129, 0.4)",
-        transition: "transform 0.2s, box-shadow 0.2s",
-      }}
-      onMouseOver={(e) => {
+    onMouseOver={(e) => {
+      if (uploadedImage) {
         e.currentTarget.style.transform = "translateY(-2px)";
         e.currentTarget.style.boxShadow = "0 6px 20px rgba(16, 185, 129, 0.6)";
-      }}
-      onMouseOut={(e) => {
+      }
+    }}
+    onMouseOut={(e) => {
+      if (uploadedImage) {
         e.currentTarget.style.transform = "translateY(0)";
         e.currentTarget.style.boxShadow = "0 4px 15px rgba(16, 185, 129, 0.4)";
-      }}
-    >
-      ✅ Prepare & Upload
-    </button>
+      }
+    }}
+  >
+    ✅ Prepare & Add to Cart
+  </button>
+</div>
 
-    <button
-      onClick={async () => {
-        await handlePrepareAndUpload();
-        navigate("/checkout");
-      }}
-      style={{
-        padding: "12px 28px",
-        background: "linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)",
-        color: "#fff",
-        borderRadius: "12px",
-        border: "none",
-        cursor: "pointer",
-        fontWeight: "600",
-        fontSize: "15px",
-        boxShadow: "0 4px 15px rgba(59, 130, 246, 0.4)",
-        transition: "transform 0.2s, box-shadow 0.2s",
-      }}
-      onMouseOver={(e) => {
-        e.currentTarget.style.transform = "translateY(-2px)";
-        e.currentTarget.style.boxShadow = "0 6px 20px rgba(59, 130, 246, 0.6)";
-      }}
-      onMouseOut={(e) => {
-        e.currentTarget.style.transform = "translateY(0)";
-        e.currentTarget.style.boxShadow = "0 4px 15px rgba(59, 130, 246, 0.4)";
-      }}
-    >
-      🛒 Buy Now
-    </button>
-  </div>
+
+{!uploadedImage && (
+  <p style={{ 
+    marginTop: "12px", 
+    color: "#6b7280", 
+    fontSize: "14px",
+    fontStyle: "italic",
+    textAlign: "center"
+  }}>
+    Please upload a photo first
+  </p>
+)}
 </div>
       </div>
     )}

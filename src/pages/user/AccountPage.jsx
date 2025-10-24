@@ -1011,30 +1011,41 @@ const getPadding = () => {
                           <option value="Canada">Canada</option>
                         </select>
                       </div>
-                      <div>
-                        <label style={labelStyle}>Address Type</label>
-                        <select
-                          style={inputStyle}
-                          value={newAddress.addressType}
-                          onChange={(e) => setNewAddress({...newAddress, addressType: e.target.value})}
-                        >
-                          <option value="Home">Home</option>
-                          <option value="Work">Work</option>
-                          <option value="Other">Other</option>
-                        </select>
-                      </div>
+                     <div>
+  <label style={labelStyle}>Address Type</label>
+  <select
+    style={{
+      ...inputStyle,
+      cursor: 'not-allowed',
+      opacity: 0.6,
+      background: '#f3f4f6'
+    }}
+    value={newAddress.addressType || "Home"}
+    onChange={(e) => setNewAddress({...newAddress, addressType: e.target.value})}
+    disabled
+  >
+    <option value="Home">Null</option>
+    <option value="Work">Work</option>
+    <option value="Other">Other</option>
+  </select>
+</div>
                     </div>
-
-                    <div>
-                      <label style={labelStyle}>Landmark (Optional)</label>
-                      <input
-                        style={inputStyle}
-                        type="text"
-                        value={newAddress.landmark}
-                        onChange={(e) => setNewAddress({...newAddress, landmark: e.target.value})}
-                        placeholder="Enter nearby landmark"
-                      />
-                    </div>
+<div>
+  <label style={labelStyle}>Landmark (Optional)</label>
+  <input
+    style={{
+      ...inputStyle,
+      cursor: 'not-allowed',
+      opacity: 0.6,
+      background: '#f3f4f6'
+    }}
+    type="text"
+    value={newAddress.landmark || ""}
+    onChange={(e) => setNewAddress({...newAddress, landmark: e.target.value})}
+    placeholder="Enter nearby landmark"
+    disabled
+  />
+</div>
 
                     <div style={{ marginBottom: '20px' }}>
                       <label style={{
