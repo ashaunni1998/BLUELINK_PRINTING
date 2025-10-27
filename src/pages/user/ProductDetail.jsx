@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
+import Swal from 'sweetalert2';
 import { useParams, useNavigate } from "react-router-dom";
 import { Star } from 'lucide-react';
 import Header from "./components/Header";
@@ -35,7 +36,7 @@ const [selectedPaper, setSelectedPaper] = useState(null);
 // In ProductDetail.jsx, add state for menu
 const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-
+const [isUploading, setIsUploading] = useState(false);
 const [isPaperDropdownOpen, setIsPaperDropdownOpen] = useState(false);
 const [isFinishDropdownOpen, setIsFinishDropdownOpen] = useState(false);
 
@@ -83,6 +84,12 @@ const IMGBB_API_KEY = "0dc969770aaafeeba77f84c1534e4fad"; // your imgbb API key
 // const FRAME_URL = "https://i.ibb.co/3y63T95k/imageedit-1-7441844514.png";   // <- REPLACE with direct image URL from ibb (right-click image â†' Copy image address)
 const [uploadedUrl, setUploadedUrl] = useState(null);     // stores the final uploaded imgbb URL
 
+
+// Extract product type from category
+const productType = product?.categories?.[0]?.name?.toLowerCase() || 
+                    product?.category?.name?.toLowerCase() || 
+                    product?.category?.toLowerCase() || 
+                    "";
 
 
 const frameOverlays = {
@@ -279,11 +286,14 @@ const isMobile = useMediaQuery("(max-width: 768px)");
  // ---------- REPLACE handleAddToCart WITH THIS COMPLETE BLOCK ----------
 const handleAddToCart = async () => {
   try {
-    if (!product?._id) {
-      alert("Product not loaded yet.");
-      return;
-    }
-
+   if (!product?._id) {
+  Swal.fire({
+    icon: 'error',
+    title: 'Error',
+    text: 'Product not loaded yet.'
+  });
+  return;
+}
     // Determine quantity: prefer selectedTier.qty, fall back to any selectedQty or 1
     const qty = Number(selectedTier?.qty || selectedQty || 1) || 1;
 
@@ -346,20 +356,37 @@ const handleAddToCart = async () => {
 
     if (res.ok) {
       // success — show confirmation and go to cart
-      alert("✓ Product added to cart!");
-      navigate("/cart");
+      Swal.fire({
+  icon: 'success',
+  title: 'Success!',
+  text: '✓ Product added to cart!',
+  showConfirmButton: false,
+  timer: 1500
+}).then(() => navigate("/cart"));
+
+
     } else if (res.status === 401) {
-      // session expired / unauthorized
-      alert("Session expired. Please login again.");
-      navigate("/signin");
+      // Session expired (line ~418)
+Swal.fire({
+  icon: 'warning',
+  title: 'Session Expired',
+  text: 'Please login again.'
+}).then(() => navigate("/signin"));
     } else {
-      // show server-provided message when available
-      alert(data?.message || "Failed to add product to cart.");
-      console.error("addToCart error:", data);
+      // Failed to add (line ~422)
+Swal.fire({
+  icon: 'error',
+  title: 'Failed',
+  text: data?.message || "Failed to add product to cart."
+});
     }
   } catch (err) {
-    console.error("Add to cart failed:", err);
-    alert("Something went wrong. Please try again.");
+    // Catch error (line ~429)
+Swal.fire({
+  icon: 'error',
+  title: 'Error',
+  text: 'Something went wrong. Please try again.'
+});
   }
 };
 // ---------- END REPLACEMENT ----------
@@ -367,14 +394,24 @@ const handleAddToCart = async () => {
 
   // reviews
   const handleSubmitReview = () => {
-    if (!reviewText.trim() || !rating) {
-      alert("Please give rating and write review.");
-      return;
-    }
+   if (!reviewText.trim() || !rating) {
+  Swal.fire({
+    icon: 'warning',
+    title: 'Missing Information',
+    text: 'Please give rating and write review.'
+  });
+  return;
+}
     console.log("Submitting review:", { rating, reviewText });
     setReviewText('');
     setRating(0);
-    alert("Review submitted!");
+    Swal.fire({
+  icon: 'success',
+  title: 'Thank You!',
+  text: 'Review submitted!',
+  showConfirmButton: false,
+  timer: 1500
+});
   };
 
 
@@ -385,11 +422,14 @@ const handleAddToCart = async () => {
 const handleFileChange = (e, side) => {
   const file = e.target.files?.[0];
   if (!file) return;
-
-  if (!file.type.startsWith("image/")) {
-    alert("Please upload an image file.");
-    return;
-  }
+if (!file.type.startsWith("image/")) {
+  Swal.fire({
+    icon: 'error',
+    title: 'Invalid File',
+    text: 'Please upload an image file.'
+  });
+  return;
+}
 
   const reader = new FileReader();
   reader.onloadend = () => {
@@ -438,9 +478,14 @@ const getCroppedImg = (imageSrc, cropPixels) => {
 const openCropWithFile = (file, side = "uploaded") => {
   if (!file) return;
   if (!file.type?.startsWith?.("image/")) {
-    alert("Only image files allowed");
-    return;
-  }
+  Swal.fire({
+    icon: 'error',
+    title: 'Invalid File',
+    text: 'Only image files allowed'
+  });
+  return;
+}
+
   const reader = new FileReader();
   reader.onloadend = () => {
     const dataUrl = reader.result;
@@ -470,10 +515,17 @@ const handleRevertToOriginal = () => {
 // Save crop: produce base64 and store into frontPreview/backPreview (depending on croppingSide)
 const handleSaveCrop = async () => {
   try {
-    if (!croppingImage || !croppedAreaPixels) {
-      alert("Please adjust and then press Save Crop.");
-      return;
-    }
+   if (!croppingImage || !croppedAreaPixels) {
+  Swal.fire({
+    icon: 'warning',
+    title: 'Incomplete Crop',
+    text: 'Please adjust and then press Save Crop.'
+  });
+  return;
+}
+
+
+
     const croppedBase64 = await getCroppedImg(croppingImage, croppedAreaPixels);
 
     // apply cropped result depending on which side/context
@@ -498,7 +550,11 @@ const handleSaveCrop = async () => {
     setCroppingSide(null);
   } catch (err) {
     console.error("Crop save error:", err);
-    alert("Error saving crop  check console.");
+Swal.fire({
+  icon: 'error',
+  title: 'Crop Error',
+  text: 'Error saving crop – check console.'
+});
   }
 };
 // const handleCropComplete = (croppedDataUrl) => {
@@ -513,14 +569,24 @@ const handleSaveCrop = async () => {
 
 
 const handleSubmit = () => {
-  if (!croppedImage) {
-    alert("Please upload and crop an image before submitting.");
-    return;
-  }
+if (!croppedImage) {
+  Swal.fire({
+    icon: 'warning',
+    title: 'No Image',
+    text: 'Please upload and crop an image before submitting.'
+  });
+  return;
+}
 
   // For now just log/alert
   console.log("Submitted cropped image:", croppedImage);
-  alert("Image submitted successfully!");
+  Swal.fire({
+  icon: 'success',
+  title: 'Success!',
+  text: 'Image submitted successfully!',
+  showConfirmButton: false,
+  timer: 1500
+});
 
   // ðŸš€ Later, replace with API upload
   // const formData = new FormData();
@@ -549,14 +615,26 @@ const handleScratchSubmit = async (e) => {
     });
 
     if (res.ok) {
-      alert("Your design request has been submitted!");
-      e.target.reset();
+      Swal.fire({
+    icon: 'success',
+    title: 'Submitted!',
+    text: 'Your design request has been submitted!'
+  });
+  e.target.reset();
     } else {
-      alert("Something went wrong!");
+      Swal.fire({
+    icon: 'error',
+    title: 'Error',
+    text: 'Something went wrong!'
+  });
     }
   } catch (err) {
     console.error(err);
-    alert("Error submitting request.");
+    Swal.fire({
+  icon: 'error',
+  title: 'Error',
+  text: 'Error submitting request.'
+});
   }
 };
 
@@ -567,10 +645,20 @@ const handleCropComplete = (cropped, side) => {
 
 const handleUploadSubmit = () => {
   if (!frontPreview || !backPreview) {
-    alert("Please upload both front and back images!");
+    Swal.fire({
+    icon: 'warning',
+    title: 'Missing Images',
+    text: 'Please upload both front and back images!'
+  });
     return;
   }
-  alert("Design submitted successfully!");
+  Swal.fire({
+  icon: 'success',
+  title: 'Success!',
+  text: 'Design submitted successfully!',
+  showConfirmButton: false,
+  timer: 1500
+});
 };
 
 
@@ -586,11 +674,10 @@ const preparePreviewLocal = async (uploadedUrl) => {
     canvas.height = outputH;
     const ctx = canvas.getContext("2d");
 
-    // white background (or transparent)
+    // white background
     ctx.fillStyle = "#ffffff";
     ctx.fillRect(0, 0, outputW, outputH);
 
-    // load uploaded photo (do NOT set crossOrigin for blob: URLs)
     const loadImg = (src, cross = false) =>
       new Promise((resolve, reject) => {
         const i = new Image();
@@ -600,54 +687,81 @@ const preparePreviewLocal = async (uploadedUrl) => {
         i.src = src;
       });
 
-    const photo = await loadImg(uploadedUrl, false);
-
-    // cover-fit the photo into canvas
-    const scale = Math.max(outputW / photo.width, outputH / photo.height);
-    const drawW = photo.width * scale;
-    const drawH = photo.height * scale;
-    const dx = (outputW - drawW) / 2;
-    const dy = (outputH - drawH) / 2;
-    ctx.drawImage(photo, dx, dy, drawW, drawH);
-
-    // load frame image (must be same size or will be scaled)
-    // using crossOrigin for remote frame (imgbb/ibb) â€" keep it so we can access pixel data
+    // Load frame FIRST to get dimensions
     const frameImg = await loadImg(FRAME_URL, true);
-
-    // draw frame into offscreen canvas to edit pixels
+    
+    // Create offscreen canvas for frame processing
     const fCanvas = document.createElement("canvas");
     fCanvas.width = outputW;
     fCanvas.height = outputH;
     const fCtx = fCanvas.getContext("2d");
     fCtx.drawImage(frameImg, 0, 0, outputW, outputH);
 
-    // convert near-white to transparent
+    // Make near-white pixels transparent and detect frame boundaries
+    let minX = outputW, minY = outputH, maxX = 0, maxY = 0;
     try {
       const imgData = fCtx.getImageData(0, 0, outputW, outputH);
       const data = imgData.data;
-      const threshold = 245; // tweak if your frame has slightly off-white pixels
-      for (let i = 0; i < data.length; i += 4) {
-        const r = data[i], g = data[i+1], b = data[i+2];
-        if (r >= threshold && g >= threshold && b >= threshold) {
-          data[i+3] = 0; // make pixel transparent
+      const threshold = 245;
+      
+      for (let y = 0; y < outputH; y++) {
+        for (let x = 0; x < outputW; x++) {
+          const i = (y * outputW + x) * 4;
+          const r = data[i], g = data[i+1], b = data[i+2];
+          
+          if (r >= threshold && g >= threshold && b >= threshold) {
+            data[i+3] = 0; // make transparent
+          } else {
+            // Track frame boundaries
+            if (x < minX) minX = x;
+            if (x > maxX) maxX = x;
+            if (y < minY) minY = y;
+            if (y > maxY) maxY = y;
+          }
         }
       }
       fCtx.putImageData(imgData, 0, 0);
     } catch (err) {
-      // getImageData can throw if frame server doesn't allow CORS
-      console.warn("Could not access frame pixels (CORS). Frame may not become transparent.", err);
-      // fallback: we will just draw frame as-is
+      console.warn("Could not process frame pixels:", err);
+      // Fallback: use 80% of canvas size as safe area
+      const margin = outputW * 0.1;
+      minX = margin;
+      minY = margin;
+      maxX = outputW - margin;
+      maxY = outputH - margin;
     }
 
-    // draw processed frame on main canvas
+    // Calculate safe drawing area (inside frame)
+    const frameWidth = maxX - minX;
+    const frameHeight = maxY - minY;
+    const frameCenterX = minX + frameWidth / 2;
+    const frameCenterY = minY + frameHeight / 2;
+
+    // Load and draw photo INSIDE frame boundaries
+    const photo = await loadImg(uploadedUrl, false);
+
+    // Scale photo to fit inside frame (with small margin)
+    const margin = 20; // pixels inside frame
+    const maxPhotoW = frameWidth - (margin * 2);
+    const maxPhotoH = frameHeight - (margin * 2);
+    
+    const scale = Math.min(maxPhotoW / photo.width, maxPhotoH / photo.height);
+    const drawW = photo.width * scale;
+    const drawH = photo.height * scale;
+    
+    // Center photo inside frame
+    const dx = frameCenterX - (drawW / 2);
+    const dy = frameCenterY - (drawH / 2);
+    
+    ctx.drawImage(photo, dx, dy, drawW, drawH);
+
+    // Draw processed frame on top
     ctx.drawImage(fCanvas, 0, 0, outputW, outputH);
 
-    // set prepared preview in state (shows on UI)
     const finalDataUrl = canvas.toDataURL("image/png");
     setPreparedPreview(finalDataUrl);
   } catch (err) {
     console.error("preparePreviewLocal error:", err);
-    // still show uploadedImage if compositing fails
     setPreparedPreview(null);
   }
 };
@@ -689,18 +803,33 @@ useEffect(() => {
 
 }, [uploadedImage]);
 
-
 const handlePrepareAndUpload = async () => {
+  if (isUploading) return;
   try {
     if (!uploadedImage) {
-      alert("Please upload an image first.");
+      Swal.fire({
+        icon: 'warning',
+        title: 'No Image',
+        text: 'Please upload an image first.'
+      });
       return;
     }
 
-    // Show loading state
+    setIsUploading(true);
+
+    Swal.fire({
+      title: 'Processing...',
+      html: 'Preparing your design and adding to cart',
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      showConfirmButton: false,
+      didOpen: () => {
+        Swal.showLoading();
+      }
+    });
+
     console.log("🔄 Starting image preparation...");
 
-    // Prepare canvas size and draw photo + frame + optional text
     const canvas = document.createElement("canvas");
     const outputW = 1200;
     const outputH = 1200;
@@ -708,14 +837,11 @@ const handlePrepareAndUpload = async () => {
     canvas.height = outputH;
     const ctx = canvas.getContext("2d");
 
-    // white background
     ctx.fillStyle = "#ffffff";
     ctx.fillRect(0, 0, outputW, outputH);
 
-    // Load uploaded image with better error handling
     const photo = await new Promise((resolve, reject) => {
       const img = new Image();
-      // Don't set crossOrigin for blob: URLs
       if (!uploadedImage.startsWith('blob:')) {
         img.crossOrigin = "anonymous";
       }
@@ -730,23 +856,6 @@ const handlePrepareAndUpload = async () => {
       img.src = uploadedImage;
     });
 
-    // cover-fit calculation
-    const scale = Math.max(outputW / photo.width, outputH / photo.height);
-    const drawW = photo.width * scale;
-    const drawH = photo.height * scale;
-    const dx = (outputW - drawW) / 2;
-    const dy = (outputH - drawH) / 2;
-    ctx.drawImage(photo, dx, dy, drawW, drawH);
-
-    // optional text
-    if (customText && customText.trim()) {
-      ctx.fillStyle = "#111";
-      ctx.font = "bold 48px sans-serif";
-      ctx.textAlign = "center";
-      ctx.fillText(customText.trim(), outputW / 2, outputH - 60);
-    }
-
-    // Load frame image with better error handling
     if (FRAME_URL) {
       try {
         const frameImg = await new Promise((resolve, reject) => {
@@ -763,43 +872,91 @@ const handlePrepareAndUpload = async () => {
           f.src = FRAME_URL;
         });
 
-        // create offscreen canvas to process frame
         const fCanvas = document.createElement("canvas");
         fCanvas.width = outputW;
         fCanvas.height = outputH;
         const fCtx = fCanvas.getContext("2d");
         fCtx.drawImage(frameImg, 0, 0, outputW, outputH);
 
-        // make near-white pixels transparent
+        let minX = outputW, minY = outputH, maxX = 0, maxY = 0;
         try {
           const imgData = fCtx.getImageData(0, 0, outputW, outputH);
           const data = imgData.data;
           const threshold = 245;
-          for (let i = 0; i < data.length; i += 4) {
-            const r = data[i], g = data[i + 1], b = data[i + 2];
-            if (r >= threshold && g >= threshold && b >= threshold) {
-              data[i + 3] = 0;
+          
+          for (let y = 0; y < outputH; y++) {
+            for (let x = 0; x < outputW; x++) {
+              const i = (y * outputW + x) * 4;
+              const r = data[i], g = data[i + 1], b = data[i + 2];
+              
+              if (r >= threshold && g >= threshold && b >= threshold) {
+                data[i + 3] = 0;
+              } else {
+                if (x < minX) minX = x;
+                if (x > maxX) maxX = x;
+                if (y < minY) minY = y;
+                if (y > maxY) maxY = y;
+              }
             }
           }
           fCtx.putImageData(imgData, 0, 0);
         } catch (pixelErr) {
           console.warn("⚠️ Could not process frame transparency:", pixelErr);
+          const margin = outputW * 0.1;
+          minX = margin;
+          minY = margin;
+          maxX = outputW - margin;
+          maxY = outputH - margin;
         }
 
-        // draw cleaned frame on main canvas
+        const frameWidth = maxX - minX;
+        const frameHeight = maxY - minY;
+        const frameCenterX = minX + frameWidth / 2;
+        const frameCenterY = minY + frameHeight / 2;
+
+        const margin = 20;
+        const maxPhotoW = frameWidth - (margin * 2);
+        const maxPhotoH = frameHeight - (margin * 2);
+        
+        const scale = Math.min(maxPhotoW / photo.width, maxPhotoH / photo.height);
+        const drawW = photo.width * scale;
+        const drawH = photo.height * scale;
+        const dx = frameCenterX - (drawW / 2);
+        const dy = frameCenterY - (drawH / 2);
+        
+        ctx.drawImage(photo, dx, dy, drawW, drawH);
+
+        if (customText && customText.trim()) {
+          ctx.fillStyle = "#111";
+          ctx.font = "bold 48px sans-serif";
+          ctx.textAlign = "center";
+          ctx.fillText(customText.trim(), frameCenterX, maxY - 60);
+        }
+
         ctx.drawImage(fCanvas, 0, 0, outputW, outputH);
       } catch (frameErr) {
         console.warn("⚠️ Frame processing failed, continuing without frame:", frameErr);
+        const scale = Math.min(outputW / photo.width, outputH / photo.height);
+        const drawW = photo.width * scale;
+        const drawH = photo.height * scale;
+        const dx = (outputW - drawW) / 2;
+        const dy = (outputH - drawH) / 2;
+        ctx.drawImage(photo, dx, dy, drawW, drawH);
       }
+    } else {
+      const scale = Math.min(outputW / photo.width, outputH / photo.height);
+      const drawW = photo.width * scale;
+      const drawH = photo.height * scale;
+      const dx = (outputW - drawW) / 2;
+      const dy = (outputH - drawH) / 2;
+      ctx.drawImage(photo, dx, dy, drawW, drawH);
     }
 
-    // create preview
     const finalDataUrl = canvas.toDataURL("image/png", 0.9);
     setPreparedPreview(finalDataUrl);
     
     console.log("🔄 Uploading to imgbb...");
 
-    // Upload to imgbb with better error handling
     const base64 = finalDataUrl.split(",")[1];
     const formData = new FormData();
     formData.append("key", IMGBB_API_KEY);
@@ -831,13 +988,12 @@ const handlePrepareAndUpload = async () => {
     
     console.log("✅ Image uploaded successfully:", uploadedUrlFromApi);
     
-    // ✅ Add to cart after successful upload
+    // ✅ CRITICAL: Pass BOTH the imgbb URL and the base64 preview
     await addPersonalizedGiftToCart(uploadedUrlFromApi, finalDataUrl);
     
   } catch (err) {
     console.error("❌ Full error details:", err);
     
-    // More specific error messages
     let errorMessage = "Error preparing or uploading image";
     
     if (err.message.includes("Failed to load")) {
@@ -848,9 +1004,16 @@ const handlePrepareAndUpload = async () => {
       errorMessage = "Network error. Please check your internet connection.";
     }
     
-    alert(`❌ ${errorMessage}: ${err.message || err}`);
+    Swal.fire({
+      icon: 'error',
+      title: 'Upload Failed',
+      text: `${errorMessage}: ${err.message || err}`
+    });
+  } finally {
+    setIsUploading(false);
   }
 };
+
 
 // ✅ NEW FUNCTION: Add personalized gift to cart
 // ✅ NEW FUNCTION: Add personalized gift to cart
@@ -858,13 +1021,16 @@ const handlePrepareAndUpload = async () => {
 const addPersonalizedGiftToCart = async (uploadedUrl, preparedPreview) => {
   try {
     if (!product?._id) {
-      alert("Product not loaded yet.");
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Product not loaded yet.'
+      });
       return;
     }
 
     const qty = Number(selectedTier?.qty || 1) || 1;
 
-    // Normalize option values
     const normalizeOption = (opt) => {
       if (opt === null || opt === undefined) return null;
       if (typeof opt === "string" || typeof opt === "number") return String(opt);
@@ -879,7 +1045,6 @@ const addPersonalizedGiftToCart = async (uploadedUrl, preparedPreview) => {
     const cornerVal = normalizeOption(selectedCorner);
     const paperVal = normalizeOption(selectedPaper);
 
-    // Calculate weight
     const getProductWeight = () => {
       if (selectedTier?.weightGrams && Number(selectedTier.weightGrams) > 0) {
         return Number(selectedTier.weightGrams);
@@ -895,36 +1060,39 @@ const addPersonalizedGiftToCart = async (uploadedUrl, preparedPreview) => {
     
     const productWeight = getProductWeight();
 
-    // ✅ Convert preparedPreview (base64 data URL) to File object for upload
     const dataURLtoFile = async (dataURL, filename) => {
       const res = await fetch(dataURL);
       const blob = await res.blob();
       return new File([blob], filename, { type: blob.type || "image/jpeg" });
     };
 
-    // Create File object from preparedPreview
     let imageFile = null;
     if (preparedPreview) {
       imageFile = await dataURLtoFile(preparedPreview, `personalized-${product._id}-${Date.now()}.jpg`);
     }
 
     if (!imageFile) {
-      alert("Please generate a preview before adding to cart.");
+      Swal.fire({
+        icon: 'warning',
+        title: 'No Preview',
+        text: 'Please generate a preview before adding to cart.'
+      });
       return;
     }
 
-    // ✅ Use FormData to match UploadDesign.jsx pattern
     const formData = new FormData();
     
-    // Append the image file (matches "images" field name from UploadDesign.jsx)
     formData.append("images", imageFile, imageFile.name);
-    
-    // Append product details
     formData.append("productId", String(product._id));
     formData.append("quantity", String(qty));
     formData.append("designType", selectedDesignType || "single");
     
-    // ✅ Append options as JSON (matches UploadDesign.jsx structure)
+    // ✅ CRITICAL: Send the imgbb URL as previewUrl
+    formData.append("previewUrl", uploadedUrl || "");
+    
+    // ✅ Also send as uploadedUrl for backward compatibility
+    formData.append("uploadedUrl", uploadedUrl || "");
+    
     formData.append("options", JSON.stringify({
       designType: selectedDesignType || "single",
       size: sizeVal || null,
@@ -935,6 +1103,8 @@ const addPersonalizedGiftToCart = async (uploadedUrl, preparedPreview) => {
       frameType: selectedFrame || null,
       weight: productWeight,
       isCustomized: true,
+      previewUrl: uploadedUrl || "", // ✅ Include in options
+      uploadedUrl: uploadedUrl || "", // ✅ Also here
       raw: {
         size: selectedSize ?? null,
         finish: selectedFinish ?? null,
@@ -946,42 +1116,46 @@ const addPersonalizedGiftToCart = async (uploadedUrl, preparedPreview) => {
       }
     }));
 
-    console.log("🔍 DEBUG FormData payload:", {
-      productId: product._id,
-      quantity: qty,
-      designType: selectedDesignType,
-      fileName: imageFile.name,
-      fileSize: imageFile.size,
-      fileType: imageFile.type
-    });
+    console.log("📤 Sending to cart with previewUrl:", uploadedUrl);
 
-    // ✅ Use the same API endpoint as UploadDesign.jsx
     const res = await fetch(`${API_BASE_URL}/addToCartWithDesign`, {
       method: "POST",
       credentials: "include",
-      body: formData, // Send as FormData, not JSON
+      body: formData,
     });
 
     const data = await res.json().catch(() => ({ message: "Invalid JSON response" }));
 
     if (res.ok) {
-      console.log("✅ addToCartWithDesign success:", data);
-      alert("✅ Personalized gift added to cart successfully!");
-      navigate("/cart");
+      console.log("✅ Added to cart successfully");
+      Swal.fire({
+        icon: 'success',
+        title: 'Added to Cart!',
+        text: '✅ Personalized gift added to cart successfully!',
+        showConfirmButton: false,
+        timer: 1500
+      }).then(() => navigate("/cart"));
     } else if (res.status === 401) {
-      alert("❌ Session expired. Please login again.");
-      navigate("/signin");
+      Swal.fire({
+        icon: 'warning',
+        title: 'Session Expired',
+        text: '❌ Session expired. Please login again.'
+      }).then(() => navigate("/signin"));
     } else {
       const errorMsg = data?.message || data?.error || "Failed to add product to cart.";
-      alert(`❌ ${errorMsg}`);
-      console.error("❌ addToCartWithDesign error:", {
-        status: res.status,
-        data: data
+      Swal.fire({
+        icon: 'error',
+        title: 'Failed',
+        text: `❌ ${errorMsg}`
       });
     }
   } catch (err) {
     console.error("❌ Add to cart failed:", err);
-    alert(`❌ Network error. Please try again.`);
+    Swal.fire({
+      icon: 'error',
+      title: 'Network Error',
+      text: '❌ Network error. Please try again.'
+    });
   }
 };
 
@@ -989,8 +1163,12 @@ const addPersonalizedGiftToCart = async (uploadedUrl, preparedPreview) => {
   // âœ… handle submit
   const handletextSubmit = () => {
     if (!customText.trim()) {
-      alert("Please enter some text before submitting!");
-      return;
+ Swal.fire({
+    icon: 'warning',
+    title: 'Empty Text',
+    text: 'Please enter some text before submitting!'
+  });
+        return;
     }
 
     // Here you could POST to backend instead of just setting state
@@ -1005,8 +1183,12 @@ const addPersonalizedGiftToCart = async (uploadedUrl, preparedPreview) => {
 const handleUploadYourDesign = () => {
   // Ensure selected tier exists
   if (!selectedTier) {
-    alert("Please select a quantity tier first.");
-    return;
+ Swal.fire({
+    icon: 'warning',
+    title: 'No Tier Selected',
+    text: 'Please select a quantity tier first.'
+  });
+      return;
   }
 
   // Get safe primitive values for options (use .name/.label if the selected item is an object)
@@ -2989,58 +3171,65 @@ const isButtonBadge = normalize(product?.name || "").includes("button badge") ||
     </>
   ) : (
     // Original Design Type Selection
-    <>
-      <h2 style={{ fontSize: "24px", fontWeight: "600", marginBottom: "20px" }}>
-        Choose your design type
-      </h2>
+  !(isPersonalisedGift || isButtonBadge) && (
+  <>
+    <h2 style={{ fontSize: "24px", fontWeight: "600", marginBottom: "20px" }}>
+      Choose your design type
+    </h2>
 
-      <div style={{
-        display: "flex",
-        gap: "16px",
-        marginBottom: "24px",
-        justifyContent: "center",
-      }}>
-        {[
-          { value: "single", label: "Single Side", icon: "🖼️" },
-          { value: "double", label: "Double Side", icon: "📖" },
-        ].map((option) => {
-          const isActive = selectedDesignType === option.value;
-          return (
-            <button
-              key={option.value}
-              type="button"
-              onClick={() => setSelectedDesignType(option.value)}
-              style={{
-                flex: 1,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: "8px",
-                padding: "14px 20px",
-                borderRadius: "9999px",
-                border: isActive ? "2px solid #2563eb" : "1px solid #d1d5db",
-                backgroundColor: isActive ? "#eff6ff" : "#fff",
-                color: isActive ? "#2563eb" : "#374151",
-                fontWeight: "600",
-                fontSize: "15px",
-                cursor: "pointer",
-                transition: "all 0.2s ease",
-                boxShadow: isActive
-                  ? "0 2px 6px rgba(37,99,235,0.2)"
-                  : "0 1px 3px rgba(0,0,0,0.05)",
-              }}
-            >
-              <span style={{ fontSize: "18px" }}>{option.icon}</span>
-              {option.label}
-            </button>
-          );
-        })}
-      </div>
-    </>
-  )}
+    <div style={{
+      display: "flex",
+      gap: "16px",
+      marginBottom: "24px",
+      justifyContent: "center",
+    }}>
+      {[
+        { value: "single", label: "Single Side", icon: "🖼️" },
+        { value: "double", label: "Double Side", icon: "📖" },
+      ].map((option) => {
+        const isActive = selectedDesignType === option.value;
+        return (
+          <button
+            key={option.value}
+            type="button"
+            onClick={() => setSelectedDesignType(option.value)}
+            style={{
+              flex: 1,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "8px",
+              padding: "14px 20px",
+              borderRadius: "9999px",
+              border: isActive ? "2px solid #2563eb" : "1px solid #d1d5db",
+              backgroundColor: isActive ? "#eff6ff" : "#fff",
+              color: isActive ? "#2563eb" : "#374151",
+              fontWeight: "600",
+              fontSize: "15px",
+              cursor: "pointer",
+              transition: "all 0.2s ease",
+              boxShadow: isActive
+                ? "0 2px 6px rgba(37,99,235,0.2)"
+                : "0 1px 3px rgba(0,0,0,0.05)",
+            }}
+          >
+            <span style={{ fontSize: "18px" }}>{option.icon}</span>
+            {option.label}
+          </button>
+        );
+      })}
+    </div>
+  </>
+)
+)}
+  
 
   
 </div>
+  
+
+  
+
 
 {/* Upload Your Design Button - Added after quantity selector */}
 {/* Upload Design Button - Exclude personalized gifts and button badges */}
@@ -4069,8 +4258,7 @@ const isButtonBadge = normalize(product?.name || "").includes("button badge") ||
         </div>
         <Footer />
         </div>
-       </div>
-            
+        </div>    
       
     
     

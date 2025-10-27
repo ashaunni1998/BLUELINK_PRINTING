@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Sparkles, Palette, FileText, ArrowRight, Star, Zap } from 'lucide-react';
-
+import { useNavigate } from 'react-router-dom';
 const FlyerSection = () => {
   const [isVisible, setIsVisible] = useState(false);
   const [activeFeature, setActiveFeature] = useState(0);
   const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1440);
-
+ const navigate = useNavigate();
   useEffect(() => {
     setIsVisible(true);
   }, []);
@@ -35,7 +35,8 @@ const FlyerSection = () => {
   ];
 
   const handleGetStarted = () => {
-    console.log('Navigate to sign-in page');
+    navigate("/sign-in");
+    
   };
 
   return (

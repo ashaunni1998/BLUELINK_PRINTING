@@ -697,27 +697,27 @@ const getPadding = () => {
                             </span>
                           </div>
                           
-                          <div style={{
-                            marginBottom: '16px',
-                            paddingBottom: '16px',
-                            borderBottom: '1px solid #e9ecef'
-                          }}>
-                            <p style={{
-                              margin: '0 0 8px 0',
-                              fontSize: isMobile ? '13px' : '14px',
-                              color: '#6c757d'
-                            }}>
-                              Items: {order.items?.length || order.products?.length || 'N/A'}
-                            </p>
-                            <p style={{
-                              margin: '0',
-                              fontSize: isMobile ? '17px' : '18px',
-                              fontWeight: '700',
-                              color: '#212529'
-                            }}>
-                              {formatCurrency(order.totalAmount || order.total || 0)}
-                            </p>
-                          </div>
+                        <div style={{
+  marginBottom: '16px',
+  paddingBottom: '16px',
+  borderBottom: '1px solid #e9ecef'
+}}>
+  <p style={{
+    margin: '0 0 8px 0',
+    fontSize: isMobile ? '13px' : '14px',
+    color: '#6c757d'
+  }}>
+    Items: {order.orderItems?.length || order.items?.length || order.products?.length || 0}
+  </p>
+  <p style={{
+    margin: '0',
+    fontSize: isMobile ? '17px' : '18px',
+    fontWeight: '700',
+    color: '#212529'
+  }}>
+    {formatCurrency(order.totalPrice || order.totalAmount || order.total || order.grandTotal || 0)}
+  </p>
+</div>
                           
                           <Link 
                             to={`/orders/${order._id || order.id}`}
@@ -840,22 +840,22 @@ const getPadding = () => {
                                     {order.status || 'Pending'}
                                   </span>
                                 </td>
-                                <td style={{
-                                  padding: '16px',
-                                  fontSize: '14px',
-                                  color: '#6c757d'
-                                }}>
-                                  {order.items?.length || order.products?.length || 'N/A'} item(s)
-                                </td>
-                                <td style={{
-                                  padding: '16px',
-                                  fontSize: '16px',
-                                  fontWeight: '700',
-                                  color: '#212529',
-                                  textAlign: 'right'
-                                }}>
-                                  {formatCurrency(order.totalAmount || order.total || 0)}
-                                </td>
+                              <td style={{
+  padding: '16px',
+  fontSize: '14px',
+  color: '#6c757d'
+}}>
+  {order.orderItems?.length || order.items?.length || order.products?.length || 0} item(s)
+</td>
+                           <td style={{
+  padding: '16px',
+  fontSize: '16px',
+  fontWeight: '700',
+  color: '#212529',
+  textAlign: 'right'
+}}>
+  {formatCurrency(order.totalPrice || order.totalAmount || order.total || order.grandTotal || 0)}
+</td>
                                 <td style={{ padding: '16px', textAlign: 'center' }}>
                                   <Link 
                                     to={`/orders/${order._id || order.id}`}

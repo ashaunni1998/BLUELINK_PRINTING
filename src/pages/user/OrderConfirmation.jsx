@@ -628,13 +628,14 @@ useEffect(() => {
 
                           <div className="order-item-details-responsive">
                             <div className="order-item-name-responsive">{it.name}</div>
-                            <div className="order-item-options-responsive">
-                              <div>Qty: {it.quantity}</div>
-                              <div>Size: {it.size ?? "N/A"}</div>
-                              <div>Paper: {it.paper ?? "N/A"}</div>
-                              <div>Finish: {it.finish ?? "N/A"}</div>
-                              <div>Corner: {it.corner ?? "N/A"}</div>
-                            </div>
+                           <div className="order-item-options-responsive">
+  <div>Qty: {it.quantity}</div>
+  {it.size && it.size !== "N/A" && <div>Size: {it.size}</div>}
+  {it.paper && it.paper !== "N/A" && <div>Paper: {it.paper}</div>}
+  {it.finish && it.finish !== "N/A" && <div>Finish: {it.finish}</div>}
+  {it.corner && it.corner !== "N/A" && <div>Corner: {it.corner}</div>}
+</div>
+
                           </div>
 
                           <div className="order-item-price-container-responsive">

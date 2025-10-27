@@ -81,17 +81,29 @@ useEffect(() => {
     if (orderId) fetchOrder();
   }, [orderId]);
 
-  const items = (order?.orderItems || []).map(i => ({
+ const items = (order?.orderItems || []).map(i => {
+  const quantity = Number(i.quantity ?? i.qty ?? 1) || 1;
+  const rawLineTotal = i.lineTotal ?? i.line_total ?? i.total ?? i.unitTotal ?? i.priceForQty ?? i.subtotal ?? i.amount ?? null;
+  const rawUnitPrice = i.unitPrice ?? i.pricePerUnit ?? i.price_unit ?? i.price ?? i.basePrice ?? i.product?.price ?? null;
+  
+  const parsedLine = parseMoneyToDollars(rawLineTotal);
+  const parsedUnit = parseMoneyToDollars(rawUnitPrice);
+  
+  const lineTotal = (parsedLine && parsedLine > 0) ? parsedLine : (parsedUnit > 0 ? parsedUnit * quantity : 0);
+  const unitPrice = (parsedUnit && parsedUnit > 0) ? parsedUnit : (quantity > 0 && lineTotal > 0 ? lineTotal / quantity : 0);
+
+  return {
     name: i.name || i.title || i.productName || i.product?.name || "Product",
-    quantity: Number(i.quantity ?? i.qty ?? 1) || 1,
-    lineTotal: parseMoneyToDollars(i.lineTotal ?? i.price ?? i.total ?? i.unitTotal),
-    unitPrice: parseMoneyToDollars(i.unitPrice ?? i.pricePerUnit ?? i.priceUnit),
+    quantity,
+    lineTotal: Number(lineTotal.toFixed(2)),
+    unitPrice: Number(unitPrice.toFixed(2)),
     image: resolveImage(i),
     size: readOption(i, "size"),
     paper: readOption(i, "paper"),
     finish: readOption(i, "finish"),
     corner: readOption(i, "corner"),
-  }));
+  };
+});
 
   const totalDollars = (() => {
     const serverTotal = parseMoneyToDollars(order?.totalPrice ?? order?.total ?? order?.amount);
@@ -430,13 +442,13 @@ useEffect(() => {
                     
                     <div className="product-details">
                       <div className="product-name">{it.name}</div>
-                      <div className="product-options">
-                        <div>Qty: {it.quantity}</div>
-                        <div>Size: {it.size ?? "N/A"}</div>
-                        <div>Paper: {it.paper ?? "N/A"}</div>
-                        <div>Finish: {it.finish ?? "N/A"}</div>
-                        <div>Corner: {it.corner ?? "N/A"}</div>
-                      </div>
+                     <div className="product-options">
+  <div>Qty: {it.quantity}</div>
+  {it.size && it.size !== "N/A" && <div>Size: {it.size}</div>}
+  {it.paper && it.paper !== "N/A" && <div>Paper: {it.paper}</div>}
+  {it.finish && it.finish !== "N/A" && <div>Finish: {it.finish}</div>}
+  {it.corner && it.corner !== "N/A" && <div>Corner: {it.corner}</div>}
+</div>
                     </div>
                     
                     <div className="product-pricing">

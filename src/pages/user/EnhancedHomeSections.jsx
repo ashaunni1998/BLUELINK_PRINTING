@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowRight, Sparkles, Heart, FileText, Gift, Star, Zap, Eye } from 'lucide-react';
 import { Link } from "react-router-dom";
+import { useNavigate } from 'react-router-dom';
 const EnhancedHomeSections = () => {
   const [visibleSections, setVisibleSections] = useState({});
   const [hoveredCard, setHoveredCard] = useState(null);
-
+ const navigate = useNavigate();
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
@@ -190,7 +191,7 @@ const padding = getPadding();
                 <span className="text-sm text-gray-500">850 views</span>
               </div>
               <Link
-                to="/blog/6"
+                to="/blog/5"
                 state={{ from: "home" }}
                 className="group/btn w-full flex items-center justify-center gap-2 px-6 py-4 bg-blue-600 text-white font-semibold rounded-2xl transform transition-all duration-300 hover:scale-105"
               >
@@ -310,13 +311,21 @@ const padding = getPadding();
 
                 {/* CTA Buttons */}
                 <div className="flex flex-col sm:flex-row gap-4 pt-2">
-                  <button className="group flex items-center justify-center gap-2 px-6 md:px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white text-base font-bold rounded-2xl transform transition-all duration-300 hover:scale-105 w-full sm:w-auto">
-                    <span className="whitespace-nowrap">Shop Flyers & Leaflets</span>
-                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform flex-shrink-0" />
-                  </button>
-                  <button className="px-6 md:px-8 py-4 border-2 border-blue-400 text-blue-600 text-base font-semibold rounded-2xl bg-white hover:bg-blue-50 hover:scale-105 transition-all duration-300 w-full sm:w-auto">
-                    View Samples
-                  </button>
+                <button
+        onClick={() => navigate("/sign-in")}
+        className="group flex items-center justify-center gap-2 px-6 md:px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white text-base font-bold rounded-2xl transform transition-all duration-300 hover:scale-105 w-full sm:w-auto"
+      >
+        <span className="whitespace-nowrap">Shop Flyers & Leaflets</span>
+        <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform flex-shrink-0" />
+      </button>
+
+      {/* Button 2: Go to Sign Up */}
+      <button
+        onClick={() => navigate("/signup")}
+        className="px-6 md:px-8 py-4 border-2 border-blue-400 text-blue-600 text-base font-semibold rounded-2xl bg-white hover:bg-blue-50 hover:scale-105 transition-all duration-300 w-full sm:w-auto"
+      >
+        View Samples
+      </button>
                 </div>
               </div>
             </div>
@@ -393,13 +402,21 @@ const padding = getPadding();
 
             {/* CTA */}
             <div className="flex flex-col sm:flex-row gap-4">
-              <button className="group flex items-center justify-center gap-2 px-6 lg:px-8 py-4 bg-blue-600 text-white font-bold rounded-2xl transform transition-all duration-300 hover:scale-105">
-                Shop Personalized Gifts
-                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-              </button>
-              <button className="px-6 lg:px-8 py-4 border-2 border-blue-400 text-blue-600 font-semibold rounded-2xl bg-white hover:bg-blue-50 transition-all duration-300">
-                Browse Gallery
-              </button>
+               <button
+        onClick={() => navigate("/sign-in")}
+        className="group flex items-center justify-center gap-2 px-6 lg:px-8 py-4 bg-blue-600 text-white font-bold rounded-2xl transform transition-all duration-300 hover:scale-105"
+      >
+        Shop Personalized Gifts
+        <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+      </button>
+
+      {/* Second Button — Go to Sign Up */}
+      <button
+        onClick={() => navigate("/signup")}
+        className="px-6 lg:px-8 py-4 border-2 border-blue-400 text-blue-600 font-semibold rounded-2xl bg-white hover:bg-blue-50 transition-all duration-300"
+      >
+        Browse Gallery
+      </button>
             </div>
           </div>
 

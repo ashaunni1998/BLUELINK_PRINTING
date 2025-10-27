@@ -144,7 +144,7 @@ export default function HomeSlider() {
           backgroundImage: `url(${slide.image || ""})`,
           backgroundSize: "cover",
           backgroundPosition: "center",
-          height: isMobile ? "12.5rem" : "21.25rem",
+          height: isMobile ? "12.5rem" : "28.125rem",
           width: "100%",
           position: "relative",
           display: "flex",
@@ -218,7 +218,7 @@ export default function HomeSlider() {
                   <p style={{ fontSize: "1rem", marginBottom: "1.5625rem" }}>
                     {slide.description}
                   </p>
-                  <a href="/AllProducts">
+                  <a href="/sign-in">
                     <button
                       style={{
                         padding: "0.3125rem 0.625rem",

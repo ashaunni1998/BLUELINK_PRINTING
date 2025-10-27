@@ -48,6 +48,20 @@ export default function Cart() {
 
     return cartData.items.map((i, idx) => {
       const raw = i || {};
+
+         console.log("🔍 Cart Item Debug:", {
+      index: idx,
+      raw: raw,
+      options: raw.options,
+      previewUrl_in_options: raw.options?.previewUrl,
+      previewUrl_in_raw: raw.previewUrl,
+      preparedPreview: raw.preparedPreview,
+      uploadedUrl: raw.uploadedUrl,
+      images: raw.images,
+      userImage: raw.userImage
+    });
+    
+    
       const productObj = (raw.productId && typeof raw.productId === "object") ? raw.productId : raw.product || null;
       const productIdStr = productObj?._id ? String(productObj._id) : (raw.productId ? String(raw.productId) : `unknown-${idx}`);
 
@@ -104,12 +118,14 @@ export default function Cart() {
 
       const lineTotal = Number((unitPrice + shippingPrice).toFixed(2));
 
-      const image =
-        (Array.isArray(raw.userImage) && raw.userImage.length && raw.userImage[0]) ||
-        (raw.preparedPreview) ||
-        (raw.uploadedUrl) ||
-        ((Array.isArray(raw.images) && raw.images.length && raw.images[0]) ? raw.images[0] : null) ||
-        ((Array.isArray(productObj?.images) && productObj.images.length && productObj.images[0]) ? productObj.images[0] : productObj?.image ?? "");
+const image =
+  (options.previewUrl) ||  // ✅ Prioritize previewUrl from options
+  (raw.previewUrl) ||      // ✅ Check raw.previewUrl
+  (raw.preparedPreview) ||
+  (raw.uploadedUrl) ||
+  (Array.isArray(raw.userImage) && raw.userImage.length && raw.userImage[0]) ||
+  ((Array.isArray(raw.images) && raw.images.length && raw.images[0]) ? raw.images[0] : null) ||
+  ((Array.isArray(productObj?.images) && productObj.images.length && productObj.images[0]) ? productObj.images[0] : productObj?.image ?? "");
 
       const name = productObj?.name ?? raw.rawName ?? raw.name ?? "(Product unavailable)";
 
@@ -421,29 +437,36 @@ export default function Cart() {
     border-bottom: 2px solid #e5e7eb;
   }
 
-  .item-image-wrapper {
+ .item-image-wrapper {
+    position: relative;
     flex-shrink: 0;
     width: 100%;
-    height: 180px;
-    border-radius: 0.75rem;
+    max-width:400px;
+    height: 400px;
+    display:flex;
+    align-items:center;
+    justify-content: center;
+    border-radius: 1rem;
     overflow: hidden;
     background: #f3f4f6;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    padding: 1rem;
   }
 
   @media (min-width: 640px) {
     .item-image-wrapper {
       width: 120px;
       height: 120px;
+      padding: 0.5rem;
     }
   }
 
   .item-image {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: contain;
+    object-position: center;
+    max-width: 100%;
+    max-height: 100%;
   }
 
   .item-details {
@@ -729,12 +752,15 @@ export default function Cart() {
                   {items.map((item, idx) => {
                     const cartItemId = item.raw?._id ?? null;
                     const keyId = cartItemId ? cartItemId : `${item.id}-${idx}`;
-                    const uploadedImage =
-                      (item?.images && item.images.length > 0 && item.images[0]) ||
-                      (item?.userImage && item.userImage.length > 0 && item.userImage[0]) ||
-                      (item?.raw?.images && item.raw.images.length > 0 && item.raw.images[0]) ||
-                      item?.image ||
-                      null;
+                  const uploadedImage =
+ item?.raw?.previewUrl ||
+   item?.raw?.preparedPreview ||
+   item?.raw?.uploadedUrl ||
+   (item?.raw?.userImage && item.raw.userImage.length > 0 && item.raw.userImage[0]) ||
+   (item?.raw?.images && item.raw.images.length > 0 && item.raw.images[0]) ||
+   (item?.images && item.images.length > 0 && item.images[0]) ||
+   item?.image ||
+   null;
 
                     return (
                       <div key={keyId} className="cart-item">
