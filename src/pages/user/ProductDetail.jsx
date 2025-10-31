@@ -1427,7 +1427,7 @@ const isButtonBadge = normalize(product?.name || "").includes("button badge") ||
   {/* Rating */}
   <div style={{ display: "flex", alignItems: "center", marginBottom: "20px", flexWrap: "wrap", gap: "4px" }}>
     <span style={{ color: "#007bff", fontSize: window.innerWidth <= 768 ? "16px" : "20px", marginRight: "8px" }}>★★★★★</span>
-    <span style={{ fontSize: window.innerWidth <= 768 ? "13px" : "15px", color: "#555" }}>
+   <span style={{ fontSize: window.innerWidth <= 768 ? "13px" : "15px", color: "#555" }}>
   {product?.rating?.count > 0
     ? `${product.rating.count} reviews`
     : "No reviews yet"}

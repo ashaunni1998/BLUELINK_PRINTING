@@ -1,5 +1,5 @@
-// src/components/AddressAutocomplete.jsx
 import React, { useEffect, useRef, useState } from "react";
+// 1. UPDATED: Changed import path to match AccountPage.jsx
 import { API_BASE_URL } from "../../../config";
 
 /**
@@ -10,14 +10,16 @@ import { API_BASE_URL } from "../../../config";
  * - Does NOT call the backend save endpoint (save should be handled by the parent form)
  *
  * Props:
- *  - newAddress: object state for the address
- *  - setNewAddress: setter for newAddress
- *  - countryBias (optional)
+ * - newAddress: object state for the address
+ * - setNewAddress: setter for newAddress
+ * - countryBias (optional)
+ * - style (optional): Applied to the input element
  */
 export default function AddressAutocomplete({
   newAddress,
   setNewAddress,
   countryBias,
+  style, // 2. ADDED: Accept style prop
 }) {
   const [q, setQ] = useState(newAddress?.address || "");
   const [predictions, setPredictions] = useState([]);
@@ -27,7 +29,11 @@ export default function AddressAutocomplete({
   const activeReqRef = useRef(null);
 
   useEffect(() => {
-    setQ(newAddress?.address || "");
+    // Only update query if the address text itself has changed
+    // This prevents the selection from being overwritten
+    if (newAddress?.address !== q) {
+      setQ(newAddress?.address || "");
+    }
   }, [newAddress?.address]);
 
   useEffect(() => {
@@ -83,9 +89,11 @@ export default function AddressAutocomplete({
   async function reverseGeocodeIfNeeded(lat, lon) {
     if (!lat || !lon) return null;
     try {
+      // Using a free, public endpoint. Replace if you have a private key.
       const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}&addressdetails=1`;
       const res = await fetch(url, {
-        headers: { "User-Agent": "BlueLinkPrinting/1.0 (contact: support@yourdomain.com)" },
+         // You should provide a valid User-Agent
+        headers: { "User-Agent": "YourAppName/1.0 (contact@yourapp.com)" },
       });
       if (!res.ok) return null;
       const json = await res.json();
@@ -107,7 +115,7 @@ export default function AddressAutocomplete({
     let region = addr.state || "";
     let postcode = addr.postcode || "";
     const country = addr.country || "";
-
+    
     // If city/region/postcode missing, try reverse geocode once
     if ((!city || !region || !postcode) && item.lat && item.lon) {
       const more = await reverseGeocodeIfNeeded(item.lat, item.lon);
@@ -118,13 +126,18 @@ export default function AddressAutocomplete({
       }
     }
 
+    // Attempt to capitalize country
+    const formattedCountry = country
+      .split(' ')
+      .map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+      .join(' ');
+
     return {
       address: combined,
       city: city || "",
       region: region || "",
       postalCode: postcode || "",
-      country: country || "",
-      // keep lat/lon locally if you want to persist later (but we won't send them automatically)
+      country: formattedCountry || "",
       geometry: item.lat && item.lon ? { lat: item.lat, lng: item.lon } : null,
     };
   }
@@ -142,9 +155,8 @@ export default function AddressAutocomplete({
       city: filled.city,
       region: filled.region,
       postalCode: filled.postalCode,
-      country: filled.country || s.country || "New Zealand",
-      // keep user's fullName/phone/addressType/isDefault untouched
-      // store geometry locally if desired (parent can read newAddress.geometry)
+      // Only set country if one was found, otherwise keep existing
+      country: filled.country || s.country || "New Zealand", 
       geometry: filled.geometry || s.geometry,
     }));
 
@@ -153,19 +165,29 @@ export default function AddressAutocomplete({
 
   return (
     <div style={{ position: "relative", width: "100%" }}>
-      <label style={{ display: "block", marginBottom: 6, fontSize: 13 }}>Address</label>
+      {/* 3. REMOVED: Internal <label> removed. Parent will provide it. */}
       <input
         value={q}
         onChange={onChange}
         placeholder="Start typing street, suburb or city"
-        style={{ padding: 12, borderRadius: 8, border: "1px solid #e5e7eb", width: "100%", outline: "none" }}
+        // 4. UPDATED: Apply passed-in style
+        style={{
+          padding: 12,
+          borderRadius: 8,
+          border: "1px solid #e5e7eb",
+          width: "100%",
+          outline: "none",
+          boxSizing: "border-box",
+          ...style, // This applies your `inputStyle` from AccountPage
+        }}
         aria-autocomplete="list"
         aria-controls="address-suggestions"
         aria-expanded={predictions.length > 0}
+        required // Pass through required prop
       />
 
       {loading && <div style={{ position: "absolute", right: 10, top: 12 }}>…</div>}
-      {error && <div style={{ color: "crimson", marginTop: 6 }}>{error}</div>}
+      {error && <div style={{ color: "crimson", marginTop: 6, fontSize: 13 }}>{error}</div>}
 
       {predictions.length > 0 && (
         <ul
@@ -193,6 +215,9 @@ export default function AddressAutocomplete({
               onClick={() => onSelect(p)}
               role="option"
               style={{ padding: "8px 10px", borderRadius: 6, cursor: "pointer", fontSize: 13 }}
+              // Add hover effect
+              onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#f4f5f7'}
+              onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
             >
               <div style={{ fontWeight: 600 }}>{p.display_name}</div>
               {p.address && (

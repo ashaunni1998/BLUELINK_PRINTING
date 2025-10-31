@@ -9,49 +9,86 @@ const Review = ({ productId }) => {
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(false);
   // ✅ Fetch reviews from backend
-  const fetchReviews = async () => {
-    try {
-      setLoading(true);
-       console.log("🔎 Fetching reviews for productId:", productId);
-      const res = await fetch(
-        `${API_BASE_URL}/review/productReview?productId=68a3fcbd8bb89752830da307&limit=10&page=1`,
-        { credentials: "include" }
-      );
-       console.log("🔎 Response status:", res.status);
-      const data = await res.json();
-      console.log("🔎 Response JSON:", data);
-      if (res.ok) {
-        // console.log("Fetched reviews raw:", data); // 🔎 debug
-        let fetchedReviews = [];
+const fetchReviews = async () => {
+  try {
+    setLoading(true);
+    console.log("🔎 Fetching reviews for productId:", productId);
+    
+    const res = await fetch(
+      `${API_BASE_URL}/review/productReview?productId=${productId}&limit=10&page=1`,
+      { credentials: "include" }
+    );
+    
+    console.log("🔎 Response status:", res.status);
+    const data = await res.json();
+    console.log("🔎 Response JSON:", data);
+    console.log("🔎 Type of data:", typeof data);
+    console.log("🔎 Keys in data:", data ? Object.keys(data) : 'null');
+    
+    if (res.ok) {
+      let fetchedReviews = [];
 
-        // normalize response
-     if (data.reviews && Array.isArray(data.reviews.reviews)) {
-  fetchedReviews = data.reviews.reviews;
-} else {
-  fetchedReviews = [];
-}
-
-console.log("✅ Normalized reviews:", fetchedReviews);
-        setReviews(fetchedReviews);
-      } else {
-        console.error(data.message);
-        setReviews([]);
+      // Safely handle different response structures
+      if (!data) {
+        fetchedReviews = [];
+      } else if (Array.isArray(data)) {
+        fetchedReviews = data;
+      } else if (data.reviews) {
+        if (Array.isArray(data.reviews)) {
+          fetchedReviews = data.reviews;
+        } else if (data.reviews.reviews && Array.isArray(data.reviews.reviews)) {
+          fetchedReviews = data.reviews.reviews;
+        }
+      } else if (data.data && Array.isArray(data.data)) {
+        fetchedReviews = data.data;
       }
-    } catch (error) {
-      console.error("Error fetching reviews:", error);
-      setReviews([]);
-    } finally {
-      setLoading(false);
-    }
-  };
 
+      console.log("✅ Normalized reviews:", fetchedReviews);
+      setReviews(fetchedReviews);
+    } else {
+      console.error("API Error:", data?.message || "Unknown error");
+      setReviews([]);
+    }
+  } catch (error) {
+    console.error("Error fetching reviews:", error);
+    setReviews([]);
+  } finally {
+    setLoading(false);
+  }
+};
+ useEffect(() => {
+    console.log("🎯 Review Component Mounted");
+    console.log("📦 Received productId:", productId);
+    console.log("📦 ProductId type:", typeof productId);
+    console.log("📦 ProductId length:", productId?.length);
+    console.log("📦 Is valid MongoDB ObjectId format?", /^[a-f\d]{24}$/i.test(productId));
+  }, [productId]);
   // ✅ Submit new review
-  const handleReviewSubmit = async () => {
+
+
+    const handleReviewSubmit = async () => {
     if (!rating || !reviewText.trim()) {
       alert("Please select a rating and write a review.");
       return;
     }
-const productId="68a3fcbd8bb89752830da307";
+
+    // ✅ Enhanced logging before submission
+    console.log("=" .repeat(50));
+    console.log("📤 SUBMITTING REVIEW");
+    console.log("=" .repeat(50));
+    console.log("📦 ProductId:", productId);
+    console.log("📦 ProductId type:", typeof productId);
+    console.log("📦 ProductId length:", productId?.length);
+    console.log("⭐ Rating:", rating);
+    console.log("💬 Comment:", reviewText);
+    console.log("🔗 API URL:", `${API_BASE_URL}/review`);
+    console.log("📦 Full payload:", JSON.stringify({ 
+      productId, 
+      rating, 
+      comment: reviewText 
+    }, null, 2));
+    console.log("=" .repeat(50));
+
     try {
       const res = await fetch(`${API_BASE_URL}/review`, {
         method: "POST",
@@ -60,20 +97,40 @@ const productId="68a3fcbd8bb89752830da307";
         body: JSON.stringify({ productId, rating, comment: reviewText }),
       });
 
-      const data = await res.json();
+      console.log("📥 Response status:", res.status);
+      
+      const text = await res.text();
+      console.log("📥 Raw response:", text);
+      
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch (e) {
+        console.error("Failed to parse response as JSON:", e);
+        data = { message: text || "Server error" };
+      }
+      
+      console.log("📥 Parsed response:", data);
+
       if (res.ok) {
         alert("Thank you for your review!");
         setRating(0);
         setReviewText("");
-        setShowReviews(true);   // ✅ auto show reviews after submit
-        fetchReviews();         // ✅ refresh reviews
+        setShowReviews(true);
+        fetchReviews();
       } else {
-        alert(data.message || "Error submitting review");
+        const errorMsg = data?.message || data?.error || "Error submitting review";
+        console.error("❌ Server error:", errorMsg);
+        alert(errorMsg);
       }
     } catch (error) {
-      console.error("Error submitting review:", error);
+      console.error("❌ Network error:", error);
+      alert("Failed to submit review. Please try again.");
     }
   };
+
+
+  
 
   // ✅ Delete review
   const handleDeleteReview = async (id) => {

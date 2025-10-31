@@ -7,6 +7,7 @@ import { API_BASE_URL } from "../../config";
 import axios from "axios";
 import Swal from "sweetalert2";
 import "./Home.css";
+import AddressAutocomplete from "./components/AddressAutocomplete";
 
 const AccountPage = () => {
   const location = useLocation();
@@ -950,17 +951,17 @@ const getPadding = () => {
                       </div>
                     </div>
 
-                    <div>
-                      <label style={labelStyle}>Street Address *</label>
-                      <input
-                        style={inputStyle}
-                        type="text"
-                        required
-                        value={newAddress.address}
-                        onChange={(e) => setNewAddress({...newAddress, address: e.target.value})}
-                        placeholder="Enter street address"
-                      />
-                    </div>
+<div style={{ marginBottom: '16px' }}> {/* We apply margin to the wrapper div */}
+  <label style={labelStyle}>Street Address *</label>
+  <AddressAutocomplete
+    newAddress={newAddress}
+    setNewAddress={setNewAddress}
+    // Bias results to the currently selected country, or default to New Zealand
+    countryBias={newAddress.country || "New Zealand"}
+    // Pass your style, but remove the margin (it's on the wrapper now)
+    style={{ ...inputStyle, marginBottom: 0 }} 
+  />
+</div>
 
                     <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr 1fr', gap: '16px' }}>
                       <div>

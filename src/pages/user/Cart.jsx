@@ -131,7 +131,8 @@ const image =
 
       return {
         raw,
-        id: productIdStr,
+       id: raw._id || `${productIdStr}-${idx}-${Date.now()}`,  // ✅ REPLACE WITH THIS
+  productId: productIdStr,
         name,
         image,
         qty,
@@ -290,25 +291,48 @@ const image =
     fetchCart();
   }, []);
 
-  const removeItem = async (productId) => {
-    try {
-      const res = await fetch(
-        `${API_BASE_URL}/removeCartItem?productId=${encodeURIComponent(productId)}`,
-        {
-          method: "DELETE",
-          credentials: "include",
-        }
-      );
-      if (!res.ok) {
-        return;
-      }
-      setItems((prev) => prev.filter((it) => it.id !== productId));
-      await fetchCart();
-    } catch (err) {
-      console.error("removeItem error:", err);
-      await fetchCart();
+const removeItem = async (cartItemId) => {
+  try {
+    const item = items.find(
+      (it) =>
+        String(it.id) === String(cartItemId) ||
+        String(it.raw?._id) === String(cartItemId)
+    );
+
+    const productIdToSend =
+      item?.raw?.productId?._id || item?.raw?.productId || item?.productId;
+    const cartIdToSend = cartId;
+
+    if (!productIdToSend || !cartIdToSend) {
+      console.error("❌ Missing productId or cartId for removeItem");
+      return;
     }
-  };
+
+    const url = `${API_BASE_URL}/removeCartItem?productId=${encodeURIComponent(
+      productIdToSend
+    )}&cartId=${encodeURIComponent(cartIdToSend)}`;
+
+    const res = await fetch(url, {
+      method: "DELETE",
+      credentials: "include",
+    });
+
+    if (!res.ok) {
+      console.error("❌ Remove failed", res.status);
+      await fetchCart();
+      return;
+    }
+
+    // ✅ Remove locally for instant UI feedback
+    setItems((prev) => prev.filter((it) => it.id !== cartItemId));
+    await fetchCart();
+  } catch (err) {
+    console.error("removeItem error:", err);
+    await fetchCart();
+  }
+};
+
+
 
   const subtotal = items.reduce((s, it) => s + (Number(it.unitPrice || 0) ), 0);
   const shippingTotal = items.reduce(
@@ -417,13 +441,14 @@ const image =
     overflow: hidden;
   }
 
-  .cart-item {
-    padding: 1.25rem;
-    border-bottom: 1px solid #e5e7eb;
-    display: flex;
-    gap: 1rem;
-    flex-direction: column;
-  }
+.cart-item {
+  padding: 1.25rem;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  gap: 1rem;
+  flex-direction: column;
+  overflow: hidden; /* ✅ ADD THIS */
+}
 
   @media (min-width: 640px) {
     .cart-item {
@@ -437,37 +462,48 @@ const image =
     border-bottom: 2px solid #e5e7eb;
   }
 
- .item-image-wrapper {
-    position: relative;
-    flex-shrink: 0;
-    width: 100%;
-    max-width:400px;
-    height: 400px;
-    display:flex;
-    align-items:center;
-    justify-content: center;
-    border-radius: 1rem;
-    overflow: hidden;
-    background: #f3f4f6;
-    padding: 1rem;
-  }
+.item-image-wrapper {
+  position: relative;
+  flex-shrink: 0;
+  width: 100%;
+  max-width: 400px;
+  height: 400px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 1rem;
+  overflow: hidden;
+  background: #f3f4f6;
+  padding: 1rem;
+  box-sizing: border-box; /* ✅ ADD THIS */
+}
 
-  @media (min-width: 640px) {
-    .item-image-wrapper {
-      width: 120px;
-      height: 120px;
-      padding: 0.5rem;
-    }
+@media (min-width: 640px) {
+  .item-image-wrapper {
+    width: 120px;
+    height: 120px;
+    padding: 0.5rem;
+    max-width: 120px; /* ✅ ADD THIS */
   }
+}
 
+.item-image {
+  max-width: 90%; /* ✅ Scale down to 90% */
+  max-height: 90%;
+  width: auto !important;
+  height: auto !important;
+  object-fit: contain;
+  object-position: center;
+  display: block;
+  transform: scale(0.9); /* ✅ Force scale down */
+}
+
+@media (min-width: 640px) {
   .item-image {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    object-position: center;
-    max-width: 100%;
-    max-height: 100%;
+    max-width: calc(100% - 1rem);
+    max-height: calc(100% - 1rem);
   }
+}
 
   .item-details {
     flex: 1;
@@ -862,20 +898,20 @@ const image =
                         </span>
                       </div>
 
-                      {shippingTotal > 0 && (
+                      {/* {shippingTotal > 0 && (
                         <div className="summary-row">
                           <span className="summary-row-label">Shipping</span>
                           <span className="summary-row-value">
                             {currencySymbol(currency)}{formatMoney(shippingTotal)}
                           </span>
                         </div>
-                      )}
+                      )} */}
                     </div>
 
                     <div className="summary-total">
                       <span className="summary-total-label">Total</span>
                       <span className="summary-total-value">
-                        {currencySymbol(currency)}{formatMoney(total)}
+                        {currencySymbol(currency)}{formatMoney(subtotal)}
                       </span>
                     </div>
 

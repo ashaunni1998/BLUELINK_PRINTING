@@ -203,14 +203,13 @@ function OrderViewModal({ viewModal, setViewModal, selectedOrderId }) {
                                                         <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-2 border border-blue-100">
                                                             <p className="font-semibold text-blue-700 mb-1">Size</p>
                                                             <p className="text-blue-600">{item.size.name}</p>
-                                                            {item.size.size && (
-                                                                <p className="text-blue-500 text-xs">
-                                                                    {typeof item.size.size === 'object'
-                                                                        ? `${item.size.size.width} × ${item.size.size.height}`
-                                                                        : item.size.size
-                                                                    }
-                                                                </p>
-                                                            )}
+                                                            {item.size?.size && (
+  <p className="text-blue-500 text-xs">
+    {typeof item.size.size === 'object'
+      ? `${item.size.size?.width || ''} × ${item.size.size?.height || ''}`
+      : String(item.size.size)}
+  </p>
+)}
                                                         </div>
                                                     )}
 
@@ -257,8 +256,8 @@ function OrderViewModal({ viewModal, setViewModal, selectedOrderId }) {
                                             {/* Product ID for reference */}
                                             <div className="px-4 sm:px-5 pb-3">
                                                 <p className="text-xs text-slate-400">
-                                                    Product ID: {item.product} | Order Item ID: {item._id}
-                                                </p>
+  Product ID: {item.product?._id || 'N/A'} | Order Item ID: {item._id}
+</p>
                                             </div>
 
                                         </div>
