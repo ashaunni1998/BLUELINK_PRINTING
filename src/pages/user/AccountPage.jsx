@@ -63,21 +63,16 @@ const getPadding = () => {
 
 
 
-  // New address form state
-  const [newAddress, setNewAddress] = useState({
-   firstName: "",
-lastName: "",
+// ADD: single source of truth for the whole address
+const [newAddress, setNewAddress] = useState({
+  address: "",
+  city: "",
+  region: "",
+  postalCode: "",
+  country: "New Zealand",
+  geometry: null,
+});
 
-    phone: "",
-    address: "",
-    city: "",
-    region: "",
-    postalCode: "",
-    landmark: "",
-    addressType: "Home",
-    isDefault: false,
-    country: "New Zealand",
-  });
 
   useEffect(() => {
     const handleResize = () => {
@@ -195,7 +190,7 @@ lastName: "",
     }
 
     const basePayload = {
-       fullName: `${newAddress.firstName || ""} ${newAddress.lastName || ""}`.trim(),
+        fullName: `${newAddress.firstName || ""} ${newAddress.lastName || ""}`.trim(),
       phone: newAddress.phone,
       country: newAddress.country,
       address: newAddress.address,
@@ -223,7 +218,9 @@ lastName: "",
 
     if (result.ok) {
       setNewAddress({
-        fullName: "",
+       firstName: "",
+lastName: "",
+
         phone: "",
         address: "",
         city: "",
@@ -250,7 +247,9 @@ lastName: "",
 
       if (result.ok) {
         setNewAddress({
-          fullName: "",
+firstName: "",
+lastName: "",
+
           phone: "",
           address: "",
           city: "",
@@ -279,7 +278,7 @@ lastName: "",
         result = await postAddress(tryShapes[i]);
         if (result.ok) {
           setNewAddress({
-firstName: "",
+           firstName: "",
 lastName: "",
 
             phone: "",

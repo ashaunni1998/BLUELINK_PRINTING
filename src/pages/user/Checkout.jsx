@@ -192,19 +192,19 @@ const computeTotals = () => {
 
 // ----------------- END shipping helpers -----------------
   
-  const [newAddress, setNewAddress] = useState({
+const [newAddress, setNewAddress] = useState({
   firstName: "",
   lastName: "",
-  company: "",
-  address: "",   // single combined field
-  city: "",
-  region: "",
-  postalCode: "",
   phone: "",
+  address: "",      // "242 Grey Street"
+  city: "",         // "Hamilton East" or "Hamilton City"
+  region: "",       // "Waikato"
+  postalCode: "",   // "3216"
   country: "New Zealand",
   addressType: "Home",
-  isDefault: false,
+  geometry: null,
 });
+
 
 const [addressError, setAddressError] = useState("");   // for error messages
 // const [showNewAddressForm, setShowNewAddressForm] = useState(false); // toggle form
@@ -476,9 +476,7 @@ const handleAddAddress = async (e) => {
 
   // Build base payload (no user info) — backend may use session cookies
   const basePayload = {
-  //  firstName: newAddress.firstName,
-  // lastName: newAddress.lastName,
-  fullName: `${newAddress.firstName} ${newAddress.lastName}`.trim(),
+    fullName: `${newAddress.firstName} ${newAddress.lastName}`.trim(),
     phone: newAddress.phone,
     country: newAddress.country,
     address: newAddress.address,
@@ -513,7 +511,7 @@ const handleAddAddress = async (e) => {
     console.log("Address saved (attempt 1):", result.data);
     // reset and fetch addresses
     setNewAddress({
-      firstName: "",
+     firstName: "",
   lastName: "",
       phone: "",
       address: "",
@@ -981,9 +979,9 @@ const handleApplyCoupon = async () => {
           </div>
         </div>
 
-        <div className="grid-pro">
-          {/* Full name */}
-        {/* First & Last name side by side */}
+<div className="grid-pro">
+  {/* Full name */}
+{/* First & Last name side by side */}
 <div className="field-pro">
   <label htmlFor="firstName" className="label-pro">First Name</label>
   <input
@@ -1015,117 +1013,101 @@ const handleApplyCoupon = async () => {
 </div>
 
 
-          {/* Phone */}
-          <div className="field-pro">
-            <label htmlFor="phone" className="label-pro">Phone</label>
-            <input
-              id="phone"
-              name="phone"
-              type="tel"
-              placeholder="022 123 4567"
-              value={newAddress.phone}
-              onChange={(e) => setNewAddress({ ...newAddress, phone: e.target.value })}
-              required
-              className="input-pro"
-              aria-required="true"
-            />
-          </div>
+  {/* Phone */}
+  <div className="field-pro">
+    <label htmlFor="phone" className="label-pro">Phone</label>
+    <input
+      id="phone"
+      name="phone"
+      type="tel"
+      placeholder="022 123 4567"
+      value={newAddress.phone}
+      onChange={(e) => setNewAddress({ ...newAddress, phone: e.target.value })}
+      required
+      className="input-pro"
+      aria-required="true"
+    />
+  </div>
 
-          {/* Address with single label + styled box */}
-          <div className="field-pro fullwidth">
-            <label htmlFor="address" className="label-pro">Address</label>
+  {/* Address (autocomplete) */}
+  <div className="field-pro fullwidth">
+    <label htmlFor="address" className="label-pro">Address</label>
+    <div className="address-shell-pro">
+      <AddressAutocomplete
+        newAddress={newAddress}
+        setNewAddress={setNewAddress}
+        countryBias={newAddress.country === "Australia" ? "au" : "nz"}
+      />
+    </div>
+  </div>
 
-            {/*
-              address-shell-pro: single outer border only.
-              We intentionally remove any border from the internal AddressAutocomplete input
-              to avoid a double-border effect.
-            */}
-            <div className="address-shell-pro" aria-hidden="false">
-              <AddressAutocomplete
-                newAddress={newAddress}
-                setNewAddress={setNewAddress}
-                countryBias={newAddress.country === "Australia" ? "au" : "nz"}
-              />
-            </div>
-          </div>
+  {/* City */}
+  <div className="field-pro">
+    <label htmlFor="city" className="label-pro">City</label>
+    <input
+      id="city"
+      name="city"
+      type="text"
+      placeholder="Auckland"
+      value={newAddress.city || ""}
+      onChange={(e) => setNewAddress({ ...newAddress, city: e.target.value })}
+      required
+      className="input-pro"
+    />
+  </div>
 
-          {/* City */}
-          <div className="field-pro">
-            <label htmlFor="city" className="label-pro">City</label>
-            <input
-              id="city"
-              name="city"
-              type="text"
-              placeholder="Auckland"
-              value={newAddress.city || ""}
-              onChange={(e) => setNewAddress({ ...newAddress, city: e.target.value })}
-              required
-              className="input-pro"
-            />
-          </div>
+  {/* Region */}
+  <div className="field-pro">
+    <label htmlFor="region" className="label-pro">Region</label>
+    <select
+      id="region"
+      name="region"
+      value={newAddress.region || ""}
+      onChange={(e) => setNewAddress({ ...newAddress, region: e.target.value })}
+      required
+      className="select-pro"
+    >
+      <option value="">Select region</option>
+      {(
+        newAddress.country === "New Zealand"
+          ? ["Auckland","Wellington","Canterbury","Otago","Waikato","Bay of Plenty","Northland","Hawke's Bay","Manawatu-Wanganui","Taranaki","Southland","Tasman","Nelson","West Coast","Marlborough","Gisborne"]
+          : ["New South Wales","Victoria","Queensland","Western Australia","South Australia","Tasmania","Australian Capital Territory","Northern Territory"]
+      ).map((r) => <option key={r} value={r}>{r}</option>)}
+    </select>
+  </div>
 
-          {/* Region */}
-          <div className="field-pro">
-            <label htmlFor="region" className="label-pro">Region</label>
-            <select
-              id="region"
-              name="region"
-              value={newAddress.region || ""}
-              onChange={(e) => setNewAddress({ ...newAddress, region: e.target.value })}
-              required
-              className="select-pro"
-            >
-              <option value="">Select region</option>
-              {(newAddress.country === "New Zealand"
-                ? [
-                    "Auckland","Wellington","Canterbury","Otago","Waikato","Bay of Plenty",
-                    "Northland","Hawke's Bay","Manawatu-Wanganui","Taranaki","Southland",
-                    "Tasman","Nelson","West Coast","Marlborough","Gisborne"
-                  ]
-                : [
-                    "New South Wales","Victoria","Queensland","Western Australia","South Australia",
-                    "Tasmania","Australian Capital Territory","Northern Territory"
-                  ]
-              ).map((r) => <option key={r} value={r}>{r}</option>)}
-            </select>
-          </div>
+  {/* Postal code */}
+  <div className="field-pro">
+    <label htmlFor="postalCode" className="label-pro">Postal code</label>
+    <input
+      id="postalCode"
+      name="postalCode"
+      type="text"
+      placeholder="3126"
+      value={newAddress.postalCode || ""}
+      onChange={(e) => setNewAddress({ ...newAddress, postalCode: e.target.value })}
+      className="input-pro"
+    />
+  </div>
 
-          {/* Postal code */}
-          <div className="field-pro">
-            <label htmlFor="postalCode" className="label-pro">Postal code</label>
-            <input
-              id="postalCode"
-              name="postalCode"
-              type="text"
-              placeholder="3126"
-              value={newAddress.postalCode || ""}
-              onChange={(e) => setNewAddress({ ...newAddress, postalCode: e.target.value })}
-              className="input-pro"
-            />
-          </div>
-
-          {/* Address type */}
-          <div className="field-pro">
-            <label htmlFor="addrType" className="label-pro">Address type</label>
-            <select
-              id="addrType"
-              name="addressType"
-              value={newAddress.addressType || "Home"}
-              onChange={(e) => setNewAddress({ ...newAddress, addressType: e.target.value })}
-              className="select-pro"
-              disabled
-                 style={{ 
-      cursor: 'not-allowed', 
-      opacity: 0.6,
-      background: '#f3f4f6'
-    }}
-            >
-              <option value="Home">Null</option>
-              <option value="Work">Work</option>
-              <option value="Other">Other</option>
-            </select>
-          </div>
-        </div>
+  {/* Address type */}
+  <div className="field-pro">
+    <label htmlFor="addrType" className="label-pro">Address type</label>
+    <select
+      id="addrType"
+      name="addressType"
+      value={newAddress.addressType || "Home"}
+      onChange={(e) => setNewAddress({ ...newAddress, addressType: e.target.value })}
+      className="select-pro"
+      disabled
+      style={{ cursor: 'not-allowed', opacity: 0.6, background: '#f3f4f6' }}
+    >
+      <option value="Home">Null</option>
+      <option value="Work">Work</option>
+      <option value="Other">Other</option>
+    </select>
+  </div>
+</div>
 
         <div className="actions-pro">
           <button
