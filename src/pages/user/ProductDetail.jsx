@@ -103,6 +103,17 @@ const frameOverlays = {
   heartstone:" https://i.ibb.co/mCPhM6r0/heart-Shape-stone-photo-frame.png",
   door :" https://i.ibb.co/93rMVXMF/Door-Shape.png",
   rectangularstone:"https://i.ibb.co/tTsVZMbz/Rectangular-Shape-stone-photo-frame.png",
+
+
+   
+
+   // Button Badge Frames
+  tshirtbadge: "https://i.ibb.co/ds8cgMbh/tshirt-badge.png",
+  heartbadge: "https://i.ibb.co/ZRpBh4XS/heart-badge.png",
+  squarebadge: "https://i.ibb.co/8nZtLyjb/square-badge.png",
+  starbadge: "https://i.ibb.co/tPZsYwrB/star-badge.png",
+  catbadge: "https://i.ibb.co/dn8dPbc/cat-badge.png",
+  roundbadge: "https://i.ibb.co/Dj0H6j7/round-badge.png",
 };
 
 
@@ -118,6 +129,19 @@ const productFrameType = product?.frameType?.toLowerCase().trim();
 
 const detectFrameFromProductName = (productName = "") => {
   const name = productName.toLowerCase().trim();
+
+
+   // Check for button badge types first
+  if (name.includes("button badge") || name.includes("badge")) {
+    if (name.includes("t-shirt") || name.includes("tshirt badge")) return "tshirtbadge";
+    if (name.includes("heart")) return "heartbadge";
+    if (name.includes("square")) return "squarebadge";
+    if (name.includes("star")) return "starbadge";
+    if (name.includes("cat")) return "catbadge";
+    if (name.includes("round") || name.includes("circle")) return "roundbadge";
+    // Default badge frame if no specific type found
+    return "roundbadge";
+  }
   
   // Check for frame types in product name
   if (name.includes("rhomboid")) return "rhomboid";
@@ -2915,13 +2939,11 @@ const isButtonBadge = normalize(product?.name || "").includes("button badge") ||
             display: "flex",
             flexDirection: isMobile ? "column" : "row",
             gap: "20px",
-        alignItems: isMobile ? "center" : "flex-start",
-
+            alignItems: isMobile ? "center" : "flex-start",
             marginBottom: "20px",
           }}>
             {/* Left side - Upload & Input */}
-            <div style={{ flex: 1, minWidth: "250px",width: isMobile ? "100%" : "auto",
-  maxWidth: isMobile ? "350px" : "none" }}>
+            <div style={{ flex: 1, minWidth: "250px", width: isMobile ? "100%" : "auto", maxWidth: isMobile ? "350px" : "none" }}>
               <label
                 htmlFor="upload-badge-photo"
                 style={{
@@ -2955,7 +2977,7 @@ const isButtonBadge = normalize(product?.name || "").includes("button badge") ||
                 style={{ display: "none" }}
               />
 
-              {/* Selected Frame Badge */}
+              {/* Selected Frame Badge - Shows detected badge type */}
               {selectedFrame && (
                 <div
                   style={{
@@ -2973,7 +2995,7 @@ const isButtonBadge = normalize(product?.name || "").includes("button badge") ||
                     color: "#92400e",
                     marginBottom: "2px" 
                   }}>
-                    📌 Badge Shape
+                    📌 Badge Type
                   </div>
                   <div style={{ 
                     fontSize: "18px", 
@@ -2981,20 +3003,18 @@ const isButtonBadge = normalize(product?.name || "").includes("button badge") ||
                     color: "#b45309",
                     textTransform: "capitalize" 
                   }}>
-                    {selectedFrame}
+                    {selectedFrame.replace('badge', ' Badge')}
                   </div>
                 </div>
               )}
             </div>
 
-            {/* Right side - Preview */}
-            <div style={{ flex: 1, minWidth: "300px", width: isMobile ? "100%" : "auto",
-  display: "flex",
-  justifyContent: "center" }}>
+            {/* Right side - Preview with detected badge frame */}
+            <div style={{ flex: 1, minWidth: "300px", width: isMobile ? "100%" : "auto", display: "flex", justifyContent: "center" }}>
               <div
                 style={{
                   position: "relative",
-                   width: isMobile ? "280px" : "100%",
+                  width: isMobile ? "280px" : "100%",
                   maxWidth: "300px",
                   height: isMobile ? "280px" : "300px",
                   marginInline: "auto",
@@ -3053,6 +3073,7 @@ const isButtonBadge = normalize(product?.name || "").includes("button badge") ||
                   </div>
                 )}
 
+                {/* Badge Frame Overlay - Uses detected frame */}
                 {FRAME_URL && (
                   <img
                     src={FRAME_URL}
@@ -3106,63 +3127,63 @@ const isButtonBadge = normalize(product?.name || "").includes("button badge") ||
           </div>
 
           {/* Action Buttons */}
-        <div
-  style={{
-    display: "flex",
-    gap: "12px",
-    marginTop: "24px",
-    justifyContent: "center",
-    flexWrap: "wrap",
-  }}
->
-  <button
-    onClick={handlePrepareAndUpload}
-    disabled={!uploadedImage}
-    style={{
-      padding: "14px 32px",
-      background: uploadedImage 
-        ? "linear-gradient(135deg, #10b981 0%, #059669 100%)"
-        : "#9ca3af",
-      color: "#fff",
-      borderRadius: "12px",
-      border: "none",
-      cursor: uploadedImage ? "pointer" : "not-allowed",
-      fontWeight: "600",
-      fontSize: "16px",
-      boxShadow: uploadedImage 
-        ? "0 4px 15px rgba(16, 185, 129, 0.4)"
-        : "none",
-      transition: "transform 0.2s, box-shadow 0.2s",
-      opacity: uploadedImage ? 1 : 0.6,
-    }}
-    onMouseOver={(e) => {
-      if (uploadedImage) {
-        e.currentTarget.style.transform = "translateY(-2px)";
-        e.currentTarget.style.boxShadow = "0 6px 20px rgba(16, 185, 129, 0.6)";
-      }
-    }}
-    onMouseOut={(e) => {
-      if (uploadedImage) {
-        e.currentTarget.style.transform = "translateY(0)";
-        e.currentTarget.style.boxShadow = "0 4px 15px rgba(16, 185, 129, 0.4)";
-      }
-    }}
-  >
-    ✅ Prepare & Add to Cart
-  </button>
-</div>
+          <div
+            style={{
+              display: "flex",
+              gap: "12px",
+              marginTop: "24px",
+              justifyContent: "center",
+              flexWrap: "wrap",
+            }}
+          >
+            <button
+              onClick={handlePrepareAndUpload}
+              disabled={!uploadedImage}
+              style={{
+                padding: "14px 32px",
+                background: uploadedImage 
+                  ? "linear-gradient(135deg, #10b981 0%, #059669 100%)"
+                  : "#9ca3af",
+                color: "#fff",
+                borderRadius: "12px",
+                border: "none",
+                cursor: uploadedImage ? "pointer" : "not-allowed",
+                fontWeight: "600",
+                fontSize: "16px",
+                boxShadow: uploadedImage 
+                  ? "0 4px 15px rgba(16, 185, 129, 0.4)"
+                  : "none",
+                transition: "transform 0.2s, box-shadow 0.2s",
+                opacity: uploadedImage ? 1 : 0.6,
+              }}
+              onMouseOver={(e) => {
+                if (uploadedImage) {
+                  e.currentTarget.style.transform = "translateY(-2px)";
+                  e.currentTarget.style.boxShadow = "0 6px 20px rgba(16, 185, 129, 0.6)";
+                }
+              }}
+              onMouseOut={(e) => {
+                if (uploadedImage) {
+                  e.currentTarget.style.transform = "translateY(0)";
+                  e.currentTarget.style.boxShadow = "0 4px 15px rgba(16, 185, 129, 0.4)";
+                }
+              }}
+            >
+              ✅ Prepare & Add to Cart
+            </button>
+          </div>
 
-{!uploadedImage && (
-  <p style={{ 
-    marginTop: "12px", 
-    color: "#6b7280", 
-    fontSize: "14px",
-    fontStyle: "italic",
-    textAlign: "center"
-  }}>
-    Please upload a photo first
-  </p>
-)}
+          {!uploadedImage && (
+            <p style={{ 
+              marginTop: "12px", 
+              color: "#6b7280", 
+              fontSize: "14px",
+              fontStyle: "italic",
+              textAlign: "center"
+            }}>
+              Please upload a photo first
+            </p>
+          )}
         </div>
       </div>
     )}

@@ -121,6 +121,26 @@ function calculateShippingByWeight(region, totalWeightGrams) {
   return 0;
 }
 
+function getIslandForRegion(region) {
+  if (!region) return null;
+  
+  const northIslandRegions = [
+    "Auckland", "Wellington", "Waikato", "Bay of Plenty",
+    "Northland", "Hawke's Bay", "Manawatu-Wanganui", 
+    "Taranaki", "Gisborne"
+  ];
+  
+  const southIslandRegions = [
+    "Canterbury", "Otago", "Southland", "Tasman",
+    "Nelson", "West Coast", "Marlborough"
+  ];
+  
+  if (northIslandRegions.includes(region)) return "north";
+  if (southIslandRegions.includes(region)) return "south";
+  return null; // unknown region
+}
+
+
 /* compute totals — uses only weight-based shipping (no hidden fixed surcharges).
    If you *must* use server-provided per-line shipping, combine it here (comment shows how). */
 const computeTotals = () => {
@@ -620,11 +640,10 @@ const handleAddAddress = async (e) => {
     });
   };
 
-
 const handlePlaceOrder = async () => {
   try {
-    // basic validations
-    if (!selectedAddress && deliveryMethod !== "pickup") {
+    // ✅ Modified validation: address not required if pickup is selected
+    if (deliveryMethod !== "pickup" && !selectedAddress) {
       Swal.fire("Warning", "Please select a shipping address.", "warning");
       return;
     }
@@ -632,6 +651,8 @@ const handlePlaceOrder = async () => {
       Swal.fire("Warning", "Your cart is empty.", "warning");
       return;
     }
+
+   
 
     // helper: choose a tier object from product.priceTiers according to qty
     const pickTierForQtyLocal = (priceTiers = [], qty = 1) => {
@@ -786,14 +807,25 @@ useEffect(() => {
 // <<--- ADD THE COUNTRY → SHIPPING SYNC HERE --->
 useEffect(() => {
   const country = selectedAddress?.country ?? newAddress.country ?? "New Zealand";
+  const region = selectedAddress?.region ?? newAddress.region ?? "";
+  
   if (country === "Australia") {
-    // Australia: use the single Australia shipping option
+    // Australia: use international shipping
     setDeliveryMethod("international");
-  } else {
-    // NZ or other: default back to NZ mapping if previously set to "international"
-    setDeliveryMethod(prev => (prev === "international" ? "north" : (prev || "north")));
+  } else if (country === "New Zealand" && region) {
+    // NZ: determine island based on region
+    const island = getIslandForRegion(region);
+    if (island === "north" && deliveryMethod !== "pickup") {
+      setDeliveryMethod("north");
+    } else if (island === "south" && deliveryMethod !== "pickup") {
+      setDeliveryMethod("south");
+    }
+    // if island is null (unknown region) or pickup is selected, keep current selection
+  } else if (deliveryMethod === "international") {
+    // if was international but now not Australia, reset to north
+    setDeliveryMethod("north");
   }
-}, [selectedAddress?.country, newAddress.country]);
+}, [selectedAddress?.country, selectedAddress?.region, newAddress.country, newAddress.region]);
 const handleApplyCoupon = async () => {
   if (!couponCode) {
     setCouponError("Please select a coupon.");
@@ -1345,62 +1377,131 @@ const handleApplyCoupon = async () => {
 
   <div style={{ border: "1px solid #ddd", borderRadius: "6px" }}>
     {((selectedAddress?.country ?? newAddress.country ?? "New Zealand") === "Australia") ? (
-      // Australia: show only Australia shipping option (single)
-      <label style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px", cursor: "pointer", background: deliveryMethod === "international" ? "#f0f7ff" : "#fff" }}>
-        <div>
-    <input
-      type="radio"
-      checked={deliveryMethod === "international"}
-      onChange={() => setDeliveryMethod("international")}
-    />
-    <span>Australia Standard Shipping</span>
-    <div style={{ fontSize: "12px", color: "#666" }}>Estimated transit time</div>
-  </div>
-  {(() => {
-    const t = computeTotals();
-    const previewShipping = calculateShippingByWeight("australia", t.totalWeightGrams);
-    return <span>{new Intl.NumberFormat("en-NZ", { style: "currency", currency: "NZD" }).format(previewShipping)}</span>;
-  })()}
-        
-      </label>
-    ) : (
-      // New Zealand (or default): show North, South, Pickup
+      // Australia: show Australia shipping + Pickup
       <>
-        <label style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px", borderBottom: "1px solid #eee", background: deliveryMethod === "north" ? "#f0f7ff" : "#fff", cursor: "pointer" }}>
+        <label style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px", borderBottom: "1px solid #eee", cursor: "pointer", background: deliveryMethod === "international" ? "#f0f7ff" : "#fff" }}>
           <div>
-            <input type="radio" checked={deliveryMethod === "north"} onChange={() => setDeliveryMethod("north")} style={{ marginRight: "10px" }} />
-            <span>North Island Standard Shipping</span>
-            <div style={{ fontSize: "12px", color: "#666" }}>3-5 business days</div>
-          </div>
-{(() => {
-  const t = computeTotals();
-  const previewShipping = calculateShippingByWeight("north", t.totalWeightGrams);
-  return <span>{new Intl.NumberFormat("en-NZ", { style: "currency", currency: "NZD" }).format(previewShipping)}</span>;
-})()}
-      </label>
-
-        <label style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px", borderBottom: "1px solid #eee", background: deliveryMethod === "south" ? "#f0f7ff" : "#fff", cursor: "pointer" }}>
-          <div>
-            <input type="radio" checked={deliveryMethod === "south"} onChange={() => setDeliveryMethod("south")} style={{ marginRight: "10px" }} />
-            <span>South Island Standard Shipping</span>
-            <div style={{ fontSize: "12px", color: "#666" }}>3-5 business days</div>
+            <input
+              type="radio"
+              checked={deliveryMethod === "international"}
+              onChange={() => setDeliveryMethod("international")}
+              style={{ marginRight: "10px" }}
+            />
+            <span>Australia Standard Shipping</span>
+            <div style={{ fontSize: "12px", color: "#666" }}>Estimated transit time</div>
           </div>
           {(() => {
-  const t = computeTotals();
-  const previewShipping = calculateShippingByWeight("south", t.totalWeightGrams);
-  return <span>{new Intl.NumberFormat("en-NZ", { style: "currency", currency: "NZD" }).format(previewShipping)}</span>;
-})()}
-
+            const t = computeTotals();
+            const previewShipping = calculateShippingByWeight("australia", t.totalWeightGrams);
+            return <span>{new Intl.NumberFormat("en-NZ", { style: "currency", currency: "NZD" }).format(previewShipping)}</span>;
+          })()}
         </label>
 
         <label style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px", background: deliveryMethod === "pickup" ? "#f0f7ff" : "#fff", cursor: "pointer" }}>
           <div>
-            <input type="radio" checked={deliveryMethod === "pickup"} onChange={() => setDeliveryMethod("pickup")} style={{ marginRight: "10px" }} />
+            <input 
+              type="radio" 
+              checked={deliveryMethod === "pickup"} 
+              onChange={() => setDeliveryMethod("pickup")} 
+              style={{ marginRight: "10px" }} 
+            />
             <span>Store Pickup</span>
             <div style={{ fontSize: "12px", color: "#666" }}>242 Grey Street, Hamilton</div>
           </div>
           <span>Free</span>
         </label>
+      </>
+    ) : (
+      // New Zealand: show region-specific shipping + Pickup
+      <>
+        {(() => {
+          const region = selectedAddress?.region ?? newAddress.region ?? "";
+          const island = getIslandForRegion(region);
+          
+          return (
+            <>
+              {/* Show North Island option only if address is in North Island or no region selected yet */}
+              {(island === "north" || !island) && (
+                <label style={{ 
+                  display: "flex", 
+                  justifyContent: "space-between", 
+                  alignItems: "center", 
+                  padding: "12px", 
+                  borderBottom: "1px solid #eee", 
+                  background: deliveryMethod === "north" ? "#f0f7ff" : "#fff", 
+                  cursor: "pointer" 
+                }}>
+                  <div>
+                    <input 
+                      type="radio" 
+                      checked={deliveryMethod === "north"} 
+                      onChange={() => setDeliveryMethod("north")} 
+                      style={{ marginRight: "10px" }} 
+                    />
+                    <span>North Island Standard Shipping</span>
+                    <div style={{ fontSize: "12px", color: "#666" }}>3-5 business days</div>
+                  </div>
+                  {(() => {
+                    const t = computeTotals();
+                    const previewShipping = calculateShippingByWeight("north", t.totalWeightGrams);
+                    return <span>{new Intl.NumberFormat("en-NZ", { style: "currency", currency: "NZD" }).format(previewShipping)}</span>;
+                  })()}
+                </label>
+              )}
+
+              {/* Show South Island option only if address is in South Island or no region selected yet */}
+              {(island === "south" || !island) && (
+                <label style={{ 
+                  display: "flex", 
+                  justifyContent: "space-between", 
+                  alignItems: "center", 
+                  padding: "12px", 
+                  borderBottom: "1px solid #eee", 
+                  background: deliveryMethod === "south" ? "#f0f7ff" : "#fff", 
+                  cursor: "pointer" 
+                }}>
+                  <div>
+                    <input 
+                      type="radio" 
+                      checked={deliveryMethod === "south"} 
+                      onChange={() => setDeliveryMethod("south")} 
+                      style={{ marginRight: "10px" }} 
+                    />
+                    <span>South Island Standard Shipping</span>
+                    <div style={{ fontSize: "12px", color: "#666" }}>3-5 business days</div>
+                  </div>
+                  {(() => {
+                    const t = computeTotals();
+                    const previewShipping = calculateShippingByWeight("south", t.totalWeightGrams);
+                    return <span>{new Intl.NumberFormat("en-NZ", { style: "currency", currency: "NZD" }).format(previewShipping)}</span>;
+                  })()}
+                </label>
+              )}
+
+              {/* Always show Store Pickup */}
+              <label style={{ 
+                display: "flex", 
+                justifyContent: "space-between", 
+                alignItems: "center", 
+                padding: "12px", 
+                background: deliveryMethod === "pickup" ? "#f0f7ff" : "#fff", 
+                cursor: "pointer" 
+              }}>
+                <div>
+                  <input 
+                    type="radio" 
+                    checked={deliveryMethod === "pickup"} 
+                    onChange={() => setDeliveryMethod("pickup")} 
+                    style={{ marginRight: "10px" }} 
+                  />
+                  <span>Store Pickup</span>
+                  <div style={{ fontSize: "12px", color: "#666" }}>242 Grey Street, Hamilton</div>
+                </div>
+                <span>Free</span>
+              </label>
+            </>
+          );
+        })()}
       </>
     )}
   </div>
