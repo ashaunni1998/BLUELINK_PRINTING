@@ -6,6 +6,7 @@ import { Elements } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
 import "./i18n";
 import './App.css';
+import ScrollToTop from "./ScrollToTop";
 
 import NotFoundPage from './admin/commonElements/NotFoundPage.jsx';
 import LoginPage from './admin/authentication/pages/LoginPage.jsx';
@@ -89,6 +90,7 @@ function App() {
     <AuthProvider>
       <TranslateProvider>
         <Router>
+           <ScrollToTop />  
           <Routes>
             {/* Public */}
             <Route path="/" element={<Home />} />

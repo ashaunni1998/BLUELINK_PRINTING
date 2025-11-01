@@ -202,59 +202,98 @@ export default function SignUp() {
     return newErrors;
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    const validationErrors = validateForm();
-    if (Object.keys(validationErrors).length > 0) {
-      setErrors(validationErrors);
-      return;
+ const handleSubmit = async (e) => {
+  e.preventDefault();
+  const validationErrors = validateForm();
+  if (Object.keys(validationErrors).length > 0) {
+    setErrors(validationErrors);
+    return;
+  }
+
+  setErrors({});
+  setIsSubmitting(true);
+
+  // Show loading SweetAlert
+  Swal.fire({
+    title: "Creating your account...",
+    html: "Please wait while we set up your account",
+    allowOutsideClick: false,
+    allowEscapeKey: false,
+    didOpen: () => {
+      Swal.showLoading();
     }
+  });
 
-    setErrors({});
-    setIsSubmitting(true);
+  try {
+    const payload = {
+      firstName: formData.firstName,
+      lastName: formData.lastName,
+      email: formData.email,
+      password: formData.password,
+      country: formData.country,
+      countryCode: formData.countryCode,
+      phoneNumber: formData.phoneNumber,
+      newsletter: !!formData.newsletter,
+    };
 
-    try {
-      const payload = {
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        email: formData.email,
-        password: formData.password,
-        country: formData.country,
-        countryCode: formData.countryCode,
-        phoneNumber: formData.phoneNumber,
-        newsletter: !!formData.newsletter,
-      };
+    const response = await fetch(`${API_BASE_URL.replace(/\/$/, "")}/user/register`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
 
-      const response = await fetch(`${API_BASE_URL.replace(/\/$/, "")}/user/register`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+    const data = await response.json();
+    
+    if (response.ok) {
+      // Close loading and show success
+      Swal.fire({
+        icon: "success",
+        title: "Account created successfully!",
+        text: "Please check your email to verify your account.",
+        timer: 2000,
+        showConfirmButton: false
       });
 
-      const data = await response.json();
-      if (response.ok) {
-        setFormData({
-          firstName: "",
-          lastName: "",
-          email: "",
-          password: "",
-          confirmPassword: "",
-          country: "New Zealand",
-          countryCode: "+64",
-          phoneNumber: "",
-          newsletter: true,
-        });
+      setFormData({
+        firstName: "",
+        lastName: "",
+        email: "",
+        password: "",
+        confirmPassword: "",
+        country: "New Zealand",
+        countryCode: "+64",
+        phoneNumber: "",
+        newsletter: true,
+      });
+      
+      // Navigate after a short delay
+      setTimeout(() => {
         navigate("/emailverification", { state: { email: payload.email } });
-      } else {
-        if (data.errors) setErrors(data.errors);
-        else setErrors({ general: data.message || "Registration failed" });
-      }
-    } catch (err) {
-      setErrors({ general: "Something went wrong. Please try again." });
-    } finally {
-      setIsSubmitting(false);
+      }, 500);
+    } else {
+      // Close loading and show error
+      Swal.fire({
+        icon: "error",
+        title: "Registration failed",
+        text: data.message || "Something went wrong. Please try again.",
+      });
+      
+      if (data.errors) setErrors(data.errors);
+      else setErrors({ general: data.message || "Registration failed" });
     }
-  };
+  } catch (err) {
+    // Close loading and show error
+    Swal.fire({
+      icon: "error",
+      title: "Something went wrong",
+      text: "Please check your connection and try again.",
+    });
+    
+    setErrors({ general: "Something went wrong. Please try again." });
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   const handleGoogleSuccess = (json) => {
     try {

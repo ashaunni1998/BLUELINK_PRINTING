@@ -476,7 +476,9 @@ const handleAddAddress = async (e) => {
 
   // Build base payload (no user info) — backend may use session cookies
   const basePayload = {
-    fullName: newAddress.fullName,
+  //  firstName: newAddress.firstName,
+  // lastName: newAddress.lastName,
+  fullName: `${newAddress.firstName} ${newAddress.lastName}`.trim(),
     phone: newAddress.phone,
     country: newAddress.country,
     address: newAddress.address,
@@ -511,7 +513,8 @@ const handleAddAddress = async (e) => {
     console.log("Address saved (attempt 1):", result.data);
     // reset and fetch addresses
     setNewAddress({
-      fullName: "",
+      firstName: "",
+  lastName: "",
       phone: "",
       address: "",
       city: "",
@@ -980,20 +983,37 @@ const handleApplyCoupon = async () => {
 
         <div className="grid-pro">
           {/* Full name */}
-          <div className="field-pro">
-            <label htmlFor="fullName" className="label-pro">Full name</label>
-            <input
-              id="fullName"
-              name="fullName"
-              type="text"
-              placeholder="Ajal Jerry"
-              value={newAddress.fullName}
-              onChange={(e) => setNewAddress({ ...newAddress, fullName: e.target.value })}
-              required
-              className="input-pro"
-              aria-required="true"
-            />
-          </div>
+        {/* First & Last name side by side */}
+<div className="field-pro">
+  <label htmlFor="firstName" className="label-pro">First Name</label>
+  <input
+    id="firstName"
+    name="firstName"
+    type="text"
+    placeholder="Ajal"
+    value={newAddress.firstName}
+    onChange={(e) => setNewAddress({ ...newAddress, firstName: e.target.value })}
+    required
+    className="input-pro"
+    aria-required="true"
+  />
+</div>
+
+<div className="field-pro">
+  <label htmlFor="lastName" className="label-pro">Last Name</label>
+  <input
+    id="lastName"
+    name="lastName"
+    type="text"
+    placeholder="Jerry"
+    value={newAddress.lastName}
+    onChange={(e) => setNewAddress({ ...newAddress, lastName: e.target.value })}
+    required
+    className="input-pro"
+    aria-required="true"
+  />
+</div>
+
 
           {/* Phone */}
           <div className="field-pro">
@@ -1242,7 +1262,11 @@ const handleApplyCoupon = async () => {
                 style={{ marginTop: 6 }}
               />
               <div>
-                <div style={{ fontWeight: 700, fontSize: 15 }}>{addr.fullName}</div>
+<div style={{ fontWeight: 700, fontSize: 15 }}>
+  {addr.firstName || addr.lastName
+    ? `${addr.firstName || ""} ${addr.lastName || ""}`.trim()
+    : addr.fullName}
+</div>
                 <div style={{ color: "#374151", marginTop: 6 }}>
                   {/* Compose an address line from available fields */}
                   {[

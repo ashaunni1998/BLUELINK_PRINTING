@@ -65,7 +65,9 @@ const getPadding = () => {
 
   // New address form state
   const [newAddress, setNewAddress] = useState({
-    fullName: "",
+   firstName: "",
+lastName: "",
+
     phone: "",
     address: "",
     city: "",
@@ -193,7 +195,7 @@ const getPadding = () => {
     }
 
     const basePayload = {
-      fullName: newAddress.fullName,
+       fullName: `${newAddress.firstName || ""} ${newAddress.lastName || ""}`.trim(),
       phone: newAddress.phone,
       country: newAddress.country,
       address: newAddress.address,
@@ -277,7 +279,9 @@ const getPadding = () => {
         result = await postAddress(tryShapes[i]);
         if (result.ok) {
           setNewAddress({
-            fullName: "",
+firstName: "",
+lastName: "",
+
             phone: "",
             address: "",
             city: "",
@@ -928,16 +932,27 @@ const getPadding = () => {
                   <form onSubmit={handleAddAddress}>
                     <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '16px' }}>
                       <div>
-                        <label style={labelStyle}>Full Name *</label>
-                        <input
-                          style={inputStyle}
-                          type="text"
-                          required
-                          value={newAddress.fullName}
-                          onChange={(e) => setNewAddress({...newAddress, fullName: e.target.value})}
-                          placeholder="Enter your full name"
-                        />
-                      </div>
+    <label style={labelStyle}>First Name *</label>
+    <input
+      style={inputStyle}
+      type="text"
+      required
+      value={newAddress.firstName}
+      onChange={(e) => setNewAddress({ ...newAddress, firstName: e.target.value })}
+      placeholder="Enter first name"
+    />
+  </div>
+  <div>
+    <label style={labelStyle}>Last Name *</label>
+    <input
+      style={inputStyle}
+      type="text"
+      required
+      value={newAddress.lastName}
+      onChange={(e) => setNewAddress({ ...newAddress, lastName: e.target.value })}
+      placeholder="Enter last name"
+    />
+  </div>
                       <div>
                         <label style={labelStyle}>Phone Number *</label>
                         <input

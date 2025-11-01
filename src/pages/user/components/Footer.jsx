@@ -91,7 +91,7 @@ const getPadding = () => {
       title: "Help",
       links: [
         { label: "Contact us", path: "/contact" },
-        { label: "FAQs", path: "/help" },
+        { label: "FAQs", path: "/help-faq" },
       ],
     },
   ];
