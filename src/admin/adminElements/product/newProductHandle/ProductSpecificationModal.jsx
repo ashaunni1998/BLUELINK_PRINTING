@@ -63,7 +63,7 @@ function ProductSpecificationModal({ isEdited, setCardOptions, openOptions, setO
                 setLocalOptions(res.productData);
                  setOpenOptions(false)
             } catch (error) {
-                console.log(error);
+                // console.log(error);
                 
             }finally{
                 setLoading(false)

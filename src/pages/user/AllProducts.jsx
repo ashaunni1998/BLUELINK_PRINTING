@@ -89,7 +89,6 @@ useEffect(() => {
 
       const data = await res.json();
       const categories = data.data;
-      console.log("Available Categories:", categories);
       const matchedCategory = categories.find((cat) => cat._id === categoryId);
 
       if (matchedCategory && matchedCategory.products) {
@@ -205,6 +204,8 @@ const arrowButtonStyle = (position) => ({
 });
   return (
      <div >
+           <div style={{ backgroundColor: "#e6f2ff", width: "100%", minHeight: "100vh" }}>
+
       <div className="responsive-container">
       <Header />
       
@@ -704,6 +705,7 @@ const arrowButtonStyle = (position) => ({
 </div>
 
       <Footer />
+    </div>
     </div>
     </div>
   );

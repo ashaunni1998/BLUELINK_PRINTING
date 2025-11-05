@@ -73,8 +73,7 @@ function EditImage({ product, setProduct }) {
     };
 
     async function fetchProduct() {
-        console.log(1111, product.images, 2222, images);
-        console.log('newImages', newImageFile);
+      
         const formData = new FormData();
 
         newImageFile.forEach((file) => {
@@ -95,7 +94,7 @@ function EditImage({ product, setProduct }) {
 
             // Assuming response.data.data is an array of products
             const newImages = response.data.data;
-            console.log(response.data);
+         
             setProduct((prev) => ({
                 ...prev,
                 images: newImages

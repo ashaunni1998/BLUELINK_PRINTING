@@ -41,7 +41,6 @@ const  addressData= {
       { withCredentials: true }
     );
 
-    console.log("📥 Response from add:", response.data);
 
     // ✅ Reset form after success
     // setNewAddress({
@@ -63,8 +62,7 @@ const  addressData= {
    
     
   } catch (err) {
-    console.log(err);
-    
+     
   }
 };
   return (

@@ -292,7 +292,6 @@ const handlePrevFlyerPage = () => {
       </g>
     </svg>
   );
-console.log(products);
  const [currentIndex, setCurrentIndex] = useState(0);
   const itemsPerView = 1;
   // const maxIndex = Math.ceil(products.length / 10) - 1; // Changed from products.length - itemsPerView

@@ -139,7 +139,6 @@ const fetchAddresses = async () => {
   try {
     setLoadingAddresses(true);
     const res = await axios.get(`${API_BASE_URL}/address/addresses`, { withCredentials: true });
-    console.log("GET /address/addresses response:", res.data);
 
     const extractAddresses = (data) => {
       if (Array.isArray(data)) return data;
@@ -541,6 +540,8 @@ const LockedCard = ({ title }) => (
 );
 
   return (
+         <div style={{ backgroundColor: "#e6f2ff", width: "100%", minHeight: "100vh" }}>
+
     <div className="responsive-container">
       <Header />
       <div style={containerStyle}>
@@ -1431,6 +1432,7 @@ const LockedCard = ({ title }) => (
         </main>
       </div>
       <Footer />
+    </div>
     </div>
   );
 };

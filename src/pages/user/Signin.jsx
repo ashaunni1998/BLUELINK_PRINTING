@@ -66,7 +66,6 @@ export default function SignIn() {
     if (!id_token) return { ok: false, error: "no id_token" };
     const endpoint = `${API}/auth/google/token`;
     try {
-      console.log("[SignIn] POST id_token ->", endpoint);
       const res = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -76,7 +75,6 @@ export default function SignIn() {
       const text = await res.text();
       let body;
       try { body = JSON.parse(text); } catch { body = text; }
-      console.log("[SignIn] POST response:", res.status, body);
       if (!res.ok) return { ok: false, status: res.status, body };
       return { ok: true, status: res.status, body };
     } catch (err) {
@@ -87,7 +85,6 @@ export default function SignIn() {
 
   // callback from Google's GSI when user signs in
   const handleCredentialResponse = async (response) => {
-    console.log("GSI credential response:", response);
     const id_token = response?.credential;
     if (!id_token) {
       Swal.fire({ icon: "error", title: "Google did not return a credential." });
@@ -130,7 +127,6 @@ export default function SignIn() {
   // initialize GSI and render button
   const initGsi = async () => {
     const clientId = REACT_APP_GOOGLE_CLIENT_ID || (window && window.__REACT_APP_GOOGLE_CLIENT_ID);
-    console.log("initGsi clientId:", clientId);
     if (!clientId) {
       console.warn("Google Client ID missing. Set REACT_APP_GOOGLE_CLIENT_ID in config.");
       return;
@@ -166,7 +162,6 @@ export default function SignIn() {
           text: "signin_with",
         });
       }
-      console.log("GSI initialized & button rendered");
     } catch (err) {
       console.error("Error initializing GSI:", err);
     }
@@ -209,7 +204,6 @@ export default function SignIn() {
         credentials: "include",
       });
       const json = await res.json();
-      console.log("/api/user/login response:", res.status, json);
       if (res.ok && json.userData) {
         // ONLY call setIsLoggedIn - let AuthContext handle localStorage
         if (setIsLoggedIn) {

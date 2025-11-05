@@ -22,7 +22,6 @@ const GoogleLogin = () => {
 
   const handleCallbackResponse = (response) => {
     const userObject = jwtDecode(response.credential);
-    console.log("Google User:", userObject);
 
     // Save user info
     localStorage.setItem("user", JSON.stringify(userObject));

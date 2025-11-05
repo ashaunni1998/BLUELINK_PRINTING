@@ -18,7 +18,7 @@ function OrderViewModal({ viewModal, setViewModal, selectedOrderId }) {
             // console.log('Order details:', res.data);
             setOrderData(res.data);
         } catch (error) {
-            console.log('Error fetching order details:', error);
+            // console.log('Error fetching order details:', error);
         } finally {
             setLoading(false);
         }

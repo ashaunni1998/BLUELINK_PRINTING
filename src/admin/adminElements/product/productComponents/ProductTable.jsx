@@ -79,7 +79,7 @@ const createRating = (rating = {}) => {
                toast.success(`Product "${selectedProduct.name}" has been deleted successfully.`);
                setChange((priv)=>(!priv))
             } catch (error) {
-               console.log(error);
+            //    console.log(error);
                
             } finally {
                 setIsIsLoading(false)
@@ -97,7 +97,7 @@ const createRating = (rating = {}) => {
                  toast.success(res.message)
 
             } catch (error) {
-                console.log(444, error);
+                // console.log(444, error);
 
             } finally {
                 setIsIsLoading(false)

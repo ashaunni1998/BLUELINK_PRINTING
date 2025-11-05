@@ -116,7 +116,7 @@ function OrderTable({ orders, loading,setOrders }) {
             
             setIsModalOpen(false)
         } catch (error) {
-            console.log('Error updating order status:', error);
+            // console.log('Error updating order status:', error);
             
         }finally{
             setUpLoading(false);

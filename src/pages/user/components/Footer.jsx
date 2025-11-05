@@ -410,7 +410,7 @@ const getPadding = () => {
           </div>
           <div
             style={{
-              backgroundColor: "#f0f8ff",
+             
               padding: isMobile ? "12px" : "15px",
               border: "1px solid #ccc",
               borderRadius: "8px",

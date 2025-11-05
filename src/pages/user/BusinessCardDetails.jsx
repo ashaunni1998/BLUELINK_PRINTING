@@ -95,7 +95,7 @@ const BusinessCardDetails = () => {
       alert("Please give rating and write review.");
       return;
     }
-    console.log("Submitting review:", { rating, reviewText });
+    // console.log("Submitting review:", { rating, reviewText });
     setReviewText('');
     setRating(0);
     alert("Review submitted!");

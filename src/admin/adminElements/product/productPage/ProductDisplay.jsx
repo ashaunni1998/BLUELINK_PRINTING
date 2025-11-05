@@ -31,7 +31,7 @@ function Product({ setPurpose, setProductData,change,setChange }) {
         setProducts(res.productData)
         setApiPagination(res.pagination)
     } catch (error) {
-        console.log(4444,error);
+        // console.log(4444,error);
         
     }finally{
         setLoading(false)

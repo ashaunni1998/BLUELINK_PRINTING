@@ -43,113 +43,160 @@ export default function Cart() {
     return sorted[0];
   };
 
-  const normalizeCart = (cartData) => {
-    if (!cartData || !Array.isArray(cartData.items)) return [];
+ const normalizeCart = (cartData) => {
+  if (!cartData || !Array.isArray(cartData.items)) return [];
 
-    return cartData.items.map((i, idx) => {
-      const raw = i || {};
+  return cartData.items.map((i, idx) => {
+    const raw = i || {};
 
-         console.log("🔍 Cart Item Debug:", {
-      index: idx,
-      raw: raw,
-      options: raw.options,
-      previewUrl_in_options: raw.options?.previewUrl,
-      previewUrl_in_raw: raw.previewUrl,
-      preparedPreview: raw.preparedPreview,
-      uploadedUrl: raw.uploadedUrl,
-      images: raw.images,
-      userImage: raw.userImage
-    });
+    // console.log("🔍 Cart Item Debug:", {
+    //   index: idx,
+    //   raw: raw,
+    //   options: raw.options,
+    //   previewUrl_in_options: raw.options?.previewUrl,
+    //   uploadedUrl_in_options: raw.options?.uploadedUrl,
+    //   previewUrl_in_raw: raw.previewUrl,
+    //   uploadedUrl_in_raw: raw.uploadedUrl,
+    //   preparedPreview: raw.preparedPreview,
+    //   images: raw.images,
+    //   userImage: raw.userImage
+    // });
     
-    
-      const productObj = (raw.productId && typeof raw.productId === "object") ? raw.productId : raw.product || null;
-      const productIdStr = productObj?._id ? String(productObj._id) : (raw.productId ? String(raw.productId) : `unknown-${idx}`);
+    const productObj = (raw.productId && typeof raw.productId === "object") 
+      ? raw.productId 
+      : raw.product || null;
+    const productIdStr = productObj?._id 
+      ? String(productObj._id) 
+      : (raw.productId ? String(raw.productId) : `unknown-${idx}`);
 
-      const qty = Number(raw.quantity ?? raw.qty ?? 1) || 1;
+    const qty = Number(raw.quantity ?? raw.qty ?? 1) || 1;
 
-      const options = raw.options || raw.option || raw.designOptions || {};
-      const designType = (options.designType || raw.designType || raw.design || "single").toString().toLowerCase();
+    const options = raw.options || raw.option || raw.designOptions || {};
+    const designType = (options.designType || raw.designType || raw.design || "single")
+      .toString()
+      .toLowerCase();
 
-      const normalizeChoice = (val) => {
-        if (!val && val !== 0) return null;
-        if (typeof val === "object") return val;
-        return { name: String(val) };
-      };
+    const normalizeChoice = (val) => {
+      if (!val && val !== 0) return null;
+      if (typeof val === "object") return val;
+      return { name: String(val) };
+    };
 
-      const size = normalizeChoice(options.size ?? raw.size ?? raw.selectedSize);
-      const paper = normalizeChoice(options.paper ?? raw.paper ?? raw.selectedPaper);
-      const finish = normalizeChoice(options.finish ?? raw.finish);
-      const corner = normalizeChoice(options.corner ?? raw.corner);
+    const size = normalizeChoice(options.size ?? raw.size ?? raw.selectedSize);
+    const paper = normalizeChoice(options.paper ?? raw.paper ?? raw.selectedPaper);
+    const finish = normalizeChoice(options.finish ?? raw.finish);
+    const corner = normalizeChoice(options.corner ?? raw.corner);
 
-      const rawTiers = (productObj && (productObj.priceTiers || productObj.price_tiers || productObj.tiers || productObj.pricing?.priceTiers)) || null;
+    const rawTiers = (productObj && 
+      (productObj.priceTiers || 
+       productObj.price_tiers || 
+       productObj.tiers || 
+       productObj.pricing?.priceTiers)) || null;
 
-      const pickTierFromArr = (arr = [], q) => {
-        if (!Array.isArray(arr) || !arr.length) return null;
-        const sorted = arr.map(t => ({ ...t, _qty: Number(t.qty ?? t.quantity ?? t.minQty ?? 0) }))
-                          .filter(t => Number.isFinite(t._qty))
-                          .sort((a,b)=>a._qty-b._qty);
-        if (!sorted.length) return null;
-        const exact = sorted.find(t => t._qty === Number(q));
-        if (exact) return exact;
-        for (let i = sorted.length - 1; i >= 0; i--) {
-          if (sorted[i]._qty <= Number(q)) return sorted[i];
-        }
-        return sorted[0];
-      };
-
-      const tier = rawTiers ? pickTierFromArr(rawTiers, qty) : null;
-
-      const savedUnit = (raw.unitPrice !== undefined && raw.unitPrice !== null) ? Number(raw.unitPrice) : NaN;
-      const savedShip = (raw.shippingPrice !== undefined && raw.shippingPrice !== null) ? Number(raw.shippingPrice) : NaN;
-
-      let unitPrice = Number.isFinite(savedUnit) ? savedUnit : NaN;
-      let shippingPrice = Number.isFinite(savedShip) ? savedShip : NaN;
-
-      if ((!Number.isFinite(unitPrice) || !Number.isFinite(shippingPrice)) && tier) {
-        unitPrice = Number(tier.priceSingle ?? tier.price ?? 0);
-        shippingPrice = Number(tier.shippingCharge ?? tier.shippingPrice ?? 0);
+    const pickTierFromArr = (arr = [], q) => {
+      if (!Array.isArray(arr) || !arr.length) return null;
+      const sorted = arr
+        .map(t => ({ ...t, _qty: Number(t.qty ?? t.quantity ?? t.minQty ?? 0) }))
+        .filter(t => Number.isFinite(t._qty))
+        .sort((a, b) => a._qty - b._qty);
+      if (!sorted.length) return null;
+      const exact = sorted.find(t => t._qty === Number(q));
+      if (exact) return exact;
+      for (let i = sorted.length - 1; i >= 0; i--) {
+        if (sorted[i]._qty <= Number(q)) return sorted[i];
       }
+      return sorted[0];
+    };
 
-      if (!Number.isFinite(unitPrice) && productObj) unitPrice = Number(productObj.basePrice ?? productObj.price ?? 0);
-      if (!Number.isFinite(shippingPrice) && productObj) shippingPrice = Number(productObj.shippingCharge ?? productObj.shippingPrice ?? 0);
+    const tier = rawTiers ? pickTierFromArr(rawTiers, qty) : null;
 
-      if (!Number.isFinite(unitPrice)) unitPrice = 0;
-      if (!Number.isFinite(shippingPrice)) shippingPrice = 0;
+    const savedUnit = (raw.unitPrice !== undefined && raw.unitPrice !== null) 
+      ? Number(raw.unitPrice) 
+      : NaN;
+    const savedShip = (raw.shippingPrice !== undefined && raw.shippingPrice !== null) 
+      ? Number(raw.shippingPrice) 
+      : NaN;
 
-      const lineTotal = Number((unitPrice + shippingPrice).toFixed(2));
+    let unitPrice = Number.isFinite(savedUnit) ? savedUnit : NaN;
+    let shippingPrice = Number.isFinite(savedShip) ? savedShip : NaN;
 
-const image =
-  (options.previewUrl) ||  // ✅ Prioritize previewUrl from options
-  (raw.previewUrl) ||      // ✅ Check raw.previewUrl
-  (raw.preparedPreview) ||
-  (raw.uploadedUrl) ||
-  (Array.isArray(raw.userImage) && raw.userImage.length && raw.userImage[0]) ||
-  ((Array.isArray(raw.images) && raw.images.length && raw.images[0]) ? raw.images[0] : null) ||
-  ((Array.isArray(productObj?.images) && productObj.images.length && productObj.images[0]) ? productObj.images[0] : productObj?.image ?? "");
+    if ((!Number.isFinite(unitPrice) || !Number.isFinite(shippingPrice)) && tier) {
+      unitPrice = Number(tier.priceSingle ?? tier.price ?? 0);
+      shippingPrice = Number(tier.shippingCharge ?? tier.shippingPrice ?? 0);
+    }
 
-      const name = productObj?.name ?? raw.rawName ?? raw.name ?? "(Product unavailable)";
+    if (!Number.isFinite(unitPrice) && productObj) {
+      unitPrice = Number(productObj.basePrice ?? productObj.price ?? 0);
+    }
+    if (!Number.isFinite(shippingPrice) && productObj) {
+      shippingPrice = Number(productObj.shippingCharge ?? productObj.shippingPrice ?? 0);
+    }
 
-      return {
-        raw,
-       id: raw._id || `${productIdStr}-${idx}-${Date.now()}`,  // ✅ REPLACE WITH THIS
-  productId: productIdStr,
-        name,
-        image,
-        qty,
-        allowedQtyOptions: (Array.isArray(productObj?.priceTiers) ? productObj.priceTiers.map(t => Number(t.qty ?? t.quantity ?? t.minQty ?? 0)).filter(Boolean) : [qty]),
-        unitPrice,
-        shippingPrice,
-        lineTotal,
-        designType,
-        product: productObj,
-        size,
-        paper,
-        finish,
-        corner,
-        options: { ...options, size, paper, finish, corner }
-      };
-    });
-  };
+    if (!Number.isFinite(unitPrice)) unitPrice = 0;
+    if (!Number.isFinite(shippingPrice)) shippingPrice = 0;
+
+    const lineTotal = Number((unitPrice + shippingPrice).toFixed(2));
+
+    // ✅ FIXED: Prioritize framed preview URLs for personalized gifts
+    // Check multiple possible locations where the preview URL might be stored
+    const framePreviewUrl = 
+      options.previewUrl ||           // First priority: options.previewUrl
+      options.uploadedUrl ||          // Second: options.uploadedUrl
+      raw.previewUrl ||               // Third: raw.previewUrl
+      raw.uploadedUrl ||              // Fourth: raw.uploadedUrl
+      raw.preparedPreview ||          // Fifth: preparedPreview
+      null;
+
+    // ✅ For regular products or fallback, use standard images
+    const fallbackImage = 
+      (Array.isArray(raw.userImage) && raw.userImage.length && raw.userImage[0]) ||
+      (Array.isArray(raw.images) && raw.images.length && raw.images[0]) ||
+      (Array.isArray(productObj?.images) && productObj.images.length && productObj.images[0]) ||
+      productObj?.image ||
+      "";
+
+    // ✅ Use framed preview if available, otherwise use fallback
+    const image = framePreviewUrl || fallbackImage;
+
+    const name = productObj?.name ?? raw.rawName ?? raw.name ?? "(Product unavailable)";
+
+    // ✅ Add isPersonalized flag for debugging
+    const isPersonalized = !!(framePreviewUrl);
+
+    // console.log("🖼️ Image selection:", {
+    //   productName: name,
+    //   isPersonalized,
+    //   selectedImage: image,
+    //   framePreviewUrl,
+    //   fallbackImage
+    // });
+
+    return {
+      raw,
+      id: raw._id || `${productIdStr}-${idx}-${Date.now()}`,
+      productId: productIdStr,
+      name,
+      image,
+      isPersonalized, // ✅ Add this flag
+      qty,
+      allowedQtyOptions: (Array.isArray(productObj?.priceTiers) 
+        ? productObj.priceTiers
+            .map(t => Number(t.qty ?? t.quantity ?? t.minQty ?? 0))
+            .filter(Boolean) 
+        : [qty]),
+      unitPrice,
+      shippingPrice,
+      lineTotal,
+      designType,
+      product: productObj,
+      size,
+      paper,
+      finish,
+      corner,
+      options: { ...options, size, paper, finish, corner }
+    };
+  });
+};
 
   const fetchProductById = async (id) => {
     try {
@@ -758,6 +805,7 @@ const removeItem = async (cartItemId) => {
 
 
       <div className="page-container">
+        
         <div className="responsive-container">
           <Header />
 
@@ -788,31 +836,32 @@ const removeItem = async (cartItemId) => {
                   {items.map((item, idx) => {
                     const cartItemId = item.raw?._id ?? null;
                     const keyId = cartItemId ? cartItemId : `${item.id}-${idx}`;
-                  const uploadedImage =
- item?.raw?.previewUrl ||
-   item?.raw?.preparedPreview ||
-   item?.raw?.uploadedUrl ||
-   (item?.raw?.userImage && item.raw.userImage.length > 0 && item.raw.userImage[0]) ||
-   (item?.raw?.images && item.raw.images.length > 0 && item.raw.images[0]) ||
-   (item?.images && item.images.length > 0 && item.images[0]) ||
-   item?.image ||
-   null;
-
+                 // ✅ Prioritize previewUrl for framed personalized items
+const displayImage = item.image;
                     return (
-                      <div key={keyId} className="cart-item">
-                        <div className="item-image-wrapper">
-                          {uploadedImage ? (
-                            <img
-                              src={uploadedImage}
-                              alt={item.name || "Product"}
-                              className="item-image"
-                            />
-                          ) : (
-                            <div style={{ textAlign: "center", color: "#9ca3af", fontSize: "0.8125rem" }}>
-                              No image
-                            </div>
-                          )}
-                        </div>
+                  <div key={keyId} className="cart-item">
+    <div className="item-image-wrapper">
+      {displayImage ? (
+        <img
+          src={displayImage}
+          alt={item.name || "Product"}
+          className="item-image"
+          onError={(e) => {
+            console.error("❌ Image failed to load:", displayImage);
+            e.target.style.display = 'none';
+            e.target.parentElement.innerHTML = `
+              <div style="text-align: center; color: #9ca3af; fontSize: 0.8125rem">
+                Image unavailable
+              </div>
+            `;
+          }}
+        />
+      ) : (
+        <div style={{ textAlign: "center", color: "#9ca3af", fontSize: "0.8125rem" }}>
+          No image
+        </div>
+      )}
+    </div>
 
                         <div className="item-details">
                           <div className="item-header">

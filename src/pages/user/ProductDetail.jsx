@@ -555,7 +555,6 @@ const isMobile = useMediaQuery("(max-width: 768px)");
         setLoading(true);
         setError(null);
 
-        console.log("Fetching product with ID:", id);
 
         // Try different endpoints
         const endpoints = [
@@ -568,7 +567,6 @@ const isMobile = useMediaQuery("(max-width: 768px)");
 
         for (const endpoint of endpoints) {
          try {
-            console.log("🔍 Trying endpoint:", endpoint);
             res = await fetch(endpoint, {
               headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' }
             });
@@ -610,7 +608,6 @@ const isMobile = useMediaQuery("(max-width: 768px)");
         const data = await res.json();
         const productData = data.data || data;
 
-        console.log("🧾 Product data structure:", JSON.stringify(productData, null, 2));
         setProduct(productData);
         if (productData.sizes?.length) setSelectedSize(productData.sizes[0].label);
         if (productData.finishes?.length) setSelectedFinish(productData.finishes[0].label);
@@ -697,7 +694,6 @@ const handleAddToCart = async () => {
     };
 
     // Debug log during development (remove in production)
-    console.log("DEBUG addToCart payload:", bodyPayload);
 
     const res = await fetch(`${API_BASE_URL}/addToCart`, {
       method: "POST",
@@ -756,7 +752,6 @@ Swal.fire({
   });
   return;
 }
-    console.log("Submitting review:", { rating, reviewText });
     setReviewText('');
     setRating(0);
     Swal.fire({
@@ -962,7 +957,6 @@ const handlePrepareAndUpload = async () => {
       }
     });
 
-    console.log("🔄 Starting image preparation...");
 
     const canvas = document.createElement("canvas");
     const outputW = 1200;
@@ -980,7 +974,6 @@ const handlePrepareAndUpload = async () => {
   img.crossOrigin = "anonymous";
 }
       img.onload = () => {
-        console.log("✅ Photo loaded successfully");
         resolve(img);
       };
       img.onerror = (err) => {
@@ -997,7 +990,6 @@ const handlePrepareAndUpload = async () => {
           const f = new Image();
           f.crossOrigin = "anonymous";
           f.onload = () => {
-            console.log("✅ Frame loaded successfully");
             resolve(f);
           };
           f.onerror = (err) => {
@@ -1110,7 +1102,6 @@ ctx.drawImage(photo, dx, dy, drawW, drawH);
     const finalDataUrl = canvas.toDataURL("image/png", 0.9);
     setPreparedPreview(finalDataUrl);
     
-    console.log("🔄 Uploading to imgbb...");
 
     const base64 = finalDataUrl.split(",")[1];
     const formData = new FormData();
@@ -1123,7 +1114,6 @@ ctx.drawImage(photo, dx, dy, drawW, drawH);
       body: formData,
     });
 
-    console.log("📡 Upload response status:", uploadRes.status);
 
     if (!uploadRes.ok) {
       const errorText = await uploadRes.text();
@@ -1132,7 +1122,6 @@ ctx.drawImage(photo, dx, dy, drawW, drawH);
     }
 
     const uploadJson = await uploadRes.json();
-    console.log("📦 Upload response:", uploadJson);
 
     if (!uploadJson?.data?.url) {
       throw new Error("Upload successful but no URL returned");
@@ -1141,7 +1130,6 @@ ctx.drawImage(photo, dx, dy, drawW, drawH);
     const uploadedUrlFromApi = uploadJson.data.url;
     setUploadedUrl(uploadedUrlFromApi);
     
-    console.log("✅ Image uploaded successfully:", uploadedUrlFromApi);
     
     // ✅ CRITICAL: Pass BOTH the imgbb URL and the base64 preview
     await addPersonalizedGiftToCart(uploadedUrlFromApi, finalDataUrl);
@@ -1338,7 +1326,6 @@ const addPersonalizedGiftToCart = async (uploadedUrl, preparedPreview) => {
       }
     }));
 
-    console.log("📤 Sending to cart with previewUrl:", uploadedUrl);
 
     const res = await fetch(`${API_BASE_URL}/addToCartWithDesign`, {
       method: "POST",
@@ -1349,7 +1336,6 @@ const addPersonalizedGiftToCart = async (uploadedUrl, preparedPreview) => {
     const data = await res.json().catch(() => ({ message: "Invalid JSON response" }));
 
     if (res.ok) {
-      console.log("✅ Added to cart successfully");
       Swal.fire({
         icon: 'success',
         title: 'Added to Cart!',
@@ -1545,7 +1531,6 @@ const fileLabelStyle = {
   if (loading) return <p style={{ textAlign: "center", padding: "40px" }}>Loading product...</p>;
   if (error) return <p style={{ textAlign: "center", color: "red", padding: "40px" }}>{error}</p>;
   if (!product) return <p style={{ textAlign: "center", padding: "40px" }}>Product not found.</p>;
-console.log(id);
 
 
  // âœ… prevent crash if product not yet loaded
@@ -1745,7 +1730,9 @@ onMediaLoaded={({ naturalWidth: iw, naturalHeight: ih }) => {
   </div>
 )}
 
+             <div style={{ backgroundColor: "#e6f2ff", width: "100%", minHeight: "100vh" }}>
       <div className="responsive-container">
+
       <Header onMenuStateChange={setMobileMenuOpen}/>
 
         {/* Main */}
@@ -1806,7 +1793,7 @@ onMediaLoaded={({ naturalWidth: iw, naturalHeight: ih }) => {
     fontWeight: "600",
     marginBottom: "8px",
     color: "#007bff",
-    marginTop: window.innerWidth <= 768 ? "-40px" : "-40px",
+    marginTop: window.innerWidth <= 768 ? "-20px" : "-20px",
   }}
 >
   {product.name}
@@ -1869,15 +1856,12 @@ onMediaLoaded={({ naturalWidth: iw, naturalHeight: ih }) => {
   const normalizedProductName = normalize(product?.name || "");
   
   // Debug log
-  console.log("Category:", categoryName, "| Normalized:", normalizedCategory);
-  console.log("Product Name:", product?.name, "| Normalized:", normalizedProductName);
   
   const isFlexOrBanner = normalizedCategory.includes("flex") || 
                          normalizedCategory.includes("banner") ||
                          normalizedProductName.includes("flex") ||
                          normalizedProductName.includes("banner");
   
-  console.log("Is Flex or Banner?", isFlexOrBanner);
   
   if (isFlexOrBanner) {
     // Dropdown style for flex and banner
@@ -3438,35 +3422,34 @@ onMediaLoaded={({ naturalWidth: iw, naturalHeight: ih }) => {
 
   const f = String(selectedFrame).toLowerCase();
 
-const imgStyle = {
-  position: "absolute",
-  inset: 0,
-  width: "100%",
-  height:
-    f.includes("round") ? "80%" :
-    f.includes("heartstone") ? "94%" :
-    f.includes("heart") ? "85%" :
-    f.includes("rhomboid") ? "90%" :
-    "100%", // default for other frames
-
-  objectFit: "contain",
-
-  top:
-    f.includes("round") ? "10%" :
-    f.includes("heartstone") ? "3%" :
-    f.includes("heart") ? "7%" :
-    f.includes("rhomboid") ? "5%" :
-    "0", // default
-
-  transform: "none",
-  zIndex: 1,
+// Inline styles for each frame (your values)
+const frameStyles = {
+  heart:            { position: "absolute", inset: "7% 0 0",  width: "100%", height: "68%", objectFit: "contain", transform: "none", zIndex: 2, top: "0%" },
+  rhomboid:         { position: "absolute", inset: "5% 0 0",  width: "100%", height: "64%", objectFit: "contain", transform: "none", zIndex: 2, top: "11%" },
+  heartstone:       { position: "absolute", inset: "3% 0 0",  width: "100%", height: "73%", objectFit: "contain", transform: "none", zIndex: 2, top: "12%" },
+  door:             { position: "absolute", inset: "0",       width: "88%", height: "86%", objectFit: "cover",  transform: "none", zIndex: 2, top: "12%" },
+  rectangular:      { position: "absolute", inset: "0",       width: "100%", height: "64%", objectFit: "contain", transform: "none", zIndex: 2, top: "11%" },
+  round:            { position: "absolute", inset: "10% 0 0", width: "100%", height: "64%", objectFit: "contain", transform: "none", zIndex: 2, top: "12%" },
+  aluminum:         { position: "absolute", inset: "0",       width: "100%", height: "64%", objectFit: "contain", transform: "none", zIndex: 2, top: "20%" },
+  glass:            { position: "absolute", inset: "0",       width: "100%", height: "84%", objectFit: "contain", transform: "none", zIndex: 2, top: "8%" },
+  square:           { position: "absolute", inset: "0",       width: "100%", height: "75%", objectFit: "contain", transform: "none", zIndex: 2, top: "14%" },
+  rectangularstone: { position: "absolute", inset: "0",       width: "91%", height: "100%", objectFit: "contain", transform: "none", zIndex: 2, top: "0%" },
 };
+
+// fallback if frame key not found
+const fallbackFrameStyle = { position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "contain", zIndex: 2 };
+
 
   return (
     <div style={{ position: "relative", width: "100%", aspectRatio: "1 / 1" }}>
       {/* photo area */}
       <div style={insetStyle}>
-        <img src={src} alt="Preview" style={imgStyle} />
+        <img
+  src={src}
+  alt="Preview"
+  style={frameStyles[selectedFrame] || fallbackFrameStyle}
+/>
+
       </div>
 
       {/* frame overlay on top */}
@@ -3928,7 +3911,18 @@ const imgStyle = {
     bottom: `${cfg.inset.bottom* 100}%`,
     left:   `${cfg.inset.left * 100}%`,
   };
-
+const frameStyles = {
+  heart:            { position: "absolute", inset: "7% 0 0",  width: "100%", height: "68%", objectFit: "contain", transform: "none", zIndex: 2, top: "10%" },
+  rhomboid:         { position: "absolute", inset: "5% 0 0",  width: "100%", height: "64%", objectFit: "contain", transform: "none", zIndex: 2, top: "11%" },
+  heartstone:       { position: "absolute", inset: "3% 0 0",  width: "100%", height: "73%", objectFit: "contain", transform: "none", zIndex: 2, top: "12%" },
+  door:             { position: "absolute", inset: "0",       width: "88%", height: "86%", objectFit: "cover",  transform: "none", zIndex: 2, top: "12%" },
+  rectangular:      { position: "absolute", inset: "0",       width: "100%", height: "64%", objectFit: "contain", transform: "none", zIndex: 2, top: "11%" },
+  round:            { position: "absolute", inset: "10% 0 0", width: "100%", height: "64%", objectFit: "contain", transform: "none", zIndex: 2, top: "12%" },
+  aluminum:         { position: "absolute", inset: "0",       width: "100%", height: "64%", objectFit: "contain", transform: "none", zIndex: 2, top: "20%" },
+  glass:            { position: "absolute", inset: "0",       width: "100%", height: "84%", objectFit: "contain", transform: "none", zIndex: 2, top: "8%" },
+  square:           { position: "absolute", inset: "0",       width: "100%", height: "75%", objectFit: "contain", transform: "none", zIndex: 2, top: "14%" },
+  rectangularstone: { position: "absolute", inset: "0",       width: "91%", height: "100%", objectFit: "contain", transform: "none", zIndex: 2, top: "0%" },
+};
   return (
     <div style={{ position: "relative", width: "100%", aspectRatio: "1 / 1" }}>
       {/* Diamond underlay ONLY for rhomboid (removes white tip) */}
@@ -3945,36 +3939,9 @@ const imgStyle = {
     <img
   src={src}
   alt="Preview"
-  style={(() => {
-    const f = String(selectedFrame || "").toLowerCase();
-
-    // per-shape height + vertical centering
-    const height =
-      f.includes("round")      ? "80%" :
-      f.includes("heartstone") ? "94%" :
-      f.includes("heart")      ? "85%" :
-      f.includes("rhomboid")   ? "90%" :
-                                 "100%";
-
-    const top =
-      f.includes("round")      ? "10%" :
-      f.includes("heartstone") ? "3%"  :
-      f.includes("heart")      ? "7%"  :
-      f.includes("rhomboid")   ? "5%"  :
-                                 "0";
-
-    return {
-      position: "absolute",
-      inset: 0,
-      width: "100%",
-      height,                 // 👈 shape-specific height
-      objectFit: "contain",   // 👈 force contain for ALL
-      top,                    // 👈 nudge down to keep centered
-      transform: "none",
-      zIndex: 2
-    };
-  })()}
+  style={frameStyles[selectedFrame] || fallbackFrameStyle}
 />
+
 
       {/* Frame overlay */}
       {FRAME_URL && (
@@ -4533,6 +4500,7 @@ const imgStyle = {
         </div>
         </div>
         <Footer />
+        </div>
         </div>
         </div>    
       

@@ -362,7 +362,6 @@ export default function UploadDesign() {
         return;
       }
 
-      console.log("Resolved files to upload:", resolvedFiles.map(f => f?.name || "(file)"));
 
       const formData = new FormData();
       resolvedFiles.forEach(f => formData.append("images", f, f.name || "upload.jpg"));
@@ -390,7 +389,6 @@ export default function UploadDesign() {
         return;
       }
 
-      console.log("addToCartWithDesign success:", json);
       navigate("/cart");
     } catch (err) {
       console.error("handleSubmit error:", err);

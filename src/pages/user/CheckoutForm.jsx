@@ -73,7 +73,7 @@ const CheckoutForm = () => {
 
   const handleCardReady = () => {
     setCardReady(true);
-    console.log("CardElement is ready");
+    // console.log("CardElement is ready");
   };
 
   // Heuristic helpers

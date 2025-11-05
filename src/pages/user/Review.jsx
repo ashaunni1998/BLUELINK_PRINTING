@@ -1,107 +1,77 @@
 import React, { useState, useEffect } from "react";
-import { Star, Trash2 } from "lucide-react"; 
-import { API_BASE_URL } from "../../config"; 
+import { Star, Trash2, MessageSquare, TrendingUp } from "lucide-react";
+import { API_BASE_URL } from "../../config";
 
 const Review = ({ productId }) => {
   const [rating, setRating] = useState(0);
+  const [hoverRating, setHoverRating] = useState(0);
   const [reviewText, setReviewText] = useState("");
   const [showReviews, setShowReviews] = useState(false);
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(false);
-  // ✅ Fetch reviews from backend
-const fetchReviews = async () => {
-  try {
-    setLoading(true);
-    console.log("🔎 Fetching reviews for productId:", productId);
-    
-    const res = await fetch(
-      `${API_BASE_URL}/review/productReview?productId=${productId}&limit=10&page=1`,
-      { credentials: "include" }
-    );
-    
-    console.log("🔎 Response status:", res.status);
-    const data = await res.json();
-    console.log("🔎 Response JSON:", data);
-    console.log("🔎 Type of data:", typeof data);
-    console.log("🔎 Keys in data:", data ? Object.keys(data) : 'null');
-    
-    if (res.ok) {
-      let fetchedReviews = [];
 
-      // Safely handle different response structures
-      if (!data) {
-        fetchedReviews = [];
-      } else if (Array.isArray(data)) {
-        fetchedReviews = data;
-      } else if (data.reviews) {
-        if (Array.isArray(data.reviews)) {
-          fetchedReviews = data.reviews;
-        } else if (data.reviews.reviews && Array.isArray(data.reviews.reviews)) {
-          fetchedReviews = data.reviews.reviews;
+  const fetchReviews = async () => {
+    try {
+      setLoading(true);
+      
+      const res = await fetch(
+        `${API_BASE_URL}/review/productReview?productId=${productId}&limit=10&page=1`,
+        { credentials: "include" }
+      );
+      
+      const data = await res.json();
+      
+      if (res.ok) {
+        let fetchedReviews = [];
+
+        if (!data) {
+          fetchedReviews = [];
+        } else if (Array.isArray(data)) {
+          fetchedReviews = data;
+        } else if (data.reviews) {
+          if (Array.isArray(data.reviews)) {
+            fetchedReviews = data.reviews;
+          } else if (data.reviews.reviews && Array.isArray(data.reviews.reviews)) {
+            fetchedReviews = data.reviews.reviews;
+          }
+        } else if (data.data && Array.isArray(data.data)) {
+          fetchedReviews = data.data;
         }
-      } else if (data.data && Array.isArray(data.data)) {
-        fetchedReviews = data.data;
+
+        setReviews(fetchedReviews);
+      } else {
+        console.error("API Error:", data?.message || "Unknown error");
+        setReviews([]);
       }
-
-      console.log("✅ Normalized reviews:", fetchedReviews);
-      setReviews(fetchedReviews);
-    } else {
-      console.error("API Error:", data?.message || "Unknown error");
+    } catch (error) {
+      console.error("Error fetching reviews:", error);
       setReviews([]);
+    } finally {
+      setLoading(false);
     }
-  } catch (error) {
-    console.error("Error fetching reviews:", error);
-    setReviews([]);
-  } finally {
-    setLoading(false);
-  }
-};
- useEffect(() => {
-    console.log("🎯 Review Component Mounted");
-    console.log("📦 Received productId:", productId);
-    console.log("📦 ProductId type:", typeof productId);
-    console.log("📦 ProductId length:", productId?.length);
-    console.log("📦 Is valid MongoDB ObjectId format?", /^[a-f\d]{24}$/i.test(productId));
+  };
+
+  useEffect(() => {
   }, [productId]);
-  // ✅ Submit new review
 
-
-    const handleReviewSubmit = async () => {
+  const handleReviewSubmit = async () => {
     if (!rating || !reviewText.trim()) {
       alert("Please select a rating and write a review.");
       return;
     }
 
-    // ✅ Enhanced logging before submission
-    console.log("=" .repeat(50));
-    console.log("📤 SUBMITTING REVIEW");
-    console.log("=" .repeat(50));
-    console.log("📦 ProductId:", productId);
-    console.log("📦 ProductId type:", typeof productId);
-    console.log("📦 ProductId length:", productId?.length);
-    console.log("⭐ Rating:", rating);
-    console.log("💬 Comment:", reviewText);
-    console.log("🔗 API URL:", `${API_BASE_URL}/review`);
-    console.log("📦 Full payload:", JSON.stringify({ 
-      productId, 
-      rating, 
-      comment: reviewText 
-    }, null, 2));
-    console.log("=" .repeat(50));
+   
 
     try {
       const res = await fetch(`${API_BASE_URL}/review`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        credentials: "include", 
+        credentials: "include",
         body: JSON.stringify({ productId, rating, comment: reviewText }),
       });
 
-      console.log("📥 Response status:", res.status);
       
       const text = await res.text();
-      console.log("📥 Raw response:", text);
-      
       let data;
       try {
         data = JSON.parse(text);
@@ -109,8 +79,6 @@ const fetchReviews = async () => {
         console.error("Failed to parse response as JSON:", e);
         data = { message: text || "Server error" };
       }
-      
-      console.log("📥 Parsed response:", data);
 
       if (res.ok) {
         alert("Thank you for your review!");
@@ -129,10 +97,6 @@ const fetchReviews = async () => {
     }
   };
 
-
-  
-
-  // ✅ Delete review
   const handleDeleteReview = async (id) => {
     if (!window.confirm("Are you sure you want to delete this review?")) return;
 
@@ -154,18 +118,20 @@ const fetchReviews = async () => {
     }
   };
 
-  // Fetch reviews when user clicks "View Reviews"
   useEffect(() => {
     if (showReviews) {
       fetchReviews();
     }
   }, [showReviews]);
 
+  const averageRating = reviews.length > 0 
+    ? (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1)
+    : 0;
+
   return (
-    <div>
-      {/* Review Section */}
+    <div style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+      {/* Write Review Section */}
       <div
-        className="review-wrapper"
         style={{
           marginTop: 50,
           maxWidth: 600,
@@ -174,166 +140,385 @@ const fetchReviews = async () => {
           padding: "0 16px",
         }}
       >
-        <h3 style={{ fontSize: 20, marginBottom: 10 }}>Leave a Review</h3>
+        <div style={{
+          background: 'linear-gradient(135deg, #c6c8ceff 0%, #57618aff 100%)',
+          borderRadius: 16,
+          padding: 32,
+          boxShadow: '0 10px 40px rgba(102, 126, 234, 0.2)',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
+            <div style={{
+              background: 'rgba(255, 255, 255, 0.2)',
+              borderRadius: 12,
+              padding: 10,
+              backdropFilter: 'blur(10px)',
+            }}>
+              <MessageSquare size={24} color="#fff" />
+            </div>
+            <h3 style={{ 
+              fontSize: 24, 
+              margin: 0,
+              color: '#fff',
+              fontWeight: 600,
+            }}>
+              Share Your Experience
+            </h3>
+          </div>
 
-        {/* Star Rating */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 6,
-            marginBottom: 16,
-          }}
-        >
-          {[1, 2, 3, 4, 5].map((star) => (
-            <Star
-              key={star}
-              size={28}
-              onClick={() => setRating(star)}
+          {/* Star Rating with Hover Effect */}
+          <div style={{ marginBottom: 24 }}>
+            <p style={{ 
+              color: 'rgba(255, 255, 255, 0.9)', 
+              marginBottom: 12,
+              fontSize: 14,
+              fontWeight: 500,
+            }}>
+              Rate this product
+            </p>
+            <div style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+            }}>
+              {[1, 2, 3, 4, 5].map((star) => (
+                <Star
+                  key={star}
+                  size={32}
+                  onClick={() => setRating(star)}
+                  onMouseEnter={() => setHoverRating(star)}
+                  onMouseLeave={() => setHoverRating(0)}
+                  style={{
+                    cursor: "pointer",
+                    fill: (hoverRating || rating) >= star ? "#fbbf24" : "rgba(255, 255, 255, 0.3)",
+                    stroke: (hoverRating || rating) >= star ? "#fbbf24" : "rgba(255, 255, 255, 0.5)",
+                    transition: 'all 0.2s ease',
+                    transform: (hoverRating || rating) >= star ? 'scale(1.1)' : 'scale(1)',
+                  }}
+                />
+              ))}
+              {rating > 0 && (
+                <span style={{ 
+                  color: '#fbbf24', 
+                  marginLeft: 8, 
+                  fontWeight: 600,
+                  fontSize: 16,
+                }}>
+                  {rating}.0
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Review Text Area */}
+          <div style={{ marginBottom: 20 }}>
+            <p style={{ 
+              color: 'rgba(255, 255, 255, 0.9)', 
+              marginBottom: 12,
+              fontSize: 14,
+              fontWeight: 500,
+            }}>
+              Write your review
+            </p>
+            <textarea
+              placeholder="Tell us what you think about this product..."
+              value={reviewText}
+              onChange={(e) => setReviewText(e.target.value)}
+              rows={4}
               style={{
-                cursor: "pointer",
-                fill: rating >= star ? "#facc15" : "none",
-                stroke: "#facc15",
+                width: "100%",
+                padding: 16,
+                borderRadius: 12,
+                border: "2px solid rgba(255, 255, 255, 0.2)",
+                background: 'rgba(255, 255, 255, 0.95)',
+                fontFamily: "inherit",
+                fontSize: 14,
+                resize: 'vertical',
+                outline: 'none',
+                transition: 'all 0.3s ease',
+              }}
+              onFocus={(e) => {
+                e.target.style.border = '2px solid #fbbf24';
+                e.target.style.background = '#fff';
+              }}
+              onBlur={(e) => {
+                e.target.style.border = '2px solid rgba(255, 255, 255, 0.2)';
+                e.target.style.background = 'rgba(255, 255, 255, 0.95)';
               }}
             />
-          ))}
-        </div>
+          </div>
 
-        {/* Review Text */}
-        <textarea
-          placeholder="Write your review here..."
-          value={reviewText}
-          onChange={(e) => setReviewText(e.target.value)}
-          rows={4}
-          style={{
-            width: "100%",
-            maxWidth: "500",
-            padding: 12,
-            borderRadius: 6,
-            border: "1px solid #ccc",
-            marginBottom: 16,
-            fontFamily: "inherit",
-            fontSize: 14,
-          }}
-        />
-
-        {/* Buttons */}
-        <div
-          style={{
+          {/* Action Buttons */}
+          <div style={{
             display: "flex",
             alignItems: "center",
-            gap: "12px",
-            marginTop: "30px",
-            marginBottom: "20px",
+            gap: 12,
             flexWrap: "nowrap",
-          }}
-        >
-          <button
-            onClick={handleReviewSubmit}
-            style={{
-              background: "#007BFF",
-              color: "#fff",
-              padding: "10px 16px",
-              border: "none",
-              borderRadius: 6,
-              cursor: "pointer",
-              fontSize: 14,
-              whiteSpace: "nowrap",
-            }}
-          >
-            Submit Review
-          </button>
+          }}>
+            <button
+              onClick={handleReviewSubmit}
+              style={{
+                background: "linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)",
+                color: "#1f2937",
+                padding: "12px 24px",
+                border: "none",
+                borderRadius: 10,
+                cursor: "pointer",
+                fontSize: 15,
+                fontWeight: 600,
+                whiteSpace: "nowrap",
+                boxShadow: '0 4px 15px rgba(251, 191, 36, 0.4)',
+                transition: 'all 0.3s ease',
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.transform = 'translateY(-2px)';
+                e.target.style.boxShadow = '0 6px 20px rgba(251, 191, 36, 0.5)';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.transform = 'translateY(0)';
+                e.target.style.boxShadow = '0 4px 15px rgba(251, 191, 36, 0.4)';
+              }}
+            >
+              Submit Review
+            </button>
 
-          <button
-            onClick={() => setShowReviews(!showReviews)}
-            style={{
-              background: "#f0f0f0",
-              color: "#333",
-              padding: "10px 16px",
-              border: "1px solid #ccc",
-              borderRadius: 6,
-              cursor: "pointer",
-              fontSize: 14,
-              whiteSpace: "nowrap",
-            }}
-          >
-            {showReviews ? "Hide Reviews" : "View Reviews"}
-          </button>
+            <button
+              onClick={() => setShowReviews(!showReviews)}
+              style={{
+                background: "rgba(255, 255, 255, 0.2)",
+                color: "#fff",
+                padding: "12px 24px",
+                border: "1px solid rgba(255, 255, 255, 0.3)",
+                borderRadius: 10,
+                cursor: "pointer",
+                fontSize: 15,
+                fontWeight: 600,
+                whiteSpace: "nowrap",
+                backdropFilter: 'blur(10px)',
+                transition: 'all 0.3s ease',
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.background = 'rgba(255, 255, 255, 0.3)';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.background = 'rgba(255, 255, 255, 0.2)';
+              }}
+            >
+              {showReviews ? "Hide Reviews" : "View Reviews"}
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Customer Reviews */}
+      {/* Customer Reviews Section */}
       {showReviews && (
         <div
-          className="customer-reviews"
           style={{
-            marginTop: 20,
+            marginTop: 40,
             maxWidth: 600,
             marginLeft: "auto",
             marginRight: "auto",
             padding: "0 16px",
           }}
         >
-          <h3 style={{ fontSize: 18, marginBottom: 10 }}>Customer Reviews</h3>
+          {/* Reviews Header with Stats */}
+          <div style={{
+            background: 'linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%)',
+            borderRadius: 16,
+            padding: 24,
+            marginBottom: 24,
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            boxShadow: '0 4px 15px rgba(0, 0, 0, 0.05)',
+          }}>
+            <div>
+              <h3 style={{ 
+                fontSize: 22, 
+                margin: 0,
+                marginBottom: 8,
+                color: '#1f2937',
+                fontWeight: 600,
+              }}>
+                Customer Reviews
+              </h3>
+              <p style={{ 
+                fontSize: 14, 
+                color: '#6b7280',
+                margin: 0,
+              }}>
+                {reviews.length} {reviews.length === 1 ? 'review' : 'reviews'}
+              </p>
+            </div>
+            {reviews.length > 0 && (
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                background: '#fff',
+                padding: '12px 20px',
+                borderRadius: 12,
+                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+              }}>
+                <Star size={24} fill="#fbbf24" stroke="#fbbf24" />
+                <div>
+                  <div style={{ 
+                    fontSize: 24, 
+                    fontWeight: 700,
+                    color: '#1f2937',
+                    lineHeight: 1,
+                  }}>
+                    {averageRating}
+                  </div>
+                  <div style={{ 
+                    fontSize: 11, 
+                    color: '#9ca3af',
+                    marginTop: 2,
+                  }}>
+                    Average
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
 
+          {/* Reviews List */}
           {loading ? (
-            <p>Loading reviews...</p>
+            <div style={{
+              textAlign: 'center',
+              padding: 40,
+              color: '#6b7280',
+            }}>
+              <div style={{
+                width: 40,
+                height: 40,
+                border: '3px solid #e5e7eb',
+                borderTop: '3px solid #667eea',
+                borderRadius: '50%',
+                margin: '0 auto 16px',
+                animation: 'spin 1s linear infinite',
+              }}></div>
+              <p>Loading reviews...</p>
+            </div>
           ) : reviews.length === 0 ? (
-            <p style={{ fontSize: 14, color: "#777" }}>No reviews yet.</p>
+            <div style={{
+              textAlign: 'center',
+              padding: 60,
+              background: '#f9fafb',
+              borderRadius: 16,
+              border: '2px dashed #e5e7eb',
+            }}>
+              <MessageSquare size={48} color="#d1d5db" style={{ marginBottom: 16 }} />
+              <p style={{ 
+                fontSize: 16, 
+                color: '#6b7280',
+                margin: 0,
+                fontWeight: 500,
+              }}>
+                No reviews yet. Be the first to review!
+              </p>
+            </div>
           ) : (
-            reviews.map((review) => (
-              <div
-                key={review._id}
-                style={{
-                  border: "1px solid #ddd",
-                  borderRadius: 6,
-                  padding: 12,
-                  marginBottom: 12,
-                  backgroundColor: "#fafafa",
-                }}
-              >
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              {reviews.map((review) => (
                 <div
+                  key={review._id}
                   style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 4,
-                    marginBottom: 6,
+                    background: '#fff',
+                    border: "1px solid #e5e7eb",
+                    borderRadius: 12,
+                    padding: 20,
+                    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)',
+                    transition: 'all 0.3s ease',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.boxShadow = '0 8px 24px rgba(0, 0, 0, 0.1)';
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.04)';
+                    e.currentTarget.style.transform = 'translateY(0)';
                   }}
                 >
-                  {[...Array(5)].map((_, i) => (
-                    <Star
-                      key={i}
-                      size={16}
-                      fill={i < review.rating ? "#facc15" : "none"}
-                      stroke="#facc15"
-                    />
-                  ))}
-                </div>
-                <p style={{ fontSize: 14 }}>{review.comment}</p>
-
-                {/* Delete button (only show if review belongs to logged-in user) */}
-                {review.isOwner && (
-                  <button
-                    onClick={() => handleDeleteReview(review._id)}
-                    style={{
-                      background: "transparent",
-                      border: "none",
-                      cursor: "pointer",
-                      color: "red",
-                      marginTop: 6,
+                  <div style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    marginBottom: 12,
+                  }}>
+                    <div style={{
                       display: "flex",
                       alignItems: "center",
-                      gap: 4,
-                    }}
-                  >
-                    <Trash2 size={16} /> Delete
-                  </button>
-                )}
-              </div>
-            ))
+                      gap: 6,
+                    }}>
+                      {[...Array(5)].map((_, i) => (
+                        <Star
+                          key={i}
+                          size={18}
+                          fill={i < review.rating ? "#fbbf24" : "none"}
+                          stroke={i < review.rating ? "#fbbf24" : "#d1d5db"}
+                          strokeWidth={2}
+                        />
+                      ))}
+                      <span style={{
+                        fontSize: 14,
+                        fontWeight: 600,
+                        color: '#1f2937',
+                        marginLeft: 4,
+                      }}>
+                        {review.rating}.0
+                      </span>
+                    </div>
+                    {review.isOwner && (
+                      <button
+                        onClick={() => handleDeleteReview(review._id)}
+                        style={{
+                          background: "transparent",
+                          border: "none",
+                          cursor: "pointer",
+                          color: "#ef4444",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 6,
+                          padding: '6px 12px',
+                          borderRadius: 8,
+                          fontSize: 13,
+                          fontWeight: 500,
+                          transition: 'all 0.2s ease',
+                        }}
+                        onMouseEnter={(e) => {
+                          e.target.style.background = '#fee2e2';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.target.style.background = 'transparent';
+                        }}
+                      >
+                        <Trash2 size={14} /> Delete
+                      </button>
+                    )}
+                  </div>
+                  <p style={{ 
+                    fontSize: 15,
+                    lineHeight: 1.6,
+                    color: '#374151',
+                    margin: 0,
+                  }}>
+                    {review.comment}
+                  </p>
+                </div>
+              ))}
+            </div>
           )}
         </div>
       )}
+
+      <style>
+        {`
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+        `}
+      </style>
     </div>
   );
 };
