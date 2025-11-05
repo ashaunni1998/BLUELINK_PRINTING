@@ -954,30 +954,13 @@ const handleApplyCoupon = async () => {
       style={{ marginBottom: 20 }} // spacing before saved address list
     >
       <div className="addr-card-pro" role="group" aria-labelledby="addr-title">
-        <div className="addr-header-pro">
-          <div>
-            <h4 id="addr-title" className="addr-title-pro">Add New Address</h4>
-            <p className="addr-sub-pro">Provide a delivery address for this order</p>
-          </div>
 
-          <div className="country-wrap-pro">
-            <select
-              id="country-select"
-              name="country"
-              value={newAddress.country}
-              onChange={(e) => {
-                const val = e.target.value;
-                setNewAddress({ ...newAddress, country: val });
-                setDeliveryMethod(val === "Australia" ? "australia" : "north");
-              }}
-              className="select-pro"
-              aria-label="Country"
-            >
-              <option value="New Zealand">New Zealand</option>
-              <option value="Australia">Australia</option>
-            </select>
-          </div>
-        </div>
+<div className="addr-header-pro">
+  <div>
+    <h4 id="addr-title" className="addr-title-pro">Add New Address</h4>
+    <p className="addr-sub-pro">Provide a delivery address for this order</p>
+  </div>
+</div>
 
 <div className="grid-pro">
   {/* Full name */}
@@ -1012,22 +995,42 @@ const handleApplyCoupon = async () => {
   />
 </div>
 
+{/* Phone */}
+<div className="field-pro">
+  <label htmlFor="phone" className="label-pro">Phone</label>
+  <input
+    id="phone"
+    name="phone"
+    type="tel"
+    placeholder="022 123 4567"
+    value={newAddress.phone}
+    onChange={(e) => setNewAddress({ ...newAddress, phone: e.target.value })}
+    required
+    className="input-pro"
+    aria-required="true"
+  />
+</div>
 
-  {/* Phone */}
-  <div className="field-pro">
-    <label htmlFor="phone" className="label-pro">Phone</label>
-    <input
-      id="phone"
-      name="phone"
-      type="tel"
-      placeholder="022 123 4567"
-      value={newAddress.phone}
-      onChange={(e) => setNewAddress({ ...newAddress, phone: e.target.value })}
-      required
-      className="input-pro"
-      aria-required="true"
-    />
-  </div>
+{/* Country (right side of phone) */}
+<div className="field-pro">
+  <label htmlFor="country" className="label-pro">Country</label>
+  <select
+    id="country"
+    name="country"
+    value={newAddress.country}
+    onChange={(e) => {
+      const val = e.target.value;
+      setNewAddress({ ...newAddress, country: val });
+      // keep shipping logic consistent with the rest of the page
+      setDeliveryMethod(val === "Australia" ? "international" : "north");
+    }}
+    className="select-pro"
+    aria-label="Country"
+  >
+    <option value="New Zealand">New Zealand</option>
+    <option value="Australia">Australia</option>
+  </select>
+</div>
 
   {/* Address (autocomplete) */}
   <div className="field-pro fullwidth">
@@ -1090,7 +1093,8 @@ const handleApplyCoupon = async () => {
     />
   </div>
 
-  {/* Address type */}
+{/* FUTURE — hidden Address Type */}
+<div style={{ display: "none" }}>
   <div className="field-pro">
     <label htmlFor="addrType" className="label-pro">Address type</label>
     <select
@@ -1107,6 +1111,9 @@ const handleApplyCoupon = async () => {
       <option value="Other">Other</option>
     </select>
   </div>
+</div>
+
+
 </div>
 
         <div className="actions-pro">

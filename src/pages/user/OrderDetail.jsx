@@ -5,13 +5,18 @@ import Footer from "./components/Footer";
 import { API_BASE_URL } from "../../config";
 
 /* Money parsing helpers */
+/* Money parsing helpers */
 function parseMoneyToDollars(value) {
   if (value == null) return 0;
   const n = Number(value);
   if (!isFinite(n)) return 0;
-  if (Number.isInteger(n) && Math.abs(n) >= 1000) return n / 100;
-  return n;
+  
+  // ✅ Convert only if looks like cents (>= 1000)
+  return n >= 1000 ? n / 100 : n;
 }
+
+
+
 function fmtCurrencyNZD(amount) {
   return new Intl.NumberFormat("en-NZ", { style: "currency", currency: "NZD" }).format(amount);
 }
@@ -81,22 +86,30 @@ useEffect(() => {
     if (orderId) fetchOrder();
   }, [orderId]);
 
- const items = (order?.orderItems || []).map(i => {
+const items = (order?.orderItems || []).map(i => {
   const quantity = Number(i.quantity ?? i.qty ?? 1) || 1;
+  
+  // Get raw values WITHOUT parsing yet
   const rawLineTotal = i.lineTotal ?? i.line_total ?? i.total ?? i.unitTotal ?? i.priceForQty ?? i.subtotal ?? i.amount ?? null;
   const rawUnitPrice = i.unitPrice ?? i.pricePerUnit ?? i.price_unit ?? i.price ?? i.basePrice ?? i.product?.price ?? null;
   
-  const parsedLine = parseMoneyToDollars(rawLineTotal);
-  const parsedUnit = parseMoneyToDollars(rawUnitPrice);
+  // Calculate final values - keep as RAW cents values
+  let lineTotal = 0;
+  let unitPrice = 0;
   
-  const lineTotal = (parsedLine && parsedLine > 0) ? parsedLine : (parsedUnit > 0 ? parsedUnit * quantity : 0);
-  const unitPrice = (parsedUnit && parsedUnit > 0) ? parsedUnit : (quantity > 0 && lineTotal > 0 ? lineTotal / quantity : 0);
+  if (rawLineTotal != null && rawLineTotal > 0) {
+    lineTotal = rawLineTotal;
+    unitPrice = quantity > 0 ? rawLineTotal / quantity : 0;
+  } else if (rawUnitPrice != null && rawUnitPrice > 0) {
+    unitPrice = rawUnitPrice;
+    lineTotal = rawUnitPrice * quantity;
+  }
 
   return {
     name: i.name || i.title || i.productName || i.product?.name || "Product",
     quantity,
-    lineTotal: Number(lineTotal.toFixed(2)),
-    unitPrice: Number(unitPrice.toFixed(2)),
+    lineTotal: lineTotal,  // Keep as cents
+    unitPrice: unitPrice,  // Keep as cents
     image: resolveImage(i),
     size: readOption(i, "size"),
     paper: readOption(i, "paper"),
@@ -105,16 +118,22 @@ useEffect(() => {
   };
 });
 
-  const totalDollars = (() => {
-    const serverTotal = parseMoneyToDollars(order?.totalPrice ?? order?.total ?? order?.amount);
-    if (serverTotal > 0) return serverTotal;
-    let sum = 0;
-    for (const it of items) {
-      if (it.lineTotal > 0) sum += it.lineTotal;
-      else if (it.unitPrice > 0) sum += it.unitPrice * it.quantity;
-    }
-    return Math.round((sum + Number.EPSILON) * 100) / 100;
-  })();
+const totalDollars = (() => {
+  // First try to get the server total
+  const rawServerTotal = order?.totalPrice ?? order?.total ?? order?.amount;
+  if (rawServerTotal != null) {
+    return parseMoneyToDollars(rawServerTotal);
+  }
+  
+  // If no server total, sum up the items (they're already in cents)
+  let sumInCents = 0;
+  for (const it of items) {
+    sumInCents += (it.lineTotal || 0);
+  }
+  
+  // Convert the sum from cents to dollars
+  return parseMoneyToDollars(sumInCents);
+})();
 
   if (loading) return <div style={{ padding: 40, textAlign: "center" }}>Loading order…</div>;
 
@@ -398,8 +417,8 @@ useEffect(() => {
 
      
       <Header />
-      <div className="order-detail-wrapper">
         <div className="order-detail-container">
+      <div className="order-detail-wrapper">
           <h1 className="order-title">Order Details</h1>
 
           {/* Order Info */}
@@ -450,17 +469,11 @@ useEffect(() => {
   {it.corner && it.corner !== "N/A" && <div>Corner: {it.corner}</div>}
 </div>
                     </div>
-                    
-                    <div className="product-pricing">
-                      <div className="product-line-total">
-                        {fmtCurrencyNZD(it.lineTotal || (it.unitPrice * it.quantity))}
-                      </div>
-                      {it.unitPrice ? (
-                        <div className="product-unit-price">
-                          {fmtCurrencyNZD(it.unitPrice)} / unit
-                        </div>
-                      ) : null}
-                    </div>
+ <div className="product-pricing">
+  <div className="product-line-total">
+    {fmtCurrencyNZD(parseMoneyToDollars(it.lineTotal))}
+  </div>
+</div>
                   </div>
                 ))
               )}

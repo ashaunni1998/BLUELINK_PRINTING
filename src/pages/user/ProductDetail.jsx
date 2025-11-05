@@ -1,11 +1,12 @@
-import React, { useEffect, useState, useRef, useCallback } from "react";
+import React, { useEffect, useState, useRef, useCallback, useMemo } from "react";
+
 import Swal from 'sweetalert2';
+import Cropper from "react-easy-crop";
 import { useParams, useNavigate } from "react-router-dom";
 import { Star } from 'lucide-react';
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import Review from "./Review";
-import Cropper from "react-easy-crop"; // make sure you installed: npm install react-easy-crop
 // import CropImage from "./CropImage";
 // import CustomRequirement from "./CustomerRequirement";
 import { API_BASE_URL } from "../../config";
@@ -17,11 +18,10 @@ export default function ProductDetail() {
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [croppingImage, setCroppingImage] = useState(null); // dataURL shown in cropper
-const [crop, setCrop] = useState({ x: 0, y: 0 });
-const [zoom, setZoom] = useState(1);
-const [originalImage, setOriginalImage] = useState(null);
-const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
+const cropBoxRef = useRef(null);
+const [minZoom, setMinZoom] = useState(1);
+
+
 const hiddenCropFileRef = useRef(null); // optional hidden file input
   // UI state
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -40,22 +40,12 @@ const [isUploading, setIsUploading] = useState(false);
 const [isPaperDropdownOpen, setIsPaperDropdownOpen] = useState(false);
 const [isFinishDropdownOpen, setIsFinishDropdownOpen] = useState(false);
 
-const [isCropOpen, setIsCropOpen] = useState(false);
-const [croppedImage, setCroppedImage] = useState(null);
-const [selectedFile, setSelectedFile] = useState(null);
 const [orderId, setOrderId] = useState(null);
 const [selectedOption, setSelectedOption] = useState(null);
 
-const [frontFile, setFrontFile] = useState(null);
-const [backFile, setBackFile] = useState(null);
-const [frontPreview, setFrontPreview] = useState(null);
-const [backPreview, setBackPreview] = useState(null);
 
-const [croppingSide, setCroppingSide] = useState(null); // "front" | "back"
-const [croppedImages, setCroppedImages] = useState({ front: null, back: null });
 
   const [isSizeDropdownOpen, setIsSizeDropdownOpen] = useState(false);
-
 
 
 // Quantity selector
@@ -76,6 +66,19 @@ const [showContactModal, setShowContactModal] = useState(false);
 const [showScratchModal, setShowScratchModal] = useState(false);
 const [showGuideline, setShowGuideline] = useState(false);
 const [uploadedImage, setUploadedImage] = useState(null);
+// 📌 Cropper States
+const [showCropper, setShowCropper] = useState(false);
+const [crop, setCrop] = useState({ x: 0, y: 0 });
+const [zoom, setZoom] = useState(1);
+const [rotation, setRotation] = useState(0);
+const [flipH, setFlipH] = useState(false);
+const [flipV, setFlipV] = useState(false);
+const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
+const [tempImage, setTempImage] = useState(null);
+
+// state (near your other cropper states)
+const [originalImage, setOriginalImage] = useState(null);
+
 const [customText, setCustomText] = useState("");
 const [submittedText, setSubmittedText] = useState(null);
 const [uploadedFile, setUploadedFile] = useState(null);
@@ -84,6 +87,235 @@ const IMGBB_API_KEY = "0dc969770aaafeeba77f84c1534e4fad"; // your imgbb API key
 // const FRAME_URL = "https://i.ibb.co/3y63T95k/imageedit-1-7441844514.png";   // <- REPLACE with direct image URL from ibb (right-click image â†' Copy image address)
 const [uploadedUrl, setUploadedUrl] = useState(null);     // stores the final uploaded imgbb URL
 
+// === FRAME CONFIG ===
+const FRAME_CFG = {
+  // Bamboo frames
+  rectangular: {
+    default: { aspect: 3 / 4, inset: { top: 0.00, right: 0.00, bottom: 0.25, left: 0.00 }, fit: { startPad: 0.92, minPad: 0.90 } }
+  },
+  round:       {
+    default: { aspect: 1, inset: { top: 0.10, right: 0.10, bottom: 0.10, left: 0.10 }, fit: { startPad: 1, minPad: 1 } }
+  },
+  heart:       {
+    default: { aspect: 1, inset: { top: 0.08, right: 0.08, bottom: 0.12, left: 0.08 }, fit: { startPad: 1, minPad: 1 } }
+  },
+ rhomboid:    {
+  default: { aspect: 4/3, inset: { top: 0.03, right: 0.06, bottom: 0.03, left: 0.06 }, fit: { startPad: 1, minPad: 1 } }
+},
+
+  // Stone/door
+  rectangularstone: {
+    default: { aspect: 16 / 9, inset: { top: 0.06, right: 0.06, bottom: 0.06, left: 0.06 }, fit: { startPad: 0.94, minPad: 0.92 } }
+  },
+  heartstone: {
+  default: {
+    aspect: 1,
+    inset: { top: 0.12, right: 0.03, bottom: 0.10, left: 0.03 },
+    fit: { startPad: 1, minPad: 1 }
+  }
+},
+  square: {
+    default: { aspect: 1, inset: { top: 0.06, right: 0.06, bottom: 0.06, left: 0.06 }, fit: { startPad: 1, minPad: 1 } }
+  },
+  door: {
+    default: { aspect: 3 / 4, inset: { top: 0.07, right: 0.07, bottom: 0.10, left: 0.07 }, fit: { startPad: 0.95, minPad: 0.95 } }
+  },
+
+  // Flat panels
+  aluminum: {
+    default: { aspect: 4 / 3, inset: { top: 0.06, right: 0.06, bottom: 0.12, left: 0.06 }, fit: { startPad: 0.96, minPad: 0.94 } }
+  },
+  glass: {
+    default: { aspect: 3 / 4, inset: { top: 0.08, right: 0.08, bottom: 0.08, left: 0.08 }, fit: { startPad: 0.98, minPad: 0.96 } }
+  },
+
+  // Button Badges
+  roundbadge:  { default:{ aspect:1, inset:{top:.10,right:.10,bottom:.10,left:.10}, fit:{startPad:1,minPad:1} } },
+  squarebadge: { default:{ aspect:1, inset:{top:.10,right:.10,bottom:.10,left:.10}, fit:{startPad:1,minPad:1} } },
+  heartbadge:  { default:{ aspect:1, inset:{top:.22,right:.10,bottom:.16,left:.10}, fit:{startPad:1,minPad:1} } },
+  tshirtbadge: { default:{ aspect:1, inset:{top:.10,right:.10,bottom:.10,left:.10}, fit:{startPad:1,minPad:1} } },
+  starbadge:   { default:{ aspect:1, inset:{top:.12,right:.12,bottom:.12,left:.12}, fit:{startPad:1,minPad:1} } },
+  catbadge:    { default:{ aspect:1, inset:{top:.12,right:.12,bottom:.12,left:.12}, fit:{startPad:1,minPad:1} } },
+};
+
+const DEFAULT_CFG = { aspect: 1, inset: { top: .08, right: .08, bottom: .08, left: .08 }, fit: { startPad: 1, minPad: 1 } };
+
+// ==== SMART AUTO FIT HELPERS ====
+// Detect a face using the Shape Detection API if available (Chrome/Edge).
+// Fallback: return null (we'll just center/contain).
+// ==== SMART AUTO FIT HELPERS ====
+// Detect a face using Shape Detection API (optional); fallback: null
+async function detectSubjectRectFromSrc(src) {
+  if (!('FaceDetector' in window)) return null;
+  try {
+    const faceDetector = new window.FaceDetector({ fastMode: true, maxDetectedFaces: 1 });
+    const img = await new Promise((res, rej) => {
+      const i = new Image();
+      i.crossOrigin = "anonymous";
+      i.onload = () => res(i);
+      i.onerror = rej;
+      i.src = src;
+    });
+    const canvas = document.createElement('canvas');
+    canvas.width = img.naturalWidth || img.width;
+    canvas.height = img.naturalHeight || img.height;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0);
+    const bitmap = await createImageBitmap(canvas);
+    const faces = await faceDetector.detect(bitmap);
+    if (faces && faces[0]?.boundingBox) {
+      const bb = faces[0].boundingBox;
+      return { x: bb.x, y: bb.y, width: bb.width, height: bb.height, imgW: canvas.width, imgH: canvas.height };
+    }
+  } catch {}
+  return null;
+}
+// Overfill multiplier to guarantee shaped frames (diamond/heart/irregular) have zero white edges.
+function getCoverOverfill(frameKey = "") {
+  const k = String(frameKey).toLowerCase();
+  if (k.includes("rhomboid")) return 1.45;     // diamond corners
+  if (k.includes("heart")) return 1.32;        // heart top dent + bottom point
+  if (k.includes("star")) return 1.22;         // spikes
+  if (k.includes("cat") || k.includes("tshirt")) return 1.15; // irregular badge shapes
+  if (k.includes("round")) return 1.08;        // slight cushion to avoid ring edges
+  return 1.00;                                 // rectangular/door/stone/square default
+}
+function getShapeBiasUpPercent(frameKey = "") {
+  const k = String(frameKey).toLowerCase();
+  if (k.includes("rhomboid")) return 4; // 4% upward bump for diamond tip
+  return 0;
+}
+
+// Face/body-aware auto-fit with overfill (for shapes) + vertical bias (for rhomboid)
+function computeAutoFit({ box, imgW, imgH, aspect, mode, subject, overfill = 1, biasUpPct = 0 }) {
+  const coverZoom   = Math.max(box.width / imgW, box.height / imgH);
+  const containZoom = Math.min(box.width / imgW, box.height / imgH);
+
+  let zoom;
+  if (mode === "contain") {
+    // show more of the body
+    zoom = Math.max(1, containZoom * 0.82);
+  } else {
+    // fill the shape fully, with overfill for corners
+    zoom = Math.max(1, coverZoom * overfill);
+  }
+
+  // crop window in image px at this zoom
+  const cropW_imgPx = box.width / zoom;
+  const cropH_imgPx = box.height / zoom;
+
+  // enforce requested aspect
+  let targetW = cropW_imgPx;
+  let targetH = targetW / aspect;
+  if (targetH > cropH_imgPx) {
+    targetH = cropH_imgPx;
+    targetW = targetH * aspect;
+  }
+
+  // center defaults
+  let cx = imgW / 2, cy = imgH / 2;
+
+  if (subject) {
+    const faceCx = subject.x + subject.width / 2;
+    const faceCy = subject.y + subject.height / 2;
+    if (mode === "contain") {
+      const biasDown = subject.height * 1.2;
+      cy = Math.min(Math.max(faceCy + biasDown, targetH / 2), imgH - targetH / 2);
+      cx = Math.min(Math.max(faceCx,          targetW / 2),   imgW - targetW / 2);
+    } else {
+      cy = Math.min(Math.max(faceCy, targetH / 2), imgH - targetH / 2);
+      cx = Math.min(Math.max(faceCx, targetW / 2), imgW - targetW / 2);
+    }
+  }
+
+  // convert to react-easy-crop percentage shift
+  const offsetX_px = (imgW / 2 - cx);
+  const offsetY_px = (imgH / 2 - cy);
+  const renderedW  = imgW * zoom;
+  const renderedH  = imgH * zoom;
+
+  const crop = {
+    x: (offsetX_px / renderedW) * 100,
+    y: (offsetY_px / renderedH) * 100
+  };
+
+  // small upward nudge (negative y moves image up)
+  crop.y -= biasUpPct;
+
+  return { zoom, crop };
+}
+
+
+
+
+/**
+ * Compute crop center and zoom for react-easy-crop so the subject is centered.
+ * - box: DOMRect of crop box
+ * - imgW,imgH: natural image size
+ * - aspect: frame target aspect ratio
+ * - mode: "contain" for rectangular-like (keep full subject), "cover" for round/heart/badge
+ * - subject: {x,y,width,height,imgW,imgH} from face detection (optional)
+ * - minZoom: lower bound to avoid gaps for "cover" frames
+ */
+function computeAutoFit({ box, imgW, imgH, aspect, mode, subject, minZoom }) {
+  // Base zoom that exactly covers the crop area without gaps
+  const coverZoom = Math.max(box.width / imgW, box.height / imgH);
+  let zoom = Math.max(coverZoom, minZoom || 1);
+
+  // If rectangular-like and we want to "contain", we can zoom OUT slightly to preserve full body
+  if (mode === "contain") {
+    const containZoom = Math.min(box.width / imgW, box.height / imgH);
+    // give a little extra margin so whole body fits (0.9 = 10% extra room)
+    zoom = Math.max(1, containZoom * 0.9);
+  }
+
+  // Determine desired crop (in image pixels) that the crop box will display at this zoom:
+  const cropW_imgPx = box.width / zoom;
+  const cropH_imgPx = box.height / zoom;
+
+  // Ensure target aspect (react-easy-crop uses aspect by letterboxing inside box;
+  // we keep the same idea but compute center wisely)
+  let targetW = cropW_imgPx;
+  let targetH = targetW / aspect;
+  if (targetH > cropH_imgPx) {
+    targetH = cropH_imgPx;
+    targetW = targetH * aspect;
+  }
+
+  // Center window defaults to middle of image
+  let cx = imgW / 2;
+  let cy = imgH / 2;
+
+  // If we have a subject, center on its center (but keep inside image)
+  if (subject) {
+    const sx = subject.x + subject.width / 2;
+    const sy = subject.y + subject.height / 2;
+    cx = Math.min(Math.max(sx, targetW / 2), imgW - targetW / 2);
+    cy = Math.min(Math.max(sy, targetH / 2), imgH - targetH / 2);
+  }
+
+  // react-easy-crop's "crop" is a translation in percentages of the image relative to the box center.
+  // Compute required offset so that the box is centered at (cx, cy) of the image.
+  // We convert pixel center to percentage shift: 0 means centered; +X moves image rightward (showing more left side).
+  const offsetX_px = (imgW / 2 - cx);
+  const offsetY_px = (imgH / 2 - cy);
+
+  // scale offset by zoom because crop is in percentage relative to rendered image size
+  const renderedW = imgW * zoom;
+  const renderedH = imgH * zoom;
+
+  const cropX = (offsetX_px / renderedW) * 100; // percentage shift
+  const cropY = (offsetY_px / renderedH) * 100;
+
+  return { zoom, crop: { x: cropX, y: cropY } };
+}
+
+
+
+function getFrameCfg(key, size) {
+  const f = FRAME_CFG[key] || {};
+  return f[size] || f.default || DEFAULT_CFG;
+}
 
 // Extract product type from category
 const productType = product?.categories?.[0]?.name?.toLowerCase() || 
@@ -163,7 +395,9 @@ const detectFrameFromProductName = (productName = "") => {
 // Get detected frame type
 const detectedFrame = detectFrameFromProductName(product?.name);
 const [selectedFrame, setSelectedFrame] = useState(""); 
-
+const sizeKey = selectedSize?.label || selectedSize || "default";
+const cfg = getFrameCfg(selectedFrame, sizeKey);
+const wantsContain = (cfg.fit?.minPad ?? 1) < 1; 
 // Auto-set frame when product loads
 useEffect(() => {
   if (detectedFrame && frameOverlays[detectedFrame]) {
@@ -171,8 +405,105 @@ useEffect(() => {
   }
 }, [detectedFrame]);
 
-const FRAME_URL = frameOverlays[selectedFrame];
 
+// ✅ NEW: Clear images when frame changes
+useEffect(() => {
+  if (selectedFrame) {
+    // Clear all image-related states
+    setUploadedImage(null);
+    setPreparedPreview(null);
+    setTempImage(null);
+    setOriginalImage(null);
+    setCroppedAreaPixels(null);
+    setCustomText("");
+    setUploadedUrl(null);
+    
+    // Reset cropper states
+    setCrop({ x: 0, y: 0 });
+    setZoom(1);
+    setRotation(0);
+    setFlipH(false);
+    setFlipV(false);
+    setShowCropper(false);
+    
+    // Clear file input if exists
+    const fileInput = document.getElementById('upload-photo');
+    if (fileInput) fileInput.value = '';
+    
+    const badgeInput = document.getElementById('upload-badge-photo');
+    if (badgeInput) badgeInput.value = '';
+  }
+}, [selectedFrame]);
+
+
+
+const FRAME_URL = frameOverlays[selectedFrame];
+// ---- dynamic crop size per frame (only affects the crop box height) ----
+const cropHeightMap = {
+  heart: 260,
+  heartstone: 260,
+  round: 280,
+  roundbadge: 280,
+  square: 340,
+  squarebadge: 340,
+  rectangular: 420,
+  rectangularstone: 420,
+  rhomboid: 240,
+  door: 300,
+  tshirtbadge: 280,
+  heartbadge: 260,
+  starbadge: 300,
+  catbadge: 300,
+};
+
+const cropSize = {
+  width: 500,
+  height: cropHeightMap[selectedFrame] ?? 260,
+};
+// ---- per-frame crop settings (aspect + safe area insets) ----
+const frameCropConfig = {
+  rectangular: { aspect: 3 / 4, inset: { top: 0.02, right: 0.06, bottom: 0.00, left: 0.06 } },
+  rhomboid:         { aspect: 4 / 3,  inset: { top:.08, right:.08, bottom:.08, left:.08 } },
+  square:           { aspect: 1,      inset: { top:.06, right:.06, bottom:.06, left:.06 } },
+  round:            { aspect: 1,      inset: { top:.08, right:.08, bottom:.08, left:.08 } },
+  heart:            { aspect: 1.57,   inset: { top:.18, right:.08, bottom:.18, left:.08 } },
+  heartstone:       { aspect: 1,      inset: { top:.20, right:.08, bottom:.16, left:.08 } },
+  rectangularstone: { aspect: 16 / 9, inset: { top:.06, right:.06, bottom:.06, left:.06 } },
+  door:             { aspect: 3 / 4,  inset: { top:.07, right:.07, bottom:.10, left:.07 } },
+
+  // badges
+  tshirtbadge:      { aspect: 1,      inset: { top:.10, right:.10, bottom:.10, left:.10 } },
+  heartbadge:       { aspect: 1,      inset: { top:.22, right:.10, bottom:.16, left:.10 } },
+  squarebadge:      { aspect: 1,      inset: { top:.10, right:.10, bottom:.10, left:.10 } },
+  starbadge:        { aspect: 1,      inset: { top:.12, right:.12, bottom:.12, left:.12 } },
+  catbadge:         { aspect: 1,      inset: { top:.12, right:.12, bottom:.12, left:.12 } },
+  roundbadge:       { aspect: 1,      inset: { top:.10, right:.10, bottom:.10, left:.10 } },
+};
+
+const FRAME_PREVIEW_INSET = {
+  // bamboo
+  rectangular:      { top: "0%",  right: "0%",  bottom: "25%", left: "0%"  },
+  round:            { top: "10%", right: "10%", bottom: "10%", left: "10%" },
+  heart:            { top: "8%",  right: "8%",  bottom: "12%", left: "8%"  },
+  rhomboid:         { top: "0%",  right: "6%",  bottom: "0%",  left: "6%"  }, // ← tightened
+
+  // stone/door
+  rectangularstone: { top: "6%",  right: "6%",  bottom: "6%",  left: "6%"  },
+  heartstone:       { top: "20%", right: "8%",  bottom: "16%", left: "8%"  },
+  square:           { top: "6%",  right: "6%",  bottom: "6%",  left: "6%"  },
+  door:             { top: "7%",  right: "7%",  bottom: "10%", left: "7%"  },
+
+  // flat panels
+  aluminum:         { top: "6%",  right: "6%",  bottom: "14%", left: "6%"  },
+  glass:            { top: "8%",  right: "8%",  bottom: "8%",  left: "8%"  },
+};
+// helper to use in preview
+const previewInset = FRAME_PREVIEW_INSET[selectedFrame] ?? { top:"8%", right:"8%", bottom:"8%", left:"8%" };
+const FIT_CONTAIN_FRAMES = new Set(["rectangular", "rectangularstone", "door"]);
+
+// current frame’s crop config (used by Cropper + canvas compose)
+const currentCropCfg =
+  frameCropConfig[selectedFrame] || { aspect: 1, inset: { top:.08, right:.08, bottom:.08, left:.08 } };
 // const [selectedFrame, setSelectedFrame] = useState(""); // default
 // const FRAME_URL = frameOverlays[selectedFrame];
 // ✅ only run .find if product and priceTiers exist
@@ -307,6 +638,7 @@ const isMobile = useMediaQuery("(max-width: 768px)");
     setCurrentIndex(prev => (prev === (product?.images?.length || 1) - 1 ? 0 : prev + 1));
   };
 
+
  // ---------- REPLACE handleAddToCart WITH THIS COMPLETE BLOCK ----------
 const handleAddToCart = async () => {
   try {
@@ -319,7 +651,7 @@ const handleAddToCart = async () => {
   return;
 }
     // Determine quantity: prefer selectedTier.qty, fall back to any selectedQty or 1
-    const qty = Number(selectedTier?.qty || selectedQty || 1) || 1;
+    const qty = Number(selectedTier?.qty || 1) || 1;
 
     // Normalize option values (send primitives to backend)
     const normalizeOption = (opt) => {
@@ -347,7 +679,6 @@ const handleAddToCart = async () => {
       designType: selectedDesignType ?? null,
       customText: customText ?? null,
       preparedPreview: preparedPreview ?? null,
-      croppedImages: croppedImages ?? null,
     };
 
     // Build payload to send to server addToCart endpoint
@@ -362,7 +693,6 @@ const handleAddToCart = async () => {
       designType: designTypeVal,
       customText: customText || null,
       preparedPreview: preparedPreview || null, // base64 or uploaded URL if available
-      croppedImages: croppedImages || null,     // { front: base64, back: base64 } if present
       raw: rawOptions,
     };
 
@@ -443,180 +773,13 @@ Swal.fire({
 
 
 
-const handleFileChange = (e, side) => {
-  const file = e.target.files?.[0];
-  if (!file) return;
-if (!file.type.startsWith("image/")) {
-  Swal.fire({
-    icon: 'error',
-    title: 'Invalid File',
-    text: 'Please upload an image file.'
-  });
-  return;
-}
-
-  const reader = new FileReader();
-  reader.onloadend = () => {
-    const dataUrl = reader.result;
-    setOriginalImage(dataUrl);   // âœ… save original
-    setCroppingImage(dataUrl);   // show in cropper
-    setCrop({ x: 0, y: 0 });
-    setZoom(1);
-    setCroppedAreaPixels(null);
-    setCroppingSide(side);
-    setIsCropOpen(true);
-  };
-  reader.readAsDataURL(file);
-  e.target.value = "";
-};
-
-const getCroppedImg = (imageSrc, cropPixels) => {
-  return new Promise((resolve, reject) => {
-    const image = new Image();
-    image.crossOrigin = "anonymous";
-    image.src = imageSrc;
-    image.onload = () => {
-      const canvas = document.createElement("canvas");
-      canvas.width = Math.max(1, Math.round(cropPixels.width));
-      canvas.height = Math.max(1, Math.round(cropPixels.height));
-      const ctx = canvas.getContext("2d");
-      ctx.drawImage(
-        image,
-        Math.round(cropPixels.x),
-        Math.round(cropPixels.y),
-        Math.round(cropPixels.width),
-        Math.round(cropPixels.height),
-        0,
-        0,
-        Math.round(cropPixels.width),
-        Math.round(cropPixels.height)
-      );
-      resolve(canvas.toDataURL("image/jpeg", 0.92));
-    };
-    image.onerror = (err) => reject(err);
-  });
-};
 
 
 
-const openCropWithFile = (file, side = "uploaded") => {
-  if (!file) return;
-  if (!file.type?.startsWith?.("image/")) {
-  Swal.fire({
-    icon: 'error',
-    title: 'Invalid File',
-    text: 'Only image files allowed'
-  });
-  return;
-}
-
-  const reader = new FileReader();
-  reader.onloadend = () => {
-    const dataUrl = reader.result;
-    setOriginalImage(dataUrl);     // store original so we can revert
-    setCroppingImage(dataUrl);     // show in cropper
-    setCrop({ x: 0, y: 0 });
-    setZoom(1);
-    setCroppedAreaPixels(null);
-    setCroppingSide(side);
-    setIsCropOpen(true);
-  };
-  reader.readAsDataURL(file);
-};
-
-// react-easy-crop callback
-const onCropComplete = useCallback((_, croppedPixels) => {
-  setCroppedAreaPixels(croppedPixels);
-}, []);
-const handleRevertToOriginal = () => {
-  if (!originalImage) return;
-  setCroppingImage(originalImage);
-  setCrop({ x: 0, y: 0 });
-  setZoom(1);
-  setCroppedAreaPixels(null);
-  // do NOT auto-save â€" user must press Save Crop
-};
-// Save crop: produce base64 and store into frontPreview/backPreview (depending on croppingSide)
-const handleSaveCrop = async () => {
-  try {
-   if (!croppingImage || !croppedAreaPixels) {
-  Swal.fire({
-    icon: 'warning',
-    title: 'Incomplete Crop',
-    text: 'Please adjust and then press Save Crop.'
-  });
-  return;
-}
 
 
 
-    const croppedBase64 = await getCroppedImg(croppingImage, croppedAreaPixels);
 
-    // apply cropped result depending on which side/context
-    if (croppingSide === "front") {
-      setFrontPreview?.(croppedBase64);            // optional - keep if you have front preview state
-      setCroppedImages?.((p) => ({ ...(p || {}), front: croppedBase64 }));
-    } else if (croppingSide === "back") {
-      setBackPreview?.(croppedBase64);
-      setCroppedImages?.((p) => ({ ...(p || {}), back: croppedBase64 }));
-    } else {
-      // default: uploaded / prepared preview
-      setPreparedPreview?.(croppedBase64);
-      setUploadedImage?.(croppedBase64);
-    }
-
-    // close and reset crop UI
-    setIsCropOpen(false);
-    setCroppingImage(null);
-    setCrop({ x: 0, y: 0 });
-    setZoom(1);
-    setCroppedAreaPixels(null);
-    setCroppingSide(null);
-  } catch (err) {
-    console.error("Crop save error:", err);
-Swal.fire({
-  icon: 'error',
-  title: 'Crop Error',
-  text: 'Error saving crop – check console.'
-});
-  }
-};
-// const handleCropComplete = (croppedDataUrl) => {
-//   if (croppingSide === "front") {
-//     setFrontPreview(croppedDataUrl);
-//   } else if (croppingSide === "back") {
-//     setBackPreview(croppedDataUrl);
-//   }
-//   setIsCropOpen(false);
-//   setCroppingSide(null);
-// };
-
-
-const handleSubmit = () => {
-if (!croppedImage) {
-  Swal.fire({
-    icon: 'warning',
-    title: 'No Image',
-    text: 'Please upload and crop an image before submitting.'
-  });
-  return;
-}
-
-  // For now just log/alert
-  console.log("Submitted cropped image:", croppedImage);
-  Swal.fire({
-  icon: 'success',
-  title: 'Success!',
-  text: 'Image submitted successfully!',
-  showConfirmButton: false,
-  timer: 1500
-});
-
-  // ðŸš€ Later, replace with API upload
-  // const formData = new FormData();
-  // formData.append("image", croppedImage.file);
-  // await fetch("/api/upload", { method: "POST", body: formData });
-};
 
 
 const handleScratchSubmit = async (e) => {
@@ -662,151 +825,92 @@ const handleScratchSubmit = async (e) => {
   }
 };
 
-const handleCropComplete = (cropped, side) => {
-  setCroppedImages((prev) => ({ ...prev, [side]: cropped }));
-  setIsCropOpen(false);
-};
 
-const handleUploadSubmit = () => {
-  if (!frontPreview || !backPreview) {
-    Swal.fire({
-    icon: 'warning',
-    title: 'Missing Images',
-    text: 'Please upload both front and back images!'
+
+
+
+const preparePreviewLocal = async (src) => {
+  if (!selectedFrame || !FRAME_URL || !src) return;
+
+  const frameImg = await new Promise((res, rej) => {
+    const i = new Image();
+    i.crossOrigin = "anonymous";
+    i.onload = () => res(i);
+    i.onerror = rej;
+    i.src = FRAME_URL;
   });
-    return;
+
+  const photoImg = await new Promise((res, rej) => {
+    const i = new Image();
+    i.crossOrigin = "anonymous";
+    i.onload = () => res(i);
+    i.onerror = rej;
+    i.src = src;
+  });
+
+  const W = 1000;
+  const H = Math.round((frameImg.height / frameImg.width) * W);
+  const canvas = document.createElement("canvas");
+  canvas.width = W;
+  canvas.height = H;
+  const ctx = canvas.getContext("2d");
+
+  const sizeLabel = selectedSize?.label || selectedSize || "default";
+  const cfg = getFrameCfg(selectedFrame, sizeLabel);
+
+  const inset = cfg.inset ?? { top:.08, right:.08, bottom:.08, left:.08 };
+  const minX = Math.round(W * inset.left);
+  const minY = Math.round(H * inset.top);
+  const innerW = Math.round(W * (1 - inset.left - inset.right));
+  const innerH = Math.round(H * (1 - inset.top  - inset.bottom));
+
+  const wantsContain = (cfg.fit?.minPad ?? 1) < 1;
+  const coverScale   = Math.max(innerW / photoImg.width, innerH / photoImg.height);
+  const containScale = Math.min(innerW / photoImg.width, innerH / photoImg.height);
+
+  /* ✅ keep your original “fit vs fill” — no rhomboid zoom-in here */
+  const scale = wantsContain
+    ? Math.max(1e-6, containScale * 0.82)
+    : coverScale;
+
+  const drawW  = Math.round(photoImg.width  * scale);
+  const drawH  = Math.round(photoImg.height * scale);
+  const dx = Math.round(minX + (innerW - drawW) / 2);
+  const dy = Math.round(minY + (innerH - drawH) / 2);
+
+  /* ✅ Black diamond underlay ONLY for rhomboid to kill white apex */
+  if (String(selectedFrame).toLowerCase().includes("rhomboid")) {
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(W * 0.50, H * 0.02); // top
+    ctx.lineTo(W * 0.98, H * 0.50); // right
+    ctx.lineTo(W * 0.50, H * 0.98); // bottom
+    ctx.lineTo(W * 0.02, H * 0.50); // left
+    ctx.closePath();
+    ctx.fillStyle = "#000";
+    ctx.fill();
+    ctx.restore();
   }
-  Swal.fire({
-  icon: 'success',
-  title: 'Success!',
-  text: 'Design submitted successfully!',
-  showConfirmButton: false,
-  timer: 1500
-});
+
+  ctx.drawImage(photoImg, dx, dy, drawW, drawH);
+  ctx.drawImage(frameImg, 0, 0, W, H);
+
+  setPreparedPreview(canvas.toDataURL("image/png", 0.92));
 };
 
 
-// prepare local preview by compositing uploadedImage + frame (no upload)
-const preparePreviewLocal = async (uploadedUrl) => {
-  try {
-    if (!uploadedUrl) return;
-
-    const outputW = 1200;
-    const outputH = 1200;
-    const canvas = document.createElement("canvas");
-    canvas.width = outputW;
-    canvas.height = outputH;
-    const ctx = canvas.getContext("2d");
-
-    // white background
-    ctx.fillStyle = "#ffffff";
-    ctx.fillRect(0, 0, outputW, outputH);
-
-    const loadImg = (src, cross = false) =>
-      new Promise((resolve, reject) => {
-        const i = new Image();
-        if (cross) i.crossOrigin = "anonymous";
-        i.onload = () => resolve(i);
-        i.onerror = (e) => reject(new Error("Failed to load image: " + src));
-        i.src = src;
-      });
-
-    // Load frame FIRST to get dimensions
-    const frameImg = await loadImg(FRAME_URL, true);
-    
-    // Create offscreen canvas for frame processing
-    const fCanvas = document.createElement("canvas");
-    fCanvas.width = outputW;
-    fCanvas.height = outputH;
-    const fCtx = fCanvas.getContext("2d");
-    fCtx.drawImage(frameImg, 0, 0, outputW, outputH);
-
-    // Make near-white pixels transparent and detect frame boundaries
-    let minX = outputW, minY = outputH, maxX = 0, maxY = 0;
-    try {
-      const imgData = fCtx.getImageData(0, 0, outputW, outputH);
-      const data = imgData.data;
-      const threshold = 245;
-      
-      for (let y = 0; y < outputH; y++) {
-        for (let x = 0; x < outputW; x++) {
-          const i = (y * outputW + x) * 4;
-          const r = data[i], g = data[i+1], b = data[i+2];
-          
-          if (r >= threshold && g >= threshold && b >= threshold) {
-            data[i+3] = 0; // make transparent
-          } else {
-            // Track frame boundaries
-            if (x < minX) minX = x;
-            if (x > maxX) maxX = x;
-            if (y < minY) minY = y;
-            if (y > maxY) maxY = y;
-          }
-        }
-      }
-      fCtx.putImageData(imgData, 0, 0);
-    } catch (err) {
-      console.warn("Could not process frame pixels:", err);
-      // Fallback: use 80% of canvas size as safe area
-      const margin = outputW * 0.1;
-      minX = margin;
-      minY = margin;
-      maxX = outputW - margin;
-      maxY = outputH - margin;
-    }
-
-    // Calculate safe drawing area (inside frame)
-    const frameWidth = maxX - minX;
-    const frameHeight = maxY - minY;
-    const frameCenterX = minX + frameWidth / 2;
-    const frameCenterY = minY + frameHeight / 2;
-
-    // Load and draw photo INSIDE frame boundaries
-    const photo = await loadImg(uploadedUrl, false);
-
-    // Scale photo to fit inside frame (with small margin)
-    const margin = 20; // pixels inside frame
-    const maxPhotoW = frameWidth - (margin * 2);
-    const maxPhotoH = frameHeight - (margin * 2);
-    
-    const scale = Math.min(maxPhotoW / photo.width, maxPhotoH / photo.height);
-    const drawW = photo.width * scale;
-    const drawH = photo.height * scale;
-    
-    // Center photo inside frame
-    const dx = frameCenterX - (drawW / 2);
-    const dy = frameCenterY - (drawH / 2);
-    
-    ctx.drawImage(photo, dx, dy, drawW, drawH);
-
-    // Draw processed frame on top
-    ctx.drawImage(fCanvas, 0, 0, outputW, outputH);
-
-    const finalDataUrl = canvas.toDataURL("image/png");
-    setPreparedPreview(finalDataUrl);
-  } catch (err) {
-    console.error("preparePreviewLocal error:", err);
-    setPreparedPreview(null);
-  }
-};
-
-const handlePersonalisedUpload = (e) => {
+const handleFileChange = (e) => {
   const file = e.target.files?.[0];
   if (!file) return;
 
-  // validations...
-  // keep uploadedFile
-  setUploadedFile(file);
+  const url = URL.createObjectURL(file);
+  setOriginalImage(url);
+  setTempImage(url);
+  setPreparedPreview(null);
+  setShowCropper(true);
 
-  // create object URL and show raw preview
-  const objectUrl = URL.createObjectURL(file);
-  setUploadedImage(objectUrl);
-
-  // build prepared preview immediately (composite) â€" this will set preparedPreview
-  // (do NOT await here to avoid blocking UI; but can await if desired)
-  preparePreviewLocal(objectUrl);
-
-  // ... optionally read base64 if you need it later
+  // ✅ allow selecting the same file again without reload
+  if (e.target) e.target.value = "";
 };
 
 
@@ -827,10 +931,16 @@ useEffect(() => {
 
 }, [uploadedImage]);
 
+
+
+
 const handlePrepareAndUpload = async () => {
   if (isUploading) return;
+  const sourceImage = preparedPreview ?? uploadedImage;
+
+
   try {
-    if (!uploadedImage) {
+    if (!sourceImage) {
       Swal.fire({
         icon: 'warning',
         title: 'No Image',
@@ -866,9 +976,9 @@ const handlePrepareAndUpload = async () => {
 
     const photo = await new Promise((resolve, reject) => {
       const img = new Image();
-      if (!uploadedImage.startsWith('blob:')) {
-        img.crossOrigin = "anonymous";
-      }
+      if (sourceImage && !sourceImage.startsWith?.('blob:') && !sourceImage.startsWith?.('data:')) {
+  img.crossOrigin = "anonymous";
+}
       img.onload = () => {
         console.log("✅ Photo loaded successfully");
         resolve(img);
@@ -877,7 +987,8 @@ const handlePrepareAndUpload = async () => {
         console.error("❌ Failed to load uploaded image:", err);
         reject(new Error("Failed to load uploaded image"));
       };
-      img.src = uploadedImage;
+      img.src = sourceImage;
+
     });
 
     if (FRAME_URL) {
@@ -938,17 +1049,37 @@ const handlePrepareAndUpload = async () => {
         const frameCenterX = minX + frameWidth / 2;
         const frameCenterY = minY + frameHeight / 2;
 
-        const margin = 20;
-        const maxPhotoW = frameWidth - (margin * 2);
-        const maxPhotoH = frameHeight - (margin * 2);
-        
-        const scale = Math.min(maxPhotoW / photo.width, maxPhotoH / photo.height);
-        const drawW = photo.width * scale;
-        const drawH = photo.height * scale;
-        const dx = frameCenterX - (drawW / 2);
-        const dy = frameCenterY - (drawH / 2);
-        
-        ctx.drawImage(photo, dx, dy, drawW, drawH);
+        // Scale photo to COVER the safe area (small margin inside)
+const isContain = (
+  selectedFrame === "rectangular" ||
+  selectedFrame === "rectangularstone" ||
+  selectedFrame === "door"
+);
+const margin = isContain ? 0 : 20;
+
+const innerW = frameWidth  - margin * 2;
+const innerH = frameHeight - margin * 2;
+
+const baseScale = isContain
+  ? Math.min(innerW / photo.width, innerH / photo.height)    // fit full image
+  : Math.max(innerW / photo.width, innerH / photo.height);   // fill for others
+
+// ↓ more zoom-out in rectangular so full body fits
+const FIT_PAD = isContain ? 0.85 : 1; // 0.82 if you want even smaller
+const scale = baseScale * FIT_PAD;
+
+const drawW = Math.round(photo.width  * scale);
+const drawH = Math.round(photo.height * scale);
+
+// center INSIDE the safe area
+const dx = Math.round(minX + (innerW - drawW) / 2);
+const dy = Math.round(minY + (innerH - drawH) / 2);
+
+
+
+ctx.drawImage(photo, dx, dy, drawW, drawH);
+
+
 
         if (customText && customText.trim()) {
           ctx.fillStyle = "#111";
@@ -1036,6 +1167,73 @@ const handlePrepareAndUpload = async () => {
   } finally {
     setIsUploading(false);
   }
+};
+
+const onCropComplete = useCallback((_, croppedAreaPixels) => {
+  setCroppedAreaPixels(croppedAreaPixels);
+}, []);
+
+
+async function getCroppedImg(imageSrc, cropArea) {
+  const img = await new Promise((res, rej) => {
+    const i = new Image();
+    i.crossOrigin = "anonymous";
+    i.onload = () => res(i);
+    i.onerror = rej;
+    i.src = imageSrc;
+  });
+
+  const rad = (rotation * Math.PI) / 180;
+
+  const bboxW = Math.abs(Math.cos(rad) * img.width) + Math.abs(Math.sin(rad) * img.height);
+  const bboxH = Math.abs(Math.sin(rad) * img.width) + Math.abs(Math.cos(rad) * img.height);
+
+  const tmp = document.createElement("canvas");
+  tmp.width = Math.ceil(bboxW);
+  tmp.height = Math.ceil(bboxH);
+  const tctx = tmp.getContext("2d");
+
+  tctx.translate(tmp.width / 2, tmp.height / 2);
+  tctx.rotate(rad);
+  tctx.scale(flipH ? -1 : 1, flipV ? -1 : 1);
+  tctx.drawImage(img, -img.width / 2, -img.height / 2);
+
+  const out = document.createElement("canvas");
+  out.width = Math.round(cropArea.width);
+  out.height = Math.round(cropArea.height);
+  const octx = out.getContext("2d");
+
+  octx.drawImage(
+    tmp,
+    Math.round(cropArea.x),
+    Math.round(cropArea.y),
+    Math.round(cropArea.width),
+    Math.round(cropArea.height),
+    0,0,
+    out.width, out.height
+  );
+
+  return out.toDataURL("image/jpeg", 0.92);
+}
+
+const handleSaveCrop = async () => {
+  const croppedImg = await getCroppedImg(tempImage, croppedAreaPixels);
+  setUploadedImage(croppedImg);  // only set the raw cropped photo
+  setShowCropper(false);
+};
+
+// when clicking Re-Crop
+const handleReCrop = () => {
+  if (!originalImage && !uploadedImage) return;
+  setTempImage(originalImage || uploadedImage); // prefer original source
+  setPreparedPreview(null); // hide old framed preview while re-cropping
+  setCrop({ x: 0, y: 0 });
+  setZoom(1);
+  setRotation(0);
+  setFlipH(false);
+  setFlipV(false);
+  setCroppedAreaPixels(null);
+  setShowCropper(true);
 };
 
 
@@ -1371,8 +1569,182 @@ const normalize = (str = "") =>
 const isPersonalisedGift = normalize(categoryName) === "personalized gifts";
 const isButtonBadge = normalize(product?.name || "").includes("button badge") || 
                       normalize(categoryName).includes("button badge");
+
+                     
+const getUnitLabel = () => {
+    const name = normalize(product?.name || "");
+    const category = normalize(categoryName);
+    
+    
+    if (name.includes("button badge") || name.includes("badge") || category.includes("badge")) {
+      return "badge";
+    }
+ 
+    if (name.includes("photo frame") || name.includes("frame") || category.includes("frame")) {
+      return "frame";
+    }
+   
+    if (name.includes("t-shirt") || name.includes("tshirt") || category.includes("t-shirt")) {
+      return "t-shirt";
+    }
+  
+    if (name.includes("flex") || name.includes("banner") || category.includes("flex") || category.includes("banner")) {
+      return "flex";
+    }
+   
+    if (name.includes("sticker") || category.includes("sticker")) {
+      return "sticker";
+    }
+    
+    if (name.includes("mug") || category.includes("mug")) {
+      return "mug";
+    }
+
+     if (name.includes("flyers") || name.includes("leaflets") || category.includes("Flyers") || category.includes("Leaflets")) {
+      return "flyer";
+    }
+    
+    return "card";
+  };
+ const unitLabel = getUnitLabel();
   return (
     <div style={styles.container}>
+{showCropper && (
+  <div style={{
+    position:"fixed", inset:0, background:"rgba(0,0,0,0.6)", zIndex:99999,
+    display:"flex", alignItems:"center", justifyContent:"center"
+  }}>
+    <div style={{
+      width:"90%", maxWidth:"520px", background:"#fff", borderRadius:"12px",
+      padding:"20px", boxShadow:"0 8px 30px rgba(0,0,0,0.2)"
+    }}>
+      <h3 style={{textAlign:"center", marginBottom:"10px"}}>Adjust your photo</h3>
+
+{/* --- CROP AREA --- */}
+<div
+  ref={cropBoxRef}
+  style={{
+    width: "100%",
+    height: 360,          // tweak if you want taller/shorter
+    background: selectedFrame === "rhomboid" ? "#000" : "#000",
+    borderRadius: 10,
+    overflow: "hidden",
+    position: "relative",
+  }}
+>
+  {tempImage && (
+    <Cropper
+      image={tempImage}
+      crop={crop}
+      zoom={zoom}
+      rotation={rotation}
+
+      /* per-frame/per-size aspect ratio */
+      aspect={getFrameCfg(
+        selectedFrame,
+        (selectedSize?.label || selectedSize || "default")
+      ).aspect}
+
+      onCropChange={setCrop}
+
+      /* clamp zoom so it never goes below minZoom */
+      onZoomChange={(z) => setZoom(Math.max(z, minZoom))}
+
+      onRotationChange={setRotation}
+      onCropComplete={onCropComplete}
+
+      /* keep image from sliding outside the box */
+      restrictPosition
+      minZoom={minZoom}
+      maxZoom={3}
+      zoomWithScroll
+      showGrid
+onMediaLoaded={({ naturalWidth: iw, naturalHeight: ih }) => {
+  const box = cropBoxRef.current?.getBoundingClientRect();
+  if (!box) return;
+
+  const cfg = getFrameCfg(
+    selectedFrame,
+    (selectedSize?.label || selectedSize || "default")
+  );
+
+  const mode   = ((cfg.fit?.minPad ?? 1) < 1) ? "contain" : "cover";
+  const aspect = cfg.aspect || (box.width / box.height);
+  const src    = originalImage || tempImage;
+  if (!src) return;
+
+  const cover = Math.max(box.width / iw, box.height / ih);
+  const over  = getCoverOverfill(selectedFrame);
+  const bias  = getShapeBiasUpPercent(selectedFrame);  // <-- NEW
+
+  // allow zoom-out for contain; enforce cover*overfill for shapes
+  const minAllowed = mode === "contain" ? 1 : Math.max(1, cover * over);
+  setMinZoom(minAllowed);
+
+  setTimeout(async () => {
+    const subject = await detectSubjectRectFromSrc(src);
+    const { zoom, crop } = computeAutoFit({
+      box, imgW: iw, imgH: ih, aspect, mode, subject,
+      overfill: over, biasUpPct: bias
+    });
+
+    const z = Math.max(minAllowed, Math.min(zoom, 3));
+    setZoom(z);
+    setCrop({
+      x: Math.max(-50, Math.min(50, crop.x)),
+      y: Math.max(-50, Math.min(50, crop.y)),
+    });
+  }, 0);
+}}
+
+    />
+  )}
+</div>
+
+
+
+      <div style={{marginTop:"15px"}}>
+        <label>Zoom</label>
+        <input
+  type="range"
+  min={minZoom}
+  max={3}
+  step={0.02}
+  value={zoom}
+  onChange={(e)=>setZoom(Number(e.target.value))}
+  style={{ width:"100%" }}
+/>
+
+      </div>
+
+      <div style={{marginTop:"15px"}}>
+        <label>Rotate</label>
+        <input
+          type="range" min={0} max={360} step={1} value={rotation}
+          onChange={(e)=>setRotation(Number(e.target.value))}
+          style={{width:"100%"}}
+        />
+      </div>
+
+      <div style={{display:"flex", gap:"10px", justifyContent:"center", margin:"10px 0"}}>
+        <button onClick={()=>setFlipH(v=>!v)}>Flip H</button>
+        <button onClick={()=>setFlipV(v=>!v)}>Flip V</button>
+      </div>
+
+      <div style={{display:"flex", gap:"10px", justifyContent:"space-between", marginTop:"15px"}}>
+        <button onClick={()=>setShowCropper(false)}
+          style={{flex:1, padding:"10px", borderRadius:"8px", background:"#ddd"}}>
+          Cancel
+        </button>
+        <button onClick={handleSaveCrop}
+          style={{flex:1, padding:"10px", borderRadius:"8px", background:"#d41e25", color:"#fff"}}>
+          Save & Continue
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
       <div className="responsive-container">
       <Header onMenuStateChange={setMobileMenuOpen}/>
 
@@ -1510,7 +1882,7 @@ const isButtonBadge = normalize(product?.name || "").includes("button badge") ||
   if (isFlexOrBanner) {
     // Dropdown style for flex and banner
     return (
-      <div style={{ marginBottom: "32px" }}>
+      <div style={{ marginBottom: "32px" }} key="size-dropdown">
         <div style={{ 
           display: "flex", 
           alignItems: "center", 
@@ -1707,7 +2079,7 @@ const isButtonBadge = normalize(product?.name || "").includes("button badge") ||
   } else {
     // Card-based layout for other categories (original design)
     return (
-      <div style={{ marginBottom: "16px" }}>
+      <div style={{ marginBottom: "16px" }} key="size-cards">
         <h3 style={{ 
           fontSize: isMobile ? "16px" : "18px", 
           fontWeight: "600", 
@@ -1742,17 +2114,26 @@ const isButtonBadge = normalize(product?.name || "").includes("button badge") ||
 
             const imgUrl = sizeImages[sizeKey];
 
-            let isSelected = false;
-            
-            if (selectedSize) {
-              if (typeof selectedSize === 'string') {
-                isSelected = selectedSize.toLowerCase().trim() === sizeKey;
-              } 
-              else if (typeof selectedSize === 'object') {
-                const selectedSizeName = (selectedSize.name || selectedSize.label || '').toLowerCase().trim();
-                isSelected = selectedSizeName === sizeKey;
-              }
-            }
+            const isSelected = selectedSize 
+              ? (typeof selectedSize === 'string' 
+                  ? selectedSize.toLowerCase().trim() === sizeKey 
+                  : (selectedSize.name || selectedSize.label || '').toLowerCase().trim() === sizeKey)
+              : false;
+
+// const handleMediaLoaded = useCallback((mediaSize) => {
+//   // size of the black crop box
+//   const box = cropBoxRef.current?.getBoundingClientRect();
+//   if (!box) return;
+
+//   const iw = mediaSize.naturalWidth;
+//   const ih = mediaSize.naturalHeight;
+
+//   // COVER the crop box (no gaps) with the smallest possible zoom
+//   const coverZoom = Math.max(box.width / iw, box.height / ih);
+//   setMinZoom(coverZoom);
+//   setZoom(coverZoom);         // start fully visible, no cropping
+//   setCrop({ x: 0, y: 0 });    // center
+// }, []);
 
             return (
               <div
@@ -2748,7 +3129,7 @@ const isButtonBadge = normalize(product?.name || "").includes("button badge") ||
     <thead>
       <tr style={{ textAlign: "left", borderBottom: "2px solid #ddd" }}>
         <th style={{ padding: "12px" }}>Quantity</th>
-        <th style={{ padding: "12px" }}>Price per card</th>
+        <th style={{ padding: "12px" }}>Price per {unitLabel}</th>
         <th style={{ padding: "12px" }}>Pack price</th>
       </tr>
     </thead>
@@ -2973,7 +3354,7 @@ const isButtonBadge = normalize(product?.name || "").includes("button badge") ||
                 id="upload-badge-photo"
                 type="file"
                 accept="image/*"
-                onChange={(e) => handleFileChange(e, "uploaded")}
+                onChange={handleFileChange}
                 style={{ display: "none" }}
               />
 
@@ -3024,54 +3405,92 @@ const isButtonBadge = normalize(product?.name || "").includes("button badge") ||
                   boxShadow: "0 10px 30px rgba(0,0,0,0.2)",
                 }}
               >
-                {preparedPreview ? (
-                  <img
-                    src={preparedPreview}
-                    alt="Prepared Preview"
-                    style={{
-                      width: "100%",
-                      height: "100%",
-                      objectFit: "cover",
-                      position: "absolute",
-                      top: 0,
-                      left: 0,
-                      zIndex: 1,
-                    }}
-                  />
-                ) : uploadedImage ? (
-                  <img
-                    src={uploadedImage}
-                    alt="Uploaded Preview"
-                    style={{
-                      width: "100%",
-                      height: "100%",
-                      objectFit: "cover",
-                      position: "absolute",
-                      top: 0,
-                      left: 0,
-                      zIndex: 1,
-                    }}
-                  />
-                ) : (
-                  <div style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    height: "100%",
-                    color: "#94a3b8",
-                  }}>
-                    <div style={{ fontSize: "48px", marginBottom: "12px" }}>📌</div>
-                    <p style={{
-                      textAlign: "center",
-                      fontStyle: "italic",
-                      fontSize: "14px",
-                      fontWeight: "500",
-                    }}>
-                      Your photo preview<br/>will appear here
-                    </p>
-                  </div>
-                )}
+{(() => {
+  const sizeLabel = selectedSize?.label || selectedSize || "default";
+  const cfg = getFrameCfg(selectedFrame, sizeLabel);
+  const src = preparedPreview || uploadedImage;
+
+  if (!src) {
+    return (
+      <div style={{
+        display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",
+        height:"100%", color:"#94a3b8"
+      }}>
+        <div style={{ fontSize: 48, marginBottom: 12 }}>🖼️</div>
+        <p style={{ textAlign:"center", fontStyle:"italic", fontSize:14, fontWeight:500 }}>
+          Your photo preview<br/>will appear here
+        </p>
+      </div>
+    );
+  }
+
+  // use the preview inset map (A)
+  const previewInset = (FRAME_PREVIEW_INSET[selectedFrame] ?? { top:"8%", right:"8%", bottom:"8%", left:"8%" });
+
+  const insetStyle = {
+    position: "absolute",
+    top:    previewInset.top,
+    right:  previewInset.right,
+    bottom: previewInset.bottom,
+    left:   previewInset.left,
+    background: selectedFrame === "rhomboid" ? "#000" : "transparent"
+  };
+
+  const f = String(selectedFrame).toLowerCase();
+
+const imgStyle = {
+  position: "absolute",
+  inset: 0,
+  width: "100%",
+  height:
+    f.includes("round") ? "80%" :
+    f.includes("heartstone") ? "94%" :
+    f.includes("heart") ? "85%" :
+    f.includes("rhomboid") ? "90%" :
+    "100%", // default for other frames
+
+  objectFit: "contain",
+
+  top:
+    f.includes("round") ? "10%" :
+    f.includes("heartstone") ? "3%" :
+    f.includes("heart") ? "7%" :
+    f.includes("rhomboid") ? "5%" :
+    "0", // default
+
+  transform: "none",
+  zIndex: 1,
+};
+
+  return (
+    <div style={{ position: "relative", width: "100%", aspectRatio: "1 / 1" }}>
+      {/* photo area */}
+      <div style={insetStyle}>
+        <img src={src} alt="Preview" style={imgStyle} />
+      </div>
+
+      {/* frame overlay on top */}
+      {FRAME_URL && (
+        <img
+          src={FRAME_URL}
+          alt=""
+          style={{
+            position: "absolute",
+            inset: 0,
+            width: "100%",
+            height: "100%",
+            objectFit: "contain",
+            pointerEvents: "none",
+            zIndex: 2
+          }}
+        />
+      )}
+    </div>
+  );
+})()}
+
+
+
 
                 {/* Badge Frame Overlay - Uses detected frame */}
                 {FRAME_URL && (
@@ -3090,38 +3509,38 @@ const isButtonBadge = normalize(product?.name || "").includes("button badge") ||
                   />
                 )}
 
-                {(uploadedImage || preparedPreview || originalImage) && (
-                  <button
-                    onClick={() => {
-                      setCroppingImage(uploadedImage || preparedPreview || originalImage);
-                      setCroppingSide("uploaded");
-                      setIsCropOpen(true);
-                      setCrop({ x: 0, y: 0 });
-                      setZoom(1);
-                      setCroppedAreaPixels(null);
-                    }}
-                    style={{
-                      position: "absolute",
-                      bottom: "12px",
-                      right: "12px",
-                      padding: "8px 14px",
-                      background: "rgba(37, 99, 235, 0.95)",
-                      color: "#fff",
-                      border: "none",
-                      borderRadius: "8px",
-                      cursor: "pointer",
-                      fontSize: "13px",
-                      fontWeight: "600",
-                      zIndex: 3,
-                      boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
-                      transition: "transform 0.2s",
-                    }}
-                    onMouseOver={(e) => e.currentTarget.style.transform = "scale(1.05)"}
-                    onMouseOut={(e) => e.currentTarget.style.transform = "scale(1)"}
-                  >
-                    ✂️ Re-Crop
-                  </button>
-                )}
+{/* Photo inside frame (fills inset area)
+{(preparedPreview || uploadedImage) ? (
+  <img
+    src={preparedPreview || uploadedImage}
+    alt="Preview"
+    style={{
+      position: "absolute",
+      top: `${(cfg?.inset?.top ?? 0) * 100}%`,
+      right: `${(cfg?.inset?.right ?? 0) * 100}%`,
+      bottom: `${(cfg?.inset?.bottom ?? 0) * 100}%`,
+      left: `${(cfg?.inset?.left ?? 0) * 100}%`,
+      width: "auto",
+      height: "auto",
+      objectFit: (cfg?.fit?.minPad ?? 1) < 1 ? "contain" : "cover",
+      zIndex: 1,
+    }}
+  />
+) : (
+  <div style={{
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    height: "100%",
+    color: "#94a3b8",
+  }}>
+    <div style={{ fontSize: "48px", marginBottom: "12px" }}>🖼️</div>
+    <p style={{ textAlign: "center", fontStyle: "italic", fontSize: "14px", fontWeight: 500 }}>
+      Your photo preview<br/>will appear here
+    </p>
+  </div>
+)} */}
               </div>
             </div>
           </div>
@@ -3403,7 +3822,7 @@ const isButtonBadge = normalize(product?.name || "").includes("button badge") ||
         id="upload-photo"
         type="file"
         accept="image/*"
-        onChange={(e) => handleFileChange(e, "uploaded")}
+        onChange={handleFileChange}
         style={{ display: "none" }}
       />
 
@@ -3483,54 +3902,101 @@ const isButtonBadge = normalize(product?.name || "").includes("button badge") ||
           boxShadow: "0 10px 30px rgba(0,0,0,0.2)",
         }}
       >
-        {preparedPreview ? (
-          <img
-            src={preparedPreview}
-            alt="Prepared Preview"
-            style={{
-              width: "100%",
-              height: "100%",
-              objectFit: "cover",
-              position: "absolute",
-              top: 0,
-              left: 0,
-              zIndex: 1,
-            }}
-          />
-        ) : uploadedImage ? (
-          <img
-            src={uploadedImage}
-            alt="Uploaded Preview"
-            style={{
-              width: "100%",
-              height: "100%",
-              objectFit: "cover",
-              position: "absolute",
-              top: 0,
-              left: 0,
-              zIndex: 1,
-            }}
-          />
-        ) : (
-          <div style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
+{(() => {
+  const sizeLabel = selectedSize?.label || selectedSize || "default";
+  const cfg = getFrameCfg(selectedFrame, sizeLabel);
+  const src = preparedPreview || uploadedImage;
+
+  if (!src) {
+    return (
+      <div style={{
+        display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",
+        height:"100%", color:"#94a3b8"
+      }}>
+        <div style={{ fontSize: 48, marginBottom: 12 }}>🖼️</div>
+        <p style={{ textAlign:"center", fontStyle:"italic", fontSize:14, fontWeight:500 }}>
+          Your photo preview<br/>will appear here
+        </p>
+      </div>
+    );
+  }
+
+  const insetStyle = {
+    position: "absolute",
+    top:    `${cfg.inset.top  * 100}%`,
+    right:  `${cfg.inset.right* 100}%`,
+    bottom: `${cfg.inset.bottom* 100}%`,
+    left:   `${cfg.inset.left * 100}%`,
+  };
+
+  return (
+    <div style={{ position: "relative", width: "100%", aspectRatio: "1 / 1" }}>
+      {/* Diamond underlay ONLY for rhomboid (removes white tip) */}
+      {String(selectedFrame).toLowerCase().includes("rhomboid") && (
+        <svg
+          viewBox="0 0 100 100"
+          preserveAspectRatio="none"
+          style={{ position: "absolute", inset: 0, width: "100%", height: "100%", zIndex: 1, pointerEvents: "none" }}
+        >
+          <polygon points="50,2 98,50 50,98 2,50" fill="#000" />
+        </svg>
+      )}
+
+    <img
+  src={src}
+  alt="Preview"
+  style={(() => {
+    const f = String(selectedFrame || "").toLowerCase();
+
+    // per-shape height + vertical centering
+    const height =
+      f.includes("round")      ? "80%" :
+      f.includes("heartstone") ? "94%" :
+      f.includes("heart")      ? "85%" :
+      f.includes("rhomboid")   ? "90%" :
+                                 "100%";
+
+    const top =
+      f.includes("round")      ? "10%" :
+      f.includes("heartstone") ? "3%"  :
+      f.includes("heart")      ? "7%"  :
+      f.includes("rhomboid")   ? "5%"  :
+                                 "0";
+
+    return {
+      position: "absolute",
+      inset: 0,
+      width: "100%",
+      height,                 // 👈 shape-specific height
+      objectFit: "contain",   // 👈 force contain for ALL
+      top,                    // 👈 nudge down to keep centered
+      transform: "none",
+      zIndex: 2
+    };
+  })()}
+/>
+
+      {/* Frame overlay */}
+      {FRAME_URL && (
+        <img
+          src={FRAME_URL}
+          alt=""
+          style={{
+            position: "absolute",
+            inset: 0,
+            width: "100%",
             height: "100%",
-            color: "#94a3b8",
-          }}>
-            <div style={{ fontSize: "48px", marginBottom: "12px" }}>🖼️</div>
-            <p style={{
-              textAlign: "center",
-              fontStyle: "italic",
-              fontSize: "14px",
-              fontWeight: "500",
-            }}>
-              Your photo preview<br/>will appear here
-            </p>
-          </div>
-        )}
+            objectFit: "contain",
+            pointerEvents: "none",
+            zIndex: 3
+          }}
+        />
+      )}
+    </div>
+  );
+})()}
+
+
 
         {FRAME_URL && (
           <img
@@ -3548,16 +4014,9 @@ const isButtonBadge = normalize(product?.name || "").includes("button badge") ||
           />
         )}
 
-        {(uploadedImage || preparedPreview || originalImage) && (
+        {(uploadedImage || preparedPreview ) && (
           <button
-            onClick={() => {
-              setCroppingImage(uploadedImage || preparedPreview || originalImage);
-              setCroppingSide("uploaded");
-              setIsCropOpen(true);
-              setCrop({ x: 0, y: 0 });
-              setZoom(1);
-              setCroppedAreaPixels(null);
-            }}
+            onClick={handleReCrop}
             style={{
               position: "absolute",
               bottom: "12px",
@@ -4067,211 +4526,7 @@ const isButtonBadge = normalize(product?.name || "").includes("button badge") ||
 </div>
 )}
 
-{/* ---------- REPLACE CROP MODAL START ---------- */}
-{isCropOpen && croppingImage && (
-  <div
-    style={{
-      position: "fixed",
-      inset: 0,
-      background: "rgba(0,0,0,0.6)",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      zIndex: 9999,
-      padding: 12,
-    }}
-  >
-    <div
-      style={{
-        width: "100%",
-        maxWidth: 980,
-        maxHeight: "96vh",
-        background: "#fff",
-        borderRadius: 12,
-        overflow: "hidden",
-        display: "flex",
-        flexDirection: "column",
-        boxShadow: "0 12px 40px rgba(2,6,23,0.35)",
-      }}
-    >
-      {/* Header: Revert (optional) + Cancel + Save */}
-      <div
-        style={{
-          display: "flex",
-          gap: 8,
-          alignItems: "center",
-          padding: 12,
-          borderBottom: "1px solid #eee",
-          flexWrap: "wrap",
-        }}
-      >
-        {originalImage && croppingImage && croppingImage !== originalImage && (
-          <button
-            onClick={handleRevertToOriginal}
-            title="Revert to original uploaded photo"
-            style={{
-              padding: "8px 12px",
-              borderRadius: 8,
-              border: "1px solid #ddd",
-              background: "#ef4444",
-              color: "#fff",
-              cursor: "pointer",
-            }}
-          >
-            Revert
-          </button>
-        )}
 
-        <div style={{ marginLeft: "auto", display: "flex", gap: 8 }}>
-          <button
-            onClick={() => {
-              setIsCropOpen(false);
-              setCroppingImage(null);
-              setCroppingSide(null);
-            }}
-            style={{
-              padding: "8px 12px",
-              borderRadius: 8,
-              border: "1px solid #ddd",
-              background: "#fff",
-              cursor: "pointer",
-            }}
-          >
-            Cancel
-          </button>
-
-          <button
-            onClick={handleSaveCrop}
-            style={{
-              padding: "8px 12px",
-              borderRadius: 8,
-              border: "none",
-              background: "#2563eb",
-              color: "#fff",
-              cursor: "pointer",
-            }}
-          >
-            Save Crop
-          </button>
-        </div>
-      </div>
-
-      {/* Body: crop area + controls */}
-      <div
-        style={{
-          display: "flex",
-          flex: 1,
-          gap: 12,
-          minHeight: 0,
-          flexDirection: window.innerWidth <= 768 ? "column" : "row",
-          overflow: "hidden",
-        }}
-      >
-        {/* Crop area: explicit responsive height so Cropper is visible */}
-        <div
-          style={{
-            flex: 1,
-            position: "relative",
-            minHeight: window.innerWidth <= 768 ? "50vh" : "60vh",
-            background: "#111", // helps visibility while image loads
-          }}
-        >
-          {/* The Cropper must fill its parent */}
-          <div style={{ position: "absolute", inset: 0 }}>
-            <Cropper
-              image={croppingImage}
-              crop={crop}
-              zoom={zoom}
-              aspect={1}
-              onCropChange={setCrop}
-              onZoomChange={setZoom}
-              onCropComplete={onCropComplete}
-              showGrid={false}
-            />
-          </div>
-        </div>
-
-        {/* Controls sidebar (no duplicate preview) */}
-        <aside
-          style={{
-            width: window.innerWidth <= 768 ? "100%" : 300,
-            padding: 12,
-            display: "flex",
-            flexDirection: "column",
-            gap: 12,
-            overflowY: "auto",
-            boxSizing: "border-box",
-          }}
-        >
-          <div>
-            <label style={{ display: "block", fontSize: 13, color: "#374151", marginBottom: 6 }}>
-              Zoom
-            </label>
-            <input
-              type="range"
-              min={1}
-              max={3}
-              step={0.01}
-              value={zoom}
-              onChange={(e) => setZoom(Number(e.target.value))}
-              style={{ width: "100%" }}
-            />
-          </div>
-
-          <div>
-            <label style={{ display: "block", fontSize: 13, color: "#374151", marginBottom: 6 }}>
-              X position
-            </label>
-            <input
-              type="range"
-              min={-100}
-              max={100}
-              step={1}
-              value={Math.round(crop.x)}
-              onChange={(e) => setCrop((c) => ({ ...c, x: Number(e.target.value) }))}
-              style={{ width: "100%" }}
-            />
-          </div>
-
-          <div>
-            <label style={{ display: "block", fontSize: 13, color: "#374151", marginBottom: 6 }}>
-              Y position
-            </label>
-            <input
-              type="range"
-              min={-100}
-              max={100}
-              step={1}
-              value={Math.round(crop.y)}
-              onChange={(e) => setCrop((c) => ({ ...c, y: Number(e.target.value) }))}
-              style={{ width: "100%" }}
-            />
-          </div>
-
-          <div style={{ display: "flex", gap: 8, marginTop: "auto" }}>
-            <button
-              onClick={() => {
-                setCrop({ x: 0, y: 0 });
-                setZoom(1);
-              }}
-              style={{
-                padding: "10px 12px",
-                borderRadius: 8,
-                border: "1px solid #ddd",
-                background: "#fff",
-                cursor: "pointer",
-                width: "100%",
-              }}
-            >
-              Reset
-            </button>
-          </div>
-        </aside>
-      </div>
-    </div>
-  </div>
-)}
-{/* ---------- REPLACE CROP MODAL END ---------- */}
           
 <Review productId={id}/>
 

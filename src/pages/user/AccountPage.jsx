@@ -23,7 +23,21 @@ const AccountPage = () => {
     };
     return mapping[tab?.toLowerCase()] || "overview";
   };
+// ---- auth presence (ask server, not localStorage) ----
+const [isLoggedIn, setIsLoggedIn] = useState(null); // null = unknown
 
+useEffect(() => {
+  let isMounted = true;
+  (async () => {
+    try {
+      const r = await axios.get(`${API_BASE_URL}/user/me`, { withCredentials: true });
+      if (isMounted) setIsLoggedIn(!!r?.data);
+    } catch {
+      if (isMounted) setIsLoggedIn(false);
+    }
+  })();
+  return () => { isMounted = false; };
+}, []);
   const defaultTab = normalizeTab(queryParams.get("tab"));
   const [activeSection, setActiveSection] = useState(defaultTab);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
@@ -91,57 +105,79 @@ const [newAddress, setNewAddress] = useState({
     }
   }, [location]);
 
-  // Fetch orders
-  const fetchOrders = async () => {
-    try {
-      setLoadingOrders(true);
+const fetchOrders = async () => {
+  if (!isLoggedIn) { setOrders([]); setOrdersError(""); return; }
+
+  try {
+    setLoadingOrders(true);
+    setOrdersError("");
+    const res = await axios.get(`${API_BASE_URL}/order/all`, { withCredentials: true });
+    const orderData = res.data.orders || res.data.data || res.data || [];
+    setOrders(Array.isArray(orderData) ? orderData : []);
+  } catch (err) {
+    const status = err?.response?.status;
+    if (status === 401 || status === 403) {
+      // Not authenticated yet → show empty state, no popup
+      setOrders([]); 
       setOrdersError("");
-      const res = await axios.get(`${API_BASE_URL}/order/all`, {
-        withCredentials: true,
-      });
-      
-      const orderData = res.data.orders || res.data.data || res.data || [];
-      setOrders(Array.isArray(orderData) ? orderData : []);
-    } catch (err) {
-      console.error("Error fetching orders:", err);
+    } else if (status === 404) {
+      // Some backends return 404 when no orders
+      setOrders([]);
+      setOrdersError("");
+    } else {
       const errorMessage = err.response?.data?.message || "Failed to fetch orders";
       setOrdersError(errorMessage);
-      
-      if (err.response?.status !== 404) {
-        Swal.fire("Error", errorMessage, "error");
-      }
-    } finally {
-      setLoadingOrders(false);
+      Swal.fire("Error", errorMessage, "error");
     }
-  };
+  } finally {
+    setLoadingOrders(false);
+  }
+};
 
-  // Fetch addresses
-  const fetchAddresses = async () => {
-    try {
-      setLoadingAddresses(true);
-      const res = await axios.get(`${API_BASE_URL}/address/addresses`, {
-        withCredentials: true,
-      });
-      setAddresses(res.data.addresses || []);
-    } catch (err) {
+
+const fetchAddresses = async () => {
+  try {
+    setLoadingAddresses(true);
+    const res = await axios.get(`${API_BASE_URL}/address/addresses`, { withCredentials: true });
+    console.log("GET /address/addresses response:", res.data);
+
+    const extractAddresses = (data) => {
+      if (Array.isArray(data)) return data;
+      if (Array.isArray(data?.addresses)) return data.addresses;
+      if (Array.isArray(data?.data)) return data.data;
+      if (data?.address && typeof data.address === "object") return [data.address];
+      return [];
+    };
+
+    setAddresses(extractAddresses(res.data));
+  } catch (err) {
+    const status = err?.response?.status;
+    if (status === 401 || status === 403) {
+      setAddresses([]);
+      setIsLoggedIn(false);
+    } else if (status === 404) {
+      setAddresses([]);
+    } else {
       console.error("Error fetching addresses:", err);
-      Swal.fire("Error", "Failed to fetch addresses", "error");
-    } finally {
-      setLoadingAddresses(false);
     }
-  };
+  } finally {
+    setLoadingAddresses(false);
+  }
+};
 
-  useEffect(() => {
-    if (activeSection === "orderhistory") {
-      fetchOrders();
-    }
-  }, [activeSection]);
+useEffect(() => {
+  if (activeSection === "orderhistory") {
+    if (isLoggedIn) fetchOrders();
+    else { setOrders([]); setOrdersError(""); }
+  }
+}, [activeSection, isLoggedIn]);
 
-  useEffect(() => {
-    if (activeSection === "address") {
-      fetchAddresses();
-    }
-  }, [activeSection]);
+useEffect(() => {
+  if (activeSection === "address") {
+    fetchAddresses(); // let fetchAddresses handle 401/403
+  }
+}, [activeSection]);
+
 
   const formatDate = (dateString) => {
     try {
@@ -156,14 +192,20 @@ const [newAddress, setNewAddress] = useState({
     }
   };
 
-  const formatCurrency = (amount) => {
-    if (typeof amount === 'number') {
-      return `$${amount.toFixed(2)}`;
+const formatCurrency = (amount) => {
+    if (amount == null) return '$0.00';
+    
+    const num = Number(amount);
+    if (!isFinite(num)) return '$0.00';
+    
+    // If the number is a whole number >= 1000, assume it's in cents
+    // Example: 600 cents = $6.00, 60000 cents = $600.00
+    if (Number.isInteger(num) && Math.abs(num) >= 100) {
+      return `$${(num / 100).toFixed(2)}`;
     }
-    if (typeof amount === 'string' && !isNaN(parseFloat(amount))) {
-      return `$${parseFloat(amount).toFixed(2)}`;
-    }
-    return amount;
+    
+    // Otherwise treat as dollars
+    return `$${num.toFixed(2)}`;
   };
 
   const getStatusColor = (status) => {
@@ -178,49 +220,83 @@ const [newAddress, setNewAddress] = useState({
     return statusColors[status?.toLowerCase()] || '#6c757d';
   };
 
-  const handleAddAddress = async (e) => {
-    e.preventDefault();
+const handleAddAddress = async (e) => {
+  e.preventDefault();
 
-    let userId = null;
+  // try to read userId (some backends need it)
+  let userId = null;
+  try {
+    const stored = JSON.parse(localStorage.getItem("user") || "{}");
+    userId = stored?.userId || stored?.id || null;
+  } catch {
+    userId = null;
+  }
+
+  const basePayload = {
+    fullName: `${newAddress.firstName || ""} ${newAddress.lastName || ""}`.trim(),
+    phone: newAddress.phone,
+    country: newAddress.country,
+    address: newAddress.address,
+    city: newAddress.city || "",
+    region: newAddress.region || "",
+    postalCode: newAddress.postalCode || "",
+    landmark: newAddress.landmark || "",
+    addressType: newAddress.addressType || "Home",
+    isDefault: !!newAddress.isDefault,
+  };
+
+  const postAddress = async (payload) => {
     try {
-      const stored = JSON.parse(localStorage.getItem("user") || "{}");
-      userId = stored?.userId || stored?.id || null;
+      const res = await axios.post(`${API_BASE_URL}/address/add`, payload, { withCredentials: true });
+      return { ok: true, data: res.data };
     } catch (err) {
-      userId = null;
+      return {
+        ok: false,
+        status: err?.response?.status ?? null,
+        body: err?.response?.data ?? null,
+        raw: err,
+      };
     }
+  };
 
-    const basePayload = {
-        fullName: `${newAddress.firstName || ""} ${newAddress.lastName || ""}`.trim(),
-      phone: newAddress.phone,
-      country: newAddress.country,
-      address: newAddress.address,
-      city: newAddress.city || "",
-      region: newAddress.region || "",
-      postalCode: newAddress.postalCode || "",
-      landmark: newAddress.landmark || "",
-      addressType: newAddress.addressType || "Home",
-      isDefault: !!newAddress.isDefault,
-    };
+  // --- try 1: plain payload
+  let result = await postAddress(basePayload);
+  if (result.ok) {
+    const created = result.data?.address || result.data?.data || result.data;
+    if (created) setAddresses(prev => [created, ...prev]);     // show instantly
 
-    const postAddress = async (payload) => {
-      try {
-        const res = await axios.post(`${API_BASE_URL}/address/add`, payload, { withCredentials: true });
-        return { ok: true, data: res.data };
-      } catch (err) {
-        const resp = err?.response;
-        const body = resp?.data ?? null;
-        const status = resp?.status ?? null;
-        return { ok: false, status, body, raw: err };
-      }
-    };
+    // reset + close + sync with server
+    setNewAddress({
+      firstName: "",
+      lastName: "",
+      phone: "",
+      address: "",
+      city: "",
+      region: "",
+      postalCode: "",
+      landmark: "",
+      addressType: "Home",
+      isDefault: false,
+      country: "New Zealand",
+    });
+    setAddressError("");
+    setShowAddForm(false);
+    fetchAddresses();
+    Swal.fire("Success", "Address added successfully!", "success");
+    return;
+  }
 
-    let result = await postAddress(basePayload);
-
+  // --- try 2: backend asks for userId explicitly
+  const bodyMsg = JSON.stringify(result.body || "");
+  if (userId && /userId|user id|userId.*required/i.test(bodyMsg)) {
+    result = await postAddress({ ...basePayload, userId });
     if (result.ok) {
-      setNewAddress({
-       firstName: "",
-lastName: "",
+      const created = result.data?.address || result.data?.data || result.data;
+      if (created) setAddresses(prev => [created, ...prev]);
 
+      setNewAddress({
+        firstName: "",
+        lastName: "",
         phone: "",
         address: "",
         city: "",
@@ -237,19 +313,22 @@ lastName: "",
       Swal.fire("Success", "Address added successfully!", "success");
       return;
     }
+  }
 
-    setAddressError("");
-
-    const bodyMsg = JSON.stringify(result.body || "");
-    if (userId && /userId|user id|userId.*required/i.test(bodyMsg)) {
-      const payload2 = { ...basePayload, userId };
-      result = await postAddress(payload2);
-
+  // --- try 3: other common shapes for user field
+  if (userId) {
+    for (const shape of [
+      { ...basePayload, user: userId },
+      { ...basePayload, user: { _id: userId } },
+    ]) {
+      result = await postAddress(shape);
       if (result.ok) {
-        setNewAddress({
-firstName: "",
-lastName: "",
+        const created = result.data?.address || result.data?.data || result.data;
+        if (created) setAddresses(prev => [created, ...prev]);
 
+        setNewAddress({
+          firstName: "",
+          lastName: "",
           phone: "",
           address: "",
           city: "",
@@ -267,71 +346,43 @@ lastName: "",
         return;
       }
     }
+  }
 
-    if (userId) {
-      const tryShapes = [
-        { ...basePayload, user: userId },
-        { ...basePayload, user: { _id: userId } },
-      ];
+  // --- failed
+  const serverMessage =
+    (result.body && (result.body.message || result.body.error || JSON.stringify(result.body))) ||
+    "Failed to save address. See console for details.";
+  setAddressError(serverMessage);
+  console.error("Final address save error:", result);
+  Swal.fire("Error", "Failed to add address (see error message)", "error");
+};
 
-      for (let i = 0; i < tryShapes.length; i++) {
-        result = await postAddress(tryShapes[i]);
-        if (result.ok) {
-          setNewAddress({
-           firstName: "",
-lastName: "",
-
-            phone: "",
-            address: "",
-            city: "",
-            region: "",
-            postalCode: "",
-            landmark: "",
-            addressType: "Home",
-            isDefault: false,
-            country: "New Zealand",
-          });
-          setAddressError("");
-          setShowAddForm(false);
-          fetchAddresses();
-          Swal.fire("Success", "Address added successfully!", "success");
-          return;
-        }
+const handleDeleteAddress = async (id) => {
+  if (!id) {
+    Swal.fire("Error", "Missing address id.", "error");
+    return;
+  }
+  Swal.fire({
+    title: "Are you sure?",
+    text: "This address will be deleted permanently.",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#d33",
+    cancelButtonColor: "#3085d6",
+    confirmButtonText: "Yes, delete it!",
+  }).then(async (result) => {
+    if (result.isConfirmed) {
+      try {
+        await axios.delete(`${API_BASE_URL}/address/delete/${id}`, { withCredentials: true });
+        setAddresses(prev => prev.filter(a => (a._id || a.id) !== id));
+        Swal.fire("Deleted!", "Address has been deleted.", "success");
+      } catch (err) {
+        console.error("Error deleting address:", err);
+        Swal.fire("Error", "At least one address is required.", "error");
       }
     }
-
-    const serverMessage =
-      (result.body && (result.body.message || result.body.error || JSON.stringify(result.body))) ||
-      "Failed to save address. See console for details.";
-    setAddressError(serverMessage);
-    console.error("Final address save error:", result);
-    Swal.fire("Error", "Failed to add address (see error message)", "error");
-  };
-
-  const handleDeleteAddress = async (id) => {
-    Swal.fire({
-      title: "Are you sure?",
-      text: "This address will be deleted permanently.",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#d33",
-      cancelButtonColor: "#3085d6",
-      confirmButtonText: "Yes, delete it!",
-    }).then(async (result) => {
-      if (result.isConfirmed) {
-        try {
-          await axios.delete(`${API_BASE_URL}/address/delete/${id}`, {
-            withCredentials: true,
-          });
-          setAddresses(addresses.filter((addr) => addr._id !== id));
-          Swal.fire("Deleted!", "Address has been deleted.", "success");
-        } catch (err) {
-          console.error("Error deleting address:", err);
-          Swal.fire("Error", "At least one address is required.", "error");
-        }
-      }
-    });
-  };
+  });
+};
 
   const handleLogout = () => {
     Swal.fire({
@@ -355,6 +406,7 @@ lastName: "",
         localStorage.removeItem("token");
         localStorage.removeItem("user");
         setUser(null);
+setIsLoggedIn(false);
 
         Swal.fire({
           icon: "success",
@@ -468,6 +520,25 @@ lastName: "",
     color: '#333',
     fontSize: isMobile ? '15px' : '14px',
   };
+// --- Locked card UI for non-logged users ---
+const LockedCard = ({ title }) => (
+  <div style={{textAlign:'center', padding:'40px 20px', background:'#f8f9fa',
+    border:'2px dashed #dee2e6', borderRadius:'12px'}}>
+    
+    <div style={{fontSize:'48px', marginBottom:'10px'}}>🔐</div>
+    
+    <h3 style={{margin:'0 0 10px'}}>{title}</h3>
+    <p style={{margin:'0 0 20px', color:'#6c757d'}}>
+      Please sign in to continue.
+    </p>
+
+    <Link to="/sign-in"
+      style={{padding:'12px 20px', background:'#007bff', color:'#fff',
+      textDecoration:'none', borderRadius:'8px'}}>
+      Sign In
+    </Link>
+  </div>
+);
 
   return (
     <div className="responsive-container">
@@ -928,196 +999,167 @@ lastName: "",
                     </div>
                   )}
 
-                  <form onSubmit={handleAddAddress}>
-                    <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '16px' }}>
-                      <div>
-    <label style={labelStyle}>First Name *</label>
-    <input
-      style={inputStyle}
-      type="text"
-      required
-      value={newAddress.firstName}
-      onChange={(e) => setNewAddress({ ...newAddress, firstName: e.target.value })}
-      placeholder="Enter first name"
+<form onSubmit={handleAddAddress}>
+  {/* ROW 1: First / Last Name */}
+  <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '16px' }}>
+    <div>
+      <label style={labelStyle}>First Name *</label>
+      <input
+        style={inputStyle}
+        type="text"
+        required
+        value={newAddress.firstName || ""}
+        onChange={(e) => setNewAddress({ ...newAddress, firstName: e.target.value })}
+        placeholder="Enter first name"
+      />
+    </div>
+    <div>
+      <label style={labelStyle}>Last Name *</label>
+      <input
+        style={inputStyle}
+        type="text"
+        required
+        value={newAddress.lastName || ""}
+        onChange={(e) => setNewAddress({ ...newAddress, lastName: e.target.value })}
+        placeholder="Enter last name"
+      />
+    </div>
+  </div>
+
+  {/* ROW 2: Country / Phone */}
+  <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '16px', marginTop: '12px' }}>
+    <div>
+      <label style={labelStyle}>Country *</label>
+      <select
+        style={inputStyle}
+        required
+        value={newAddress.country}
+        onChange={(e) => setNewAddress({ ...newAddress, country: e.target.value })}
+      >
+        <option value="New Zealand">New Zealand</option>
+        <option value="Australia">Australia</option>
+      </select>
+    </div>
+
+    <div>
+      <label style={labelStyle}>Phone Number *</label>
+      <input
+        style={inputStyle}
+        type="tel"
+        required
+        value={newAddress.phone || ""}
+        onChange={(e) => setNewAddress({ ...newAddress, phone: e.target.value })}
+        placeholder="Enter your phone number"
+      />
+    </div>
+  </div>
+
+  {/* ROW 3: Street Address (with autocomplete) */}
+  <div style={{ marginTop: '16px', marginBottom: '16px' }}>
+    <label style={labelStyle}>Street Address *</label>
+    <AddressAutocomplete
+      newAddress={newAddress}
+      setNewAddress={setNewAddress}
+      countryBias={newAddress.country || "New Zealand"}
+      style={{ ...inputStyle, marginBottom: 0 }}
     />
   </div>
+
+  {/* ROW 4: City / Region / Postal */}
+  <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr 1fr', gap: '16px' }}>
+    <div>
+      <label style={labelStyle}>City</label>
+      <input
+        style={inputStyle}
+        type="text"
+        value={newAddress.city || ""}
+        onChange={(e) => setNewAddress({ ...newAddress, city: e.target.value })}
+        placeholder="Enter city"
+      />
+    </div>
+    <div>
+      <label style={labelStyle}>Region/State</label>
+      <input
+        style={inputStyle}
+        type="text"
+        value={newAddress.region || ""}
+        onChange={(e) => setNewAddress({ ...newAddress, region: e.target.value })}
+        placeholder="Enter region"
+      />
+    </div>
+    <div>
+      <label style={labelStyle}>Postal Code</label>
+      <input
+        style={inputStyle}
+        type="text"
+        value={newAddress.postalCode || ""}
+        onChange={(e) => setNewAddress({ ...newAddress, postalCode: e.target.value })}
+        placeholder="Enter postal code"
+      />
+    </div>
+  </div>
+
+{/* FUTURE FIELDS — HIDDEN FOR NOW */}
+<div style={{ display: "none" }}>
+  {/* Address Type */}
   <div>
-    <label style={labelStyle}>Last Name *</label>
+    <label style={labelStyle}>Address Type</label>
+    <select
+      style={{ ...inputStyle }}
+      value={newAddress.addressType || "Home"}
+      onChange={(e) => setNewAddress({ ...newAddress, addressType: e.target.value })}
+      disabled
+    >
+      <option value="Home">Null</option>
+      <option value="Work">Work</option>
+      <option value="Other">Other</option>
+    </select>
+  </div>
+
+  {/* Landmark */}
+  <div>
+    <label style={labelStyle}>Landmark (Optional)</label>
     <input
-      style={inputStyle}
+      style={{ ...inputStyle }}
       type="text"
-      required
-      value={newAddress.lastName}
-      onChange={(e) => setNewAddress({ ...newAddress, lastName: e.target.value })}
-      placeholder="Enter last name"
+      value={newAddress.landmark || ""}
+      onChange={(e) => setNewAddress({ ...newAddress, landmark: e.target.value })}
+      placeholder="Enter nearby landmark"
+      disabled
     />
   </div>
-                      <div>
-                        <label style={labelStyle}>Phone Number *</label>
-                        <input
-                          style={inputStyle}
-                          type="tel"
-                          required
-                          value={newAddress.phone}
-                          onChange={(e) => setNewAddress({...newAddress, phone: e.target.value})}
-                          placeholder="Enter your phone number"
-                        />
-                      </div>
-                    </div>
-
-<div style={{ marginBottom: '16px' }}> {/* We apply margin to the wrapper div */}
-  <label style={labelStyle}>Street Address *</label>
-  <AddressAutocomplete
-    newAddress={newAddress}
-    setNewAddress={setNewAddress}
-    // Bias results to the currently selected country, or default to New Zealand
-    countryBias={newAddress.country || "New Zealand"}
-    // Pass your style, but remove the margin (it's on the wrapper now)
-    style={{ ...inputStyle, marginBottom: 0 }} 
-  />
 </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr 1fr', gap: '16px' }}>
-                      <div>
-                        <label style={labelStyle}>City</label>
-                        <input
-                          style={inputStyle}
-                          type="text"
-                          value={newAddress.city}
-                          onChange={(e) => setNewAddress({...newAddress, city: e.target.value})}
-                          placeholder="Enter city"
-                        />
-                      </div>
-                      <div>
-                        <label style={labelStyle}>Region/State</label>
-                        <input
-                          style={inputStyle}
-                          type="text"
-                          value={newAddress.region}
-                          onChange={(e) => setNewAddress({...newAddress, region: e.target.value})}
-                          placeholder="Enter region"
-                        />
-                      </div>
-                      <div>
-                        <label style={labelStyle}>Postal Code</label>
-                        <input
-                          style={inputStyle}
-                          type="text"
-                          value={newAddress.postalCode}
-                          onChange={(e) => setNewAddress({...newAddress, postalCode: e.target.value})}
-                          placeholder="Enter postal code"
-                        />
-                      </div>
-                    </div>
+  {/* Default checkbox */}
+  <div style={{ marginTop: '20px' }}>
+    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: isMobile ? '15px' : '14px' }}>
+      <input
+        type="checkbox"
+        checked={!!newAddress.isDefault}
+        onChange={(e) => setNewAddress({ ...newAddress, isDefault: e.target.checked })}
+        style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+      />
+      Set as default address
+    </label>
+  </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '16px' }}>
-                      <div>
-                        <label style={labelStyle}>Country *</label>
-                        <select
-                          style={inputStyle}
-                          required
-                          value={newAddress.country}
-                          onChange={(e) => setNewAddress({...newAddress, country: e.target.value})}
-                        >
-                          <option value="New Zealand">New Zealand</option>
-                          <option value="Australia">Australia</option>
-                          <option value="United States">United States</option>
-                          <option value="United Kingdom">United Kingdom</option>
-                          <option value="Canada">Canada</option>
-                        </select>
-                      </div>
-                     <div>
-  <label style={labelStyle}>Address Type</label>
-  <select
-    style={{
-      ...inputStyle,
-      cursor: 'not-allowed',
-      opacity: 0.6,
-      background: '#f3f4f6'
-    }}
-    value={newAddress.addressType || "Home"}
-    onChange={(e) => setNewAddress({...newAddress, addressType: e.target.value})}
-    disabled
-  >
-    <option value="Home">Null</option>
-    <option value="Work">Work</option>
-    <option value="Other">Other</option>
-  </select>
-</div>
-                    </div>
-<div>
-  <label style={labelStyle}>Landmark (Optional)</label>
-  <input
-    style={{
-      ...inputStyle,
-      cursor: 'not-allowed',
-      opacity: 0.6,
-      background: '#f3f4f6'
-    }}
-    type="text"
-    value={newAddress.landmark || ""}
-    onChange={(e) => setNewAddress({...newAddress, landmark: e.target.value})}
-    placeholder="Enter nearby landmark"
-    disabled
-  />
-</div>
-
-                    <div style={{ marginBottom: '20px' }}>
-                      <label style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '8px',
-                        cursor: 'pointer',
-                        fontSize: isMobile ? '15px' : '14px'
-                      }}>
-                        <input
-                          type="checkbox"
-                          checked={newAddress.isDefault}
-                          onChange={(e) => setNewAddress({...newAddress, isDefault: e.target.checked})}
-                          style={{ width: '18px', height: '18px', cursor: 'pointer' }}
-                        />
-                        Set as default address
-                      </label>
-                    </div>
-
-                    <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
-                      <button
-                        type="button"
-                        style={{
-                          padding: isMobile ? '14px 24px' : '12px 24px',
-                          border: '1px solid #ddd',
-                          borderRadius: '8px',
-                          backgroundColor: '#fff',
-                          color: '#333',
-                          cursor: 'pointer',
-                          fontSize: isMobile ? '15px' : '14px',
-                          minWidth: isMobile ? '120px' : 'auto'
-                        }}
-                        onClick={() => {
-                          setShowAddForm(false);
-                          setAddressError("");
-                        }}
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        type="submit"
-                        style={{
-                          padding: isMobile ? '14px 24px' : '12px 24px',
-                          border: 'none',
-                          borderRadius: '8px',
-                          backgroundColor: '#28a745',
-                          color: 'white',
-                          cursor: 'pointer',
-                          fontSize: isMobile ? '15px' : '14px',
-                          fontWeight: '500',
-                          minWidth: isMobile ? '120px' : 'auto'
-                        }}
-                      >
-                        Save Address
-                      </button>
-                    </div>
-                  </form>
+  {/* Actions – keep your existing buttons */}
+  <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', flexWrap: 'wrap', marginTop: '16px' }}>
+    <button
+      type="button"
+      style={{ padding: isMobile ? '14px 24px' : '12px 24px', border: '1px solid #ddd', borderRadius: '8px', backgroundColor: '#fff', color: '#333', cursor: 'pointer', fontSize: isMobile ? '15px' : '14px' }}
+      onClick={() => { setShowAddForm(false); setAddressError(""); }}
+    >
+      Cancel
+    </button>
+    <button
+      type="submit"
+      style={{ padding: isMobile ? '14px 24px' : '12px 24px', border: 'none', borderRadius: '8px', backgroundColor: '#28a745', color: 'white', cursor: 'pointer', fontSize: isMobile ? '15px' : '14px', fontWeight: '500' }}
+    >
+      Save Address
+    </button>
+  </div>
+</form>
                 </div>
               )}
 
@@ -1258,7 +1300,7 @@ lastName: "",
                     gap: isMobile ? '16px' : '20px'
                   }}>
                     {addresses.map((addr, index) => (
-                      <div key={addr._id} style={{
+                      <div key={addr._id || addr.id || `${addr.address}-${index}`} style={{
                         backgroundColor: '#ffffff',
                         border: '1px solid #e9ecef',
                         borderRadius: '12px',
@@ -1364,7 +1406,7 @@ lastName: "",
                               justifyContent: 'center',
                               gap: '6px'
                             }}
-                            onClick={() => handleDeleteAddress(addr._id)}
+                            onClick={() => handleDeleteAddress(addr._id || addr.id)}
                           >
                             <span>🗑️</span>
                             Delete
