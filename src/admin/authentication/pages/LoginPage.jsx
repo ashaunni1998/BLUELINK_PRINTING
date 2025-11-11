@@ -60,7 +60,7 @@ function LoginPage() {
             } else if (message === 'Incorrect password. Please check and try again.') {
                 setError((prev) => ({ ...prev, passwordError: message }));
             } else {
-                // console.log('An unexpected error occurred:', message);
+                console.log('An unexpected error occurred:', message);
             }
         } finally {
             setIsLoading(false);

@@ -7,6 +7,7 @@ import { loadStripe } from "@stripe/stripe-js";
 import "./i18n";
 import './App.css';
 import ScrollToTop from "./ScrollToTop";
+import NotFound from "./pages/user/NotFound"; 
 
 import NotFoundPage from './admin/commonElements/NotFoundPage.jsx';
 import LoginPage from './admin/authentication/pages/LoginPage.jsx';
@@ -76,6 +77,9 @@ import CustomerRequirement from "./pages/user/CustomerRequirement.jsx";
 import UploadDesign from "./pages/user/UploadDesign.jsx";
 import Failure from './pages/user/Failure.jsx';
 
+
+
+import CustomFlyerPage from './pages/user/CustomFlyerPage';
 import AllProducts from './pages/user/AllProducts.jsx';
 
 import { AuthProvider } from '../src/context/AuthContext.jsx';
@@ -94,6 +98,7 @@ function App() {
           <Routes>
             {/* Public */}
             <Route path="/" element={<Home />} />
+             <Route path="*" element={<NotFound />} />
             <Route path="/signup" element={<SignUp />} />
             <Route path="/sign-in" element={<Signin />} />
             <Route path="/forgotpassword" element={<ForgotPassword />} />
@@ -132,7 +137,7 @@ function App() {
 
             <Route path="/blog" element={<Blog />} />
             <Route path="/blog/:id" element={<BlogDetail />} />
-            <Route path="/help-faq" element={<HelpAndFaqPage />} />
+            <Route path="/help" element={<HelpAndFaqPage />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/about" element={<Aboutus />} />
             <Route path="/terms" element={<TermsAndCondition />} />
@@ -144,7 +149,7 @@ function App() {
             <Route path="/design-selector/:id" element={<DesignSelector />} />
             <Route path="/other-design-selector/:id" element={<OtherCardDesigner />} />
             <Route path="/sample" element={<Sample />} />
-
+<Route path="/custom-flyer" element={<CustomFlyerPage />} />
             {/* Protected routes (Require auth) */}
             <Route
               path="/cart"
@@ -249,6 +254,8 @@ function App() {
             theme="light"
           />
         </Router>
+
+        
       </TranslateProvider>
     </AuthProvider>
   );

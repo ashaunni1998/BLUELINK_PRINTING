@@ -43,160 +43,113 @@ export default function Cart() {
     return sorted[0];
   };
 
- const normalizeCart = (cartData) => {
-  if (!cartData || !Array.isArray(cartData.items)) return [];
+  const normalizeCart = (cartData) => {
+    if (!cartData || !Array.isArray(cartData.items)) return [];
 
-  return cartData.items.map((i, idx) => {
-    const raw = i || {};
+    return cartData.items.map((i, idx) => {
+      const raw = i || {};
 
-    // console.log("🔍 Cart Item Debug:", {
-    //   index: idx,
-    //   raw: raw,
-    //   options: raw.options,
-    //   previewUrl_in_options: raw.options?.previewUrl,
-    //   uploadedUrl_in_options: raw.options?.uploadedUrl,
-    //   previewUrl_in_raw: raw.previewUrl,
-    //   uploadedUrl_in_raw: raw.uploadedUrl,
-    //   preparedPreview: raw.preparedPreview,
-    //   images: raw.images,
-    //   userImage: raw.userImage
-    // });
+         console.log("🔍 Cart Item Debug:", {
+      index: idx,
+      raw: raw,
+      options: raw.options,
+      previewUrl_in_options: raw.options?.previewUrl,
+      previewUrl_in_raw: raw.previewUrl,
+      preparedPreview: raw.preparedPreview,
+      uploadedUrl: raw.uploadedUrl,
+      images: raw.images,
+      userImage: raw.userImage
+    });
     
-    const productObj = (raw.productId && typeof raw.productId === "object") 
-      ? raw.productId 
-      : raw.product || null;
-    const productIdStr = productObj?._id 
-      ? String(productObj._id) 
-      : (raw.productId ? String(raw.productId) : `unknown-${idx}`);
+    
+      const productObj = (raw.productId && typeof raw.productId === "object") ? raw.productId : raw.product || null;
+      const productIdStr = productObj?._id ? String(productObj._id) : (raw.productId ? String(raw.productId) : `unknown-${idx}`);
 
-    const qty = Number(raw.quantity ?? raw.qty ?? 1) || 1;
+      const qty = Number(raw.quantity ?? raw.qty ?? 1) || 1;
 
-    const options = raw.options || raw.option || raw.designOptions || {};
-    const designType = (options.designType || raw.designType || raw.design || "single")
-      .toString()
-      .toLowerCase();
+      const options = raw.options || raw.option || raw.designOptions || {};
+      const designType = (options.designType || raw.designType || raw.design || "single").toString().toLowerCase();
 
-    const normalizeChoice = (val) => {
-      if (!val && val !== 0) return null;
-      if (typeof val === "object") return val;
-      return { name: String(val) };
-    };
+      const normalizeChoice = (val) => {
+        if (!val && val !== 0) return null;
+        if (typeof val === "object") return val;
+        return { name: String(val) };
+      };
 
-    const size = normalizeChoice(options.size ?? raw.size ?? raw.selectedSize);
-    const paper = normalizeChoice(options.paper ?? raw.paper ?? raw.selectedPaper);
-    const finish = normalizeChoice(options.finish ?? raw.finish);
-    const corner = normalizeChoice(options.corner ?? raw.corner);
+      const size = normalizeChoice(options.size ?? raw.size ?? raw.selectedSize);
+      const paper = normalizeChoice(options.paper ?? raw.paper ?? raw.selectedPaper);
+      const finish = normalizeChoice(options.finish ?? raw.finish);
+      const corner = normalizeChoice(options.corner ?? raw.corner);
 
-    const rawTiers = (productObj && 
-      (productObj.priceTiers || 
-       productObj.price_tiers || 
-       productObj.tiers || 
-       productObj.pricing?.priceTiers)) || null;
+      const rawTiers = (productObj && (productObj.priceTiers || productObj.price_tiers || productObj.tiers || productObj.pricing?.priceTiers)) || null;
 
-    const pickTierFromArr = (arr = [], q) => {
-      if (!Array.isArray(arr) || !arr.length) return null;
-      const sorted = arr
-        .map(t => ({ ...t, _qty: Number(t.qty ?? t.quantity ?? t.minQty ?? 0) }))
-        .filter(t => Number.isFinite(t._qty))
-        .sort((a, b) => a._qty - b._qty);
-      if (!sorted.length) return null;
-      const exact = sorted.find(t => t._qty === Number(q));
-      if (exact) return exact;
-      for (let i = sorted.length - 1; i >= 0; i--) {
-        if (sorted[i]._qty <= Number(q)) return sorted[i];
+      const pickTierFromArr = (arr = [], q) => {
+        if (!Array.isArray(arr) || !arr.length) return null;
+        const sorted = arr.map(t => ({ ...t, _qty: Number(t.qty ?? t.quantity ?? t.minQty ?? 0) }))
+                          .filter(t => Number.isFinite(t._qty))
+                          .sort((a,b)=>a._qty-b._qty);
+        if (!sorted.length) return null;
+        const exact = sorted.find(t => t._qty === Number(q));
+        if (exact) return exact;
+        for (let i = sorted.length - 1; i >= 0; i--) {
+          if (sorted[i]._qty <= Number(q)) return sorted[i];
+        }
+        return sorted[0];
+      };
+
+      const tier = rawTiers ? pickTierFromArr(rawTiers, qty) : null;
+
+      const savedUnit = (raw.unitPrice !== undefined && raw.unitPrice !== null) ? Number(raw.unitPrice) : NaN;
+      const savedShip = (raw.shippingPrice !== undefined && raw.shippingPrice !== null) ? Number(raw.shippingPrice) : NaN;
+
+      let unitPrice = Number.isFinite(savedUnit) ? savedUnit : NaN;
+      let shippingPrice = Number.isFinite(savedShip) ? savedShip : NaN;
+
+      if ((!Number.isFinite(unitPrice) || !Number.isFinite(shippingPrice)) && tier) {
+        unitPrice = Number(tier.priceSingle ?? tier.price ?? 0);
+        shippingPrice = Number(tier.shippingCharge ?? tier.shippingPrice ?? 0);
       }
-      return sorted[0];
-    };
 
-    const tier = rawTiers ? pickTierFromArr(rawTiers, qty) : null;
+      if (!Number.isFinite(unitPrice) && productObj) unitPrice = Number(productObj.basePrice ?? productObj.price ?? 0);
+      if (!Number.isFinite(shippingPrice) && productObj) shippingPrice = Number(productObj.shippingCharge ?? productObj.shippingPrice ?? 0);
 
-    const savedUnit = (raw.unitPrice !== undefined && raw.unitPrice !== null) 
-      ? Number(raw.unitPrice) 
-      : NaN;
-    const savedShip = (raw.shippingPrice !== undefined && raw.shippingPrice !== null) 
-      ? Number(raw.shippingPrice) 
-      : NaN;
+      if (!Number.isFinite(unitPrice)) unitPrice = 0;
+      if (!Number.isFinite(shippingPrice)) shippingPrice = 0;
 
-    let unitPrice = Number.isFinite(savedUnit) ? savedUnit : NaN;
-    let shippingPrice = Number.isFinite(savedShip) ? savedShip : NaN;
+      const lineTotal = Number((unitPrice + shippingPrice).toFixed(2));
 
-    if ((!Number.isFinite(unitPrice) || !Number.isFinite(shippingPrice)) && tier) {
-      unitPrice = Number(tier.priceSingle ?? tier.price ?? 0);
-      shippingPrice = Number(tier.shippingCharge ?? tier.shippingPrice ?? 0);
-    }
+const image =
+  (options.previewUrl) ||  // ✅ Prioritize previewUrl from options
+  (raw.previewUrl) ||      // ✅ Check raw.previewUrl
+  (raw.preparedPreview) ||
+  (raw.uploadedUrl) ||
+  (Array.isArray(raw.userImage) && raw.userImage.length && raw.userImage[0]) ||
+  ((Array.isArray(raw.images) && raw.images.length && raw.images[0]) ? raw.images[0] : null) ||
+  ((Array.isArray(productObj?.images) && productObj.images.length && productObj.images[0]) ? productObj.images[0] : productObj?.image ?? "");
 
-    if (!Number.isFinite(unitPrice) && productObj) {
-      unitPrice = Number(productObj.basePrice ?? productObj.price ?? 0);
-    }
-    if (!Number.isFinite(shippingPrice) && productObj) {
-      shippingPrice = Number(productObj.shippingCharge ?? productObj.shippingPrice ?? 0);
-    }
+      const name = productObj?.name ?? raw.rawName ?? raw.name ?? "(Product unavailable)";
 
-    if (!Number.isFinite(unitPrice)) unitPrice = 0;
-    if (!Number.isFinite(shippingPrice)) shippingPrice = 0;
-
-    const lineTotal = Number((unitPrice + shippingPrice).toFixed(2));
-
-    // ✅ FIXED: Prioritize framed preview URLs for personalized gifts
-    // Check multiple possible locations where the preview URL might be stored
-    const framePreviewUrl = 
-      options.previewUrl ||           // First priority: options.previewUrl
-      options.uploadedUrl ||          // Second: options.uploadedUrl
-      raw.previewUrl ||               // Third: raw.previewUrl
-      raw.uploadedUrl ||              // Fourth: raw.uploadedUrl
-      raw.preparedPreview ||          // Fifth: preparedPreview
-      null;
-
-    // ✅ For regular products or fallback, use standard images
-    const fallbackImage = 
-      (Array.isArray(raw.userImage) && raw.userImage.length && raw.userImage[0]) ||
-      (Array.isArray(raw.images) && raw.images.length && raw.images[0]) ||
-      (Array.isArray(productObj?.images) && productObj.images.length && productObj.images[0]) ||
-      productObj?.image ||
-      "";
-
-    // ✅ Use framed preview if available, otherwise use fallback
-    const image = framePreviewUrl || fallbackImage;
-
-    const name = productObj?.name ?? raw.rawName ?? raw.name ?? "(Product unavailable)";
-
-    // ✅ Add isPersonalized flag for debugging
-    const isPersonalized = !!(framePreviewUrl);
-
-    // console.log("🖼️ Image selection:", {
-    //   productName: name,
-    //   isPersonalized,
-    //   selectedImage: image,
-    //   framePreviewUrl,
-    //   fallbackImage
-    // });
-
-    return {
-      raw,
-      id: raw._id || `${productIdStr}-${idx}-${Date.now()}`,
-      productId: productIdStr,
-      name,
-      image,
-      isPersonalized, // ✅ Add this flag
-      qty,
-      allowedQtyOptions: (Array.isArray(productObj?.priceTiers) 
-        ? productObj.priceTiers
-            .map(t => Number(t.qty ?? t.quantity ?? t.minQty ?? 0))
-            .filter(Boolean) 
-        : [qty]),
-      unitPrice,
-      shippingPrice,
-      lineTotal,
-      designType,
-      product: productObj,
-      size,
-      paper,
-      finish,
-      corner,
-      options: { ...options, size, paper, finish, corner }
-    };
-  });
-};
+      return {
+        raw,
+       id: raw._id || `${productIdStr}-${idx}-${Date.now()}`,  // ✅ REPLACE WITH THIS
+  productId: productIdStr,
+        name,
+        image,
+        qty,
+        allowedQtyOptions: (Array.isArray(productObj?.priceTiers) ? productObj.priceTiers.map(t => Number(t.qty ?? t.quantity ?? t.minQty ?? 0)).filter(Boolean) : [qty]),
+        unitPrice,
+        shippingPrice,
+        lineTotal,
+        designType,
+        product: productObj,
+        size,
+        paper,
+        finish,
+        corner,
+        options: { ...options, size, paper, finish, corner }
+      };
+    });
+  };
 
   const fetchProductById = async (id) => {
     try {
@@ -338,26 +291,80 @@ export default function Cart() {
     fetchCart();
   }, []);
 
-const removeItem = async (cartItemId) => {
+
+
+  const preprocessImageForCart = (imageUrl, maxWidth = 800, maxHeight = 800) => {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      let width = img.width;
+      let height = img.height;
+      
+      // Calculate scaled dimensions
+      if (width > maxWidth || height > maxHeight) {
+        const ratio = Math.min(maxWidth / width, maxHeight / height);
+        width = width * ratio;
+        height = height * ratio;
+      }
+      
+      canvas.width = width;
+      canvas.height = height;
+      
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, width, height);
+      
+      resolve(canvas.toDataURL('image/jpeg', 0.9));
+    };
+    
+    img.onerror = () => {
+      resolve(imageUrl); // Fallback to original
+    };
+    
+    img.src = imageUrl;
+  });
+};
+
+const removeItem = async (itemId) => {
   try {
+    // Find the item by its _id
     const item = items.find(
       (it) =>
-        String(it.id) === String(cartItemId) ||
-        String(it.raw?._id) === String(cartItemId)
+        String(it.raw?._id) === String(itemId) ||
+        String(it.id) === String(itemId)
     );
 
-    const productIdToSend =
-      item?.raw?.productId?._id || item?.raw?.productId || item?.productId;
-    const cartIdToSend = cartId;
-
-    if (!productIdToSend || !cartIdToSend) {
-      console.error("❌ Missing productId or cartId for removeItem");
+    if (!item) {
+      console.error("❌ Item not found");
       return;
     }
 
+    // Use the item's _id from the cart
+    const itemIdToRemove =
+  item?.raw?._id || item?.id || item?.raw?.productId || item?.productId;
+
+    const cartIdToSend = cartId;
+
+    console.log("🗑️ Removing item:", { 
+      itemId: itemIdToRemove, 
+      cartId: cartIdToSend 
+    });
+
+    if (!itemIdToRemove || !cartIdToSend) {
+      console.error("❌ Missing item _id or cartId");
+      return;
+    }
+
+    // Send request with item's _id
     const url = `${API_BASE_URL}/removeCartItem?productId=${encodeURIComponent(
-      productIdToSend
-    )}&cartId=${encodeURIComponent(cartIdToSend)}`;
+      itemIdToRemove
+    )}&cartId=${encodeURIComponent(
+      cartIdToSend
+    )}`;
+
+    console.log("🔗 DELETE URL:", url);
 
     const res = await fetch(url, {
       method: "DELETE",
@@ -365,16 +372,24 @@ const removeItem = async (cartItemId) => {
     });
 
     if (!res.ok) {
-      console.error("❌ Remove failed", res.status);
+      const errorText = await res.text();
+      console.error("❌ Remove failed:", res.status, errorText);
       await fetchCart();
       return;
     }
 
-    // ✅ Remove locally for instant UI feedback
-    setItems((prev) => prev.filter((it) => it.id !== cartItemId));
+    console.log("✅ Item removed successfully");
+
+    // Remove from local state using the item's _id
+    setItems((prev) => prev.filter((it) => 
+      String(it.raw?._id) !== String(itemIdToRemove)
+    ));
+    
+    // Refresh cart from backend
     await fetchCart();
+    
   } catch (err) {
-    console.error("removeItem error:", err);
+    console.error("❌ removeItem error:", err);
     await fetchCart();
   }
 };
@@ -394,6 +409,259 @@ const removeItem = async (cartItemId) => {
   return (
     <>
    
+
+
+
+
+
+ <div style={{ backgroundColor: "#e6f2ff", width: "100%", minHeight: "100vh" }}>
+ 
+        <div className="responsive-container">
+          <Header/>
+          <div className="unified-cart-container">
+            {items.length === 0 ? (
+              <div className="empty-state">
+                <div className="empty-icon">
+                  <ShoppingCart style={{ width: '2.5rem', height: '2.5rem', color: '#9ca3af' }} />
+                </div>
+                <h2 className="empty-title">Your cart is empty</h2>
+                <p className="empty-text">
+                  Looks like you haven't added any items to your cart yet. Start shopping to fill it up!
+                </p>
+                <a href="/" className="btn btn-primary" style={{ display: 'inline-flex', flex: 'none' }}>
+                  <ArrowLeft style={{ width: '1.25rem', height: '1.25rem' }} />
+                  <span>Continue Shopping</span>
+                </a>
+              </div>
+            ) : (
+              <>
+                <div className="cart-header">
+                  <h1 className="cart-title">Shopping Cart</h1>
+                  <p className="cart-subtitle">{items.length} {items.length === 1 ? 'item' : 'items'} in your cart</p>
+                </div>
+
+                <div className="unified-cart-content">
+                  {/* Cart Items */}
+{items.map((item, idx) => {
+  const itemId = item.raw?._id;
+  const keyId = itemId ? itemId : `${item.id}-${idx}`;
+  const uploadedImage =
+    item?.raw?.previewUrl ||
+    item?.raw?.preparedPreview ||
+    item?.raw?.uploadedUrl ||
+    (item?.raw?.userImage && item.raw.userImage.length > 0 && item.raw.userImage[0]) ||
+    (item?.raw?.images && item.raw.images.length > 0 && item.raw.images[0]) ||
+    (item?.images && item.images.length > 0 && item.images[0]) ||
+    item?.image ||
+    null;
+
+  const getFileType = (url) => {
+    if (!url) return 'unknown';
+    const ext = url.split('.').pop().toLowerCase().split('?')[0];
+    if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg'].includes(ext)) return 'image';
+    if (ext === 'pdf') return 'pdf';
+    if (ext === 'ai') return 'ai';
+    if (ext === 'psd') return 'psd';
+    if (ext === 'indd') return 'indd';
+    return 'other';
+  };
+
+  const fileType = getFileType(uploadedImage);
+  const fileName = uploadedImage ? uploadedImage.split('/').pop().split('?')[0] : '';
+
+  return (
+    <div key={keyId} className="professional-cart-card">
+      <div className="product-image-wrapper">
+        {!uploadedImage ? (
+          <div className="product-no-image">
+            <ShoppingCart size={24} />
+            <span>No Preview</span>
+          </div>
+        ) : fileType === 'image' ? (
+          <img
+            src={uploadedImage}
+            alt={item.name || "Product"}
+            className="product-image"
+          />
+        ) : fileType === 'pdf' ? (
+          <div className="design-file-card pdf-card">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M7 2h10a2 2 0 012 2v16a2 2 0 01-2 2H7a2 2 0 01-2-2V4a2 2 0 012-2zm3 6h4v2h-4V8zm0 4h4v2h-4v-2zm0 4h4v2h-4v-2z"/>
+            </svg>
+            <span className="file-type-label">PDF</span>
+            <span className="file-name">{fileName.length > 12 ? fileName.substring(0, 12) + '...' : fileName}</span>
+          </div>
+        ) : fileType === 'ai' ? (
+          <div className="design-file-card ai-card">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M7 2h10a2 2 0 012 2v16a2 2 0 01-2 2H7a2 2 0 01-2-2V4a2 2 0 012-2zm3 8v4h4v-4h-4z"/>
+            </svg>
+            <span className="file-type-label">AI</span>
+            <span className="file-name">{fileName.length > 12 ? fileName.substring(0, 12) + '...' : fileName}</span>
+          </div>
+        ) : fileType === 'psd' ? (
+          <div className="design-file-card psd-card">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M7 2h10a2 2 0 012 2v16a2 2 0 01-2 2H7a2 2 0 01-2-2V4a2 2 0 012-2zm2 8h6v2H9v-2zm0 4h6v2H9v-2z"/>
+            </svg>
+            <span className="file-type-label">PSD</span>
+            <span className="file-name">{fileName.length > 12 ? fileName.substring(0, 12) + '...' : fileName}</span>
+          </div>
+        ) : fileType === 'indd' ? (
+          <div className="design-file-card indd-card">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M7 2h10a2 2 0 012 2v16a2 2 0 01-2 2H7a2 2 0 01-2-2V4a2 2 0 012-2zm1 4v12h8V6H8z"/>
+            </svg>
+            <span className="file-type-label">INDD</span>
+            <span className="file-name">{fileName.length > 12 ? fileName.substring(0, 12) + '...' : fileName}</span>
+          </div>
+        ) : (
+          <div className="design-file-card other-card">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            <span className="file-type-label">FILE</span>
+            <span className="file-name">{fileName.length > 12 ? fileName.substring(0, 12) + '...' : fileName}</span>
+          </div>
+        )}
+      </div>
+
+      <div className="product-details-section">
+        <div className="title-price-row">
+          <h3 className="product-title">{item.name}</h3>
+          <div className="product-price">
+            {currencySymbol(currency)}{formatMoney(item.unitPrice)}
+          </div>
+        </div>
+
+        <div className="specs-grid">
+          <div className="spec-item">
+            <span className="spec-label">Design:</span>
+            <span className="spec-value">{item.designType}</span>
+          </div>
+          {item.size?.name && (
+            <div className="spec-item">
+              <span className="spec-label">Size:</span>
+              <span className="spec-value">{item.size.name}</span>
+            </div>
+          )}
+          {item.paper?.name && (
+            <div className="spec-item">
+              <span className="spec-label">Paper:</span>
+              <span className="spec-value">{item.paper.name}</span>
+            </div>
+          )}
+          {item.finish?.name && (
+            <div className="spec-item">
+              <span className="spec-label">Finish:</span>
+              <span className="spec-value">{item.finish.name}</span>
+            </div>
+          )}
+          {item.corner?.name && (
+            <div className="spec-item">
+              <span className="spec-label">Corner:</span>
+              <span className="spec-value">{item.corner.name}</span>
+            </div>
+          )}
+        </div>
+
+        <div className="actions-row">
+          <div className="qty-wrapper">
+            <span className="qty-label">Qty:</span>
+            <select
+              value={item.qty}
+              onChange={(e) => {
+                const newQty = e.target.value;
+                const cartItemIdToSend = item.raw?._id ?? item.id;
+                updateCartQty(cartItemIdToSend, newQty);
+              }}
+              disabled={!!updatingMap[item.raw?._id ?? item.id] || !cartId}
+              className="qty-select"
+            >
+              {item.allowedQtyOptions.map((q) => (
+                <option key={`${item.id}-qty-${q}`} value={q}>
+                  {q}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <button
+            onClick={() => {
+              console.log("🗑 Remove clicked:", {
+                rawId: item.raw?._id,
+                id: item.id,
+                productId: item.productId,
+              });
+              removeItem(item.raw?._id || item.id || item.productId);
+            }}
+            className="remove-button"
+          >
+            <Trash2 size={16} />
+            <span>Remove</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+})}
+                  {/* Order Summary */}
+                  <div className="cart-summary">
+                    <div className="summary-rows">
+                      <div className="summary-row">
+                        <span className="summary-row-label">Subtotal ({items.length} {items.length === 1 ? 'item' : 'items'})</span>
+                        <span className="summary-row-value">
+                          {currencySymbol(currency)}{formatMoney(subtotal)}
+                        </span>
+                      </div>
+
+                      {/* {shippingTotal > 0 && (
+                        <div className="summary-row">
+                          <span className="summary-row-label">Shipping</span>
+                          <span className="summary-row-value">
+                            {currencySymbol(currency)}{formatMoney(shippingTotal)}
+                          </span>
+                        </div>
+                      )} */}
+                    </div>
+
+                    <div className="summary-total">
+                      <span className="summary-total-label">Total</span>
+                      <span className="summary-total-value">
+                        {currencySymbol(currency)}{formatMoney(subtotal)}
+                      </span>
+                    </div>
+
+                    <div className="action-buttons">
+                      <a href="/checkout" className="btn btn-primary">
+                        <CreditCard style={{ width: '1.25rem', height: '1.25rem' }} />
+                        <span>Proceed to Checkout</span>
+                      </a>
+                      <a href="/" className="btn btn-secondary">
+                        <ArrowLeft style={{ width: '1.25rem', height: '1.25rem' }} />
+                        <span>Continue Shopping</span>
+                      </a>
+                    </div>
+
+                    <div className="trust-badges">
+                      <div className="trust-badge">
+                        <div className="trust-badge-icon" style={{ background: '#10b981' }}></div>
+                        <span>Secure Checkout</span>
+                      </div>
+                      <div className="trust-badge">
+                        <div className="trust-badge-icon" style={{ background: '#3b82f6' }}></div>
+                        <span>Free Returns</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+          <Footer />
+
+        </div>
+        </div>
 <style>{`
   * {
     box-sizing: border-box;
@@ -413,29 +681,6 @@ const removeItem = async (cartItemId) => {
     display: flex;
     flex-direction: column;
     min-height: 100vh;
-  }
-
-  .responsive-container {
-    padding: 0;
-    margin: 0;
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-  }
-
-  /* Header and Footer: let them be full-width */
-  header {
-    width: 100%;
-    margin: 0;
-    padding: 0;
-  }
-
-  footer {
-    width: 100%;
-    margin: 0;
-    padding: 0;
-    margin-top: auto;
   }
 
   .unified-cart-container {
@@ -482,163 +727,300 @@ const removeItem = async (cartItemId) => {
   }
 
   .unified-cart-content {
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    overflow: visible;
+    padding: 0;
+  }
+
+  .professional-cart-card {
     background: white;
+    border-radius: 12px;
     border: 1px solid #e5e7eb;
-    border-radius: 1rem;
+    padding: 16px;
+    margin-bottom: 16px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    transition: all 0.2s ease;
+    display: grid;
+    grid-template-columns: 80px 1fr;
+    gap: 16px;
+    align-items: start;
+  }
+
+  .professional-cart-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border-color: #d1d5db;
+  }
+
+  .professional-cart-card:last-of-type {
+    margin-bottom: 0;
+  }
+
+  .product-image-wrapper {
+    width: 80px;
+    height: 80px;
+    margin: 0;
+    border-radius: 8px;
     overflow: hidden;
+    background: #f9fafb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #e5e7eb;
+    flex-shrink: 0;
   }
 
-.cart-item {
-  padding: 1.25rem;
-  border-bottom: 1px solid #e5e7eb;
-  display: flex;
-  gap: 1rem;
-  flex-direction: column;
-  overflow: hidden; /* ✅ ADD THIS */
-}
-
-  @media (min-width: 640px) {
-    .cart-item {
-      flex-direction: row;
-      gap: 1.5rem;
-      padding: 1.5rem;
-    }
+  .product-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    padding: 0;
   }
 
-  .cart-item:last-of-type {
-    border-bottom: 2px solid #e5e7eb;
-  }
-
-.item-image-wrapper {
-  position: relative;
-  flex-shrink: 0;
-  width: 100%;
-  max-width: 400px;
-  height: 400px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 1rem;
-  overflow: hidden;
-  background: #f3f4f6;
-  padding: 1rem;
-  box-sizing: border-box; /* ✅ ADD THIS */
-}
-
-@media (min-width: 640px) {
-  .item-image-wrapper {
-    width: 120px;
-    height: 120px;
-    padding: 0.5rem;
-    max-width: 120px; /* ✅ ADD THIS */
-  }
-}
-
-.item-image {
-  max-width: 90%; /* ✅ Scale down to 90% */
-  max-height: 90%;
-  width: auto !important;
-  height: auto !important;
-  object-fit: contain;
-  object-position: center;
-  display: block;
-  transform: scale(0.9); /* ✅ Force scale down */
-}
-
-@media (min-width: 640px) {
-  .item-image {
-    max-width: calc(100% - 1rem);
-    max-height: calc(100% - 1rem);
-  }
-}
-
-  .item-details {
-    flex: 1;
+  .product-no-image {
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
+    align-items: center;
+    gap: 4px;
+    color: #9ca3af;
+    font-size: 10px;
+    text-align: center;
   }
 
-  .item-header {
+  .product-no-image svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  .product-details-section {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    min-width: 0;
+  }
+
+  .title-price-row {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    gap: 1rem;
+    gap: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #f3f4f6;
   }
 
-  .item-name {
-    font-size: 1.125rem;
+  .product-title {
+    font-size: 16px;
     font-weight: 600;
     color: #111827;
+    line-height: 1.4;
     margin: 0;
+    flex: 1;
   }
 
-  .item-price {
-    font-size: 1.25rem;
+  .product-price {
+    font-size: 18px;
     font-weight: 700;
-    color: #111827;
+    color: #007abf;
     white-space: nowrap;
+    flex-shrink: 0;
   }
 
-  .item-options {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 1rem;
-    font-size: 0.875rem;
-    color: #6b7280;
+  .specs-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #f3f4f6;
   }
 
-  .item-option {
+  .spec-item {
     display: flex;
+    flex-direction: row;
     align-items: center;
-    gap: 0.375rem;
+    gap: 8px;
   }
 
-  .item-option strong {
-    color: #374151;
+  .spec-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    min-width: 60px;
+  }
+
+  .spec-value {
+    font-size: 14px;
+    font-weight: 600;
+    color: #111827;
     text-transform: capitalize;
   }
 
-  .quantity-select {
-    padding: 0.375rem 0.625rem;
-    border-radius: 0.375rem;
-    border: 1px solid #d1d5db;
-    font-size: 0.875rem;
-    background: white;
-    cursor: pointer;
+  .actions-row {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .qty-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    gap: 12px;
+  }
+
+  .qty-label {
+    font-size: 13px;
+    font-weight: 600;
     color: #374151;
   }
 
-  .quantity-select:focus {
+  .qty-select {
+    flex: 1;
+    max-width: 120px;
+    padding: 6px 28px 6px 10px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    background: white;
+    font-size: 13px;
+    font-weight: 500;
+    color: #374151;
+    cursor: pointer;
+    transition: all 0.2s;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23374151' d='M6 8L2 4h8z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+  }
+
+  .qty-select:hover {
+    border-color: #007abf;
+    background-color: #f9fafb;
+  }
+
+  .qty-select:focus {
     outline: none;
     border-color: #007abf;
     box-shadow: 0 0 0 3px rgba(0, 122, 191, 0.1);
   }
 
-  .quantity-select:disabled {
-    opacity: 0.6;
+  .qty-select:disabled {
+    opacity: 0.5;
     cursor: not-allowed;
+    background-color: #f3f4f6;
   }
 
-  .remove-btn {
+  .remove-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    gap: 6px;
+    padding: 8px 12px;
     background: transparent;
-    border: none;
-    color: #ef4444;
+    border: 1px solid #fecaca;
+    border-radius: 8px;
+    color: #dc2626;
+    font-size: 13px;
+    font-weight: 500;
     cursor: pointer;
-    font-size: 0.875rem;
-    padding: 0.25rem 0;
-    text-decoration: underline;
-    margin-top: 0.25rem;
-    align-self: flex-start;
+    transition: all 0.2s;
   }
 
-  .remove-btn:hover {
-    color: #dc2626;
+  .remove-button:hover {
+    background: #fef2f2;
+    border-color: #dc2626;
+    transform: translateY(-1px);
+  }
+
+  .remove-button:active {
+    transform: translateY(0);
+  }
+
+  @media (min-width: 768px) {
+    .professional-cart-card {
+      padding: 20px;
+      grid-template-columns: 100px 1fr;
+      gap: 20px;
+    }
+
+    .product-image-wrapper {
+      width: 100px;
+      height: 100px;
+    }
+
+    .product-title {
+      font-size: 18px;
+    }
+
+    .product-price {
+      font-size: 20px;
+    }
+
+    .specs-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+
+    .spec-item {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 4px;
+    }
+
+    .spec-label {
+      min-width: auto;
+    }
+
+    .actions-row {
+      flex-direction: row;
+      justify-content: flex-start;
+      gap: 16px;
+    }
+
+    .qty-wrapper {
+      width: auto;
+    }
+
+    .remove-button {
+      width: auto;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .professional-cart-card {
+      grid-template-columns: 120px 1fr;
+      gap: 24px;
+      padding: 24px;
+    }
+
+    .product-image-wrapper {
+      width: 120px;
+      height: 120px;
+    }
+
+    .product-title {
+      font-size: 20px;
+    }
+
+    .product-price {
+      font-size: 24px;
+    }
+
+    .specs-grid {
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
   }
 
   .cart-summary {
     padding: 1.5rem 1.25rem;
     background: #f9fafb;
+    border-radius: 12px;
+    margin-top: 16px;
   }
 
   @media (min-width: 640px) {
@@ -798,202 +1180,120 @@ const removeItem = async (cartItemId) => {
     margin-left: auto;
     margin-right: auto;
   }
+
+  .pdf-preview-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: #f9fafb;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.pdf-iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  pointer-events: none;
+}
+
+.file-type-badge {
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  background: rgba(239, 68, 68, 0.95);
+  color: white;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 9px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.pdf-badge {
+  background: rgba(239, 68, 68, 0.95);
+}
+
+.design-file-card {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 8px;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.pdf-card {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+}
+
+.ai-card {
+  background: linear-gradient(135deg, #ff9a00 0%, #ff6a00 100%);
+  color: white;
+}
+
+.psd-card {
+  background: linear-gradient(135deg, #001d34 0%, #0077b5 100%);
+  color: white;
+}
+
+.indd-card {
+  background: linear-gradient(135deg, #ff3366 0%, #d9006b 100%);
+  color: white;
+}
+
+.other-card {
+  background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+  color: white;
+}
+
+.file-type-label {
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+
+.file-name {
+  font-size: 8px;
+  font-weight: 500;
+  opacity: 0.9;
+  line-height: 1.2;
+  word-break: break-all;
+  max-width: 100%;
+}
+
+@media (min-width: 768px) {
+  .file-type-label {
+    font-size: 13px;
+  }
+
+  .file-name {
+    font-size: 9px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .file-type-label {
+    font-size: 14px;
+  }
+
+  .file-name {
+    font-size: 10px;
+  }
+}
+  
 `}</style>
-
-
-
-
-
-      <div className="page-container">
-        
-        <div className="responsive-container">
-          <Header />
-
-          <div className="unified-cart-container">
-            {items.length === 0 ? (
-              <div className="empty-state">
-                <div className="empty-icon">
-                  <ShoppingCart style={{ width: '2.5rem', height: '2.5rem', color: '#9ca3af' }} />
-                </div>
-                <h2 className="empty-title">Your cart is empty</h2>
-                <p className="empty-text">
-                  Looks like you haven't added any items to your cart yet. Start shopping to fill it up!
-                </p>
-                <a href="/" className="btn btn-primary" style={{ display: 'inline-flex', flex: 'none' }}>
-                  <ArrowLeft style={{ width: '1.25rem', height: '1.25rem' }} />
-                  <span>Continue Shopping</span>
-                </a>
-              </div>
-            ) : (
-              <>
-                <div className="cart-header">
-                  <h1 className="cart-title">Shopping Cart</h1>
-                  <p className="cart-subtitle">{items.length} {items.length === 1 ? 'item' : 'items'} in your cart</p>
-                </div>
-
-                <div className="unified-cart-content">
-                  {/* Cart Items */}
-                  {items.map((item, idx) => {
-                    const cartItemId = item.raw?._id ?? null;
-                    const keyId = cartItemId ? cartItemId : `${item.id}-${idx}`;
-                 // ✅ Prioritize previewUrl for framed personalized items
-const displayImage = item.image;
-                    return (
-                  <div key={keyId} className="cart-item">
-    <div className="item-image-wrapper">
-      {displayImage ? (
-        <img
-          src={displayImage}
-          alt={item.name || "Product"}
-          className="item-image"
-          onError={(e) => {
-            console.error("❌ Image failed to load:", displayImage);
-            e.target.style.display = 'none';
-            e.target.parentElement.innerHTML = `
-              <div style="text-align: center; color: #9ca3af; fontSize: 0.8125rem">
-                Image unavailable
-              </div>
-            `;
-          }}
-        />
-      ) : (
-        <div style={{ textAlign: "center", color: "#9ca3af", fontSize: "0.8125rem" }}>
-          No image
-        </div>
-      )}
-    </div>
-
-                        <div className="item-details">
-                          <div className="item-header">
-                            <h3 className="item-name">{item.name}</h3>
-                            <div className="item-price">
-                              {currencySymbol(currency)}{formatMoney(item.unitPrice)}
-                            </div>
-                          </div>
-
-                          <div className="item-options">
-                            <div className="item-option">
-                              <span>Design:</span>
-                              <strong>{item.designType}</strong>
-                            </div>
-
-                            <div className="item-option">
-                              <span>Qty:</span>
-                              <select
-                                value={item.qty}
-                                onChange={(e) => {
-                                  const newQty = e.target.value;
-                                  const cartItemIdToSend = item.raw?._id ?? item.id;
-                                  updateCartQty(cartItemIdToSend, newQty);
-                                }}
-                                disabled={!!updatingMap[item.raw?._id ?? item.id] || !cartId}
-                                className="quantity-select"
-                              >
-                                {item.allowedQtyOptions.map((q) => (
-                                  <option key={`${item.id}-qty-${q}`} value={q}>
-                                    {q}
-                                  </option>
-                                ))}
-                              </select>
-                            </div>
-
-                            {item.size?.name && (
-                              <div className="item-option">
-                                <span>Size:</span>
-                                <strong>{item.size.name}</strong>
-                              </div>
-                            )}
-
-                            {item.paper?.name && (
-                              <div className="item-option">
-                                <span>Paper:</span>
-                                <strong>{item.paper.name}</strong>
-                              </div>
-                            )}
-
-                            {item.finish?.name && (
-                              <div className="item-option">
-                                <span>Finish:</span>
-                                <strong>{item.finish.name}</strong>
-                              </div>
-                            )}
-
-                            {item.corner?.name && (
-                              <div className="item-option">
-                                <span>Corner:</span>
-                                <strong>{item.corner.name}</strong>
-                              </div>
-                            )}
-                          </div>
-
-                          <button
-                            onClick={() => removeItem(item.id)}
-                            className="remove-btn"
-                          >
-                            Remove
-                          </button>
-                        </div>
-                      </div>
-                    );
-                  })}
-
-                  {/* Order Summary */}
-                  <div className="cart-summary">
-                    <div className="summary-rows">
-                      <div className="summary-row">
-                        <span className="summary-row-label">Subtotal ({items.length} {items.length === 1 ? 'item' : 'items'})</span>
-                        <span className="summary-row-value">
-                          {currencySymbol(currency)}{formatMoney(subtotal)}
-                        </span>
-                      </div>
-
-                      {/* {shippingTotal > 0 && (
-                        <div className="summary-row">
-                          <span className="summary-row-label">Shipping</span>
-                          <span className="summary-row-value">
-                            {currencySymbol(currency)}{formatMoney(shippingTotal)}
-                          </span>
-                        </div>
-                      )} */}
-                    </div>
-
-                    <div className="summary-total">
-                      <span className="summary-total-label">Total</span>
-                      <span className="summary-total-value">
-                        {currencySymbol(currency)}{formatMoney(subtotal)}
-                      </span>
-                    </div>
-
-                    <div className="action-buttons">
-                      <a href="/checkout" className="btn btn-primary">
-                        <CreditCard style={{ width: '1.25rem', height: '1.25rem' }} />
-                        <span>Proceed to Checkout</span>
-                      </a>
-                      <a href="/" className="btn btn-secondary">
-                        <ArrowLeft style={{ width: '1.25rem', height: '1.25rem' }} />
-                        <span>Continue Shopping</span>
-                      </a>
-                    </div>
-
-                    <div className="trust-badges">
-                      <div className="trust-badge">
-                        <div className="trust-badge-icon" style={{ background: '#10b981' }}></div>
-                        <span>Secure Checkout</span>
-                      </div>
-                      <div className="trust-badge">
-                        <div className="trust-badge-icon" style={{ background: '#3b82f6' }}></div>
-                        <span>Free Returns</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </>
-            )}
-          </div>
-
-          <Footer />
-        </div>
-      </div>
     </>
     
   );

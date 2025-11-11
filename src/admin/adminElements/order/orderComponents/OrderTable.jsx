@@ -7,7 +7,46 @@ import OrderViewModal from '../orderModal/OrderViewModal';
 
 import { useState } from 'react';
 
+const parseMoneySafe = (raw, itemsSubtotal = 0) => {
+  if (raw == null || raw === "") return 0;
+  const n = Number(raw);
+  if (!isFinite(n)) return 0;
+  if (Number(raw) >= 100 && !String(raw).includes(".") && itemsSubtotal < 1000) {
+    return Number((n / 100).toFixed(2));
+  }
+  return Number(n.toFixed(2));
+};
 
+const computeOrderTotal = (order) => {
+  if (!order) return 0;
+  const rawItems = order.orderItems || order.items || [];
+  const itemsSubtotal = rawItems.reduce((sum, it) => {
+    const rawLine = it.lineTotal ?? it.line_total ?? it.total ?? it.subtotal ?? it.amount ?? null;
+    const rawUnit = it.unitPrice ?? it.price ?? it.pricePerUnit ?? null;
+    const parsedLine = Number(rawLine) || 0;
+    const parsedUnit = Number(rawUnit) || 0;
+    const line = (parsedLine && parsedLine > 0) ? parsedLine : (parsedUnit && parsedUnit > 0 ? parsedUnit : 0);
+    return sum + Number(line);
+  }, 0);
+
+  const getRaw = (keys, fallback = 0) => {
+    for (const k of keys) {
+      if (k !== undefined && k !== null) return k;
+    }
+    return fallback;
+  };
+
+  const rawShipping = getRaw([order.shippingPrice, order.shipping, order.shipping_amount, order.shipping_price], 0);
+  const shipping = parseMoneySafe(rawShipping, itemsSubtotal);
+
+  const rawTax = getRaw([order.taxPrice, order.tax, order.tax_amount, order.tax_price], 0);
+  const tax = parseMoneySafe(rawTax, itemsSubtotal);
+
+  const rawDiscount = getRaw([order.discountAmount, order.discount, order.discount_amount, order.couponDiscount], 0);
+  const discount = parseMoneySafe(rawDiscount, itemsSubtotal);
+
+  return Number((itemsSubtotal + shipping + tax - discount).toFixed(2));
+};
 function OrderTable({ orders, loading,setOrders }) {
 
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -76,7 +115,7 @@ function OrderTable({ orders, loading,setOrders }) {
             fullId: order._id,
             customerName: order.user?.firstName + " " + order.user?.lastName || 'N/A',
             customerEmail: order.user?.email || 'N/A',
-            totalAmount: order.totalPrice || 0,
+            totalAmount: computeOrderTotal(order) || (order.totalPrice || 0),
             orderDate: order.createdAt,
             status: order.status || 'Unknown',
             paymentMethod: order.paymentMethod || 'Not specified',
@@ -116,7 +155,7 @@ function OrderTable({ orders, loading,setOrders }) {
             
             setIsModalOpen(false)
         } catch (error) {
-            // console.log('Error updating order status:', error);
+            console.log('Error updating order status:', error);
             
         }finally{
             setUpLoading(false);

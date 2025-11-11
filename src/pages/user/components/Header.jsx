@@ -23,7 +23,7 @@ export default function Header() {
 
   // --- menu cache keys and static endings ---
   const STATIC_END_ITEMS = [
-    { _id: "__help_faq__", name: "Help & Faq", path: "/help-faq", products: [] },
+    { _id: "__help_faq__", name: "Help & Faq", path: "/help", products: [] },
     { _id: "__the_blog__", name: "The Blog", path: "/blog", products: [] },
   ];
   
@@ -39,6 +39,9 @@ export default function Header() {
   const [loading, setLoading] = useState(false);
   // const [authLoading, setAuthLoading] = useState(false);
 
+
+  // Add this with your other state declarations (around line 35)
+const [outOfStockCategories, setOutOfStockCategories] = useState([]);
   const accountTimeoutRef = useRef(null);
   const hoverTimeoutRef = useRef(null);
  
@@ -69,6 +72,9 @@ useEffect(() => {
   window.addEventListener("resize", onResize);
   return () => window.removeEventListener("resize", onResize);
 }, [isWindow]);
+
+
+
 
 
 // --- Addresses (fetch only when user is logged in) ---
@@ -138,6 +144,9 @@ useEffect(() => {
   window.addEventListener("resize", onResize);
   return () => window.removeEventListener("resize", onResize);
 }, [isWindow]);
+
+
+
 
 
   // --- menu cache keys and static endings ---
@@ -220,11 +229,12 @@ useEffect(() => {
         const data = await res.json();
         const itemsRaw = (data && data.data) ? data.data : Array.isArray(data) ? data : [];
         const normalized = normalize(itemsRaw);
-        const final = mergeWithStaticLast(normalized);
-        if (!cancelled) {
-          setMenuItems(final);
-          writeCache(normalized);
-        }
+       const final = mergeWithStaticLast(normalized);
+const withCustomFlyer = injectCustomFlyer(final); // ADD THIS
+if (!cancelled) {
+  setMenuItems(withCustomFlyer); // CHANGE from 'final' to 'withCustomFlyer'
+  writeCache(normalized);
+}
         return normalized;
       } catch (err) {
         if (err.name === "AbortError") return null;
@@ -232,12 +242,42 @@ useEffect(() => {
         return null;
       }
     };
-
+// After the menuItems state is set from the API, add this useEffect to inject Custom Flyer
+const injectCustomFlyer = (items) => {
+  return items.map(item => {
+    const isFlyerCategory = 
+      item.name === "Flyers and Leaflets" || 
+      item.name === "Flyers & Leaflets" || 
+      item.name?.toLowerCase().includes("flyer");
+    
+    if (isFlyerCategory) {
+      const hasCustomFlyer = item.products?.some(p => p._id === "__custom_flyer__");
+      
+      if (!hasCustomFlyer) {
+        const customFlyerProduct = {
+          _id: "__custom_flyer__",
+          id: "__custom_flyer__",
+          name: "Custom Flyer",
+          path: "/custom-flyer",
+          isCustom: true
+        };
+        
+        return {
+          ...item,
+          products: [customFlyerProduct, ...(item.products || [])]
+        };
+      }
+    }
+    return item;
+  });
+};
     const init = async () => {
       const cache = readCache();
       if (cache && Array.isArray(cache.items)) {
         const normalizedCache = normalize(cache.items);
-        setMenuItems(mergeWithStaticLast(normalizedCache));
+const merged = mergeWithStaticLast(normalizedCache);
+const withCustomFlyer = injectCustomFlyer(merged); // ADD THIS
+setMenuItems(withCustomFlyer); // CHANGE to use withCustomFlyer
         const age = Date.now() - cache.ts;
         if (age > MENU_CACHE_TTL) {
           await fetchMenu();
@@ -247,8 +287,9 @@ useEffect(() => {
       } else {
         const res = await fetchMenu();
         if (!res) {
-          setMenuItems(STATIC_END_ITEMS);
-        }
+  const withCustomFlyer = injectCustomFlyer(STATIC_END_ITEMS); // ADD THIS
+  setMenuItems(withCustomFlyer); // CHANGE to use withCustomFlyer
+}
       }
     };
 
@@ -599,11 +640,11 @@ padding: windowWidth < 1200 ? "0 1.5rem" : "0 2.5rem",
   },
   
      navLink: { 
-  fontSize: windowWidth < 1200 ? "0.875rem" : "0.905rem",
+  fontSize: windowWidth < 1200 ? "0.875rem" : "0.8375rem",
   color: "#0c0c0cff",
-  fontWeight: "600", // Normal weight like MOO
+  fontWeight: "500", 
   textDecoration: "none", 
-   padding: windowWidth < 1200 ? "0.75rem 1rem" : "0.875rem 1.5rem",
+   padding: windowWidth < 1200 ? "0.75rem 0.875rem" : "0.875rem 0.675rem 0.875rem 0rem",
   display: "inline-block",
   transition: "color 0.2s ease",
 },
@@ -611,7 +652,7 @@ padding: windowWidth < 1200 ? "0 1.5rem" : "0 2.5rem",
    dropdown: {
     position: "absolute",
     top: "100%",
-    left: "50%", // Center dropdown under nav item
+    left: "70%", // Center dropdown under nav item
     transform: "translateX(-50%)",
     backgroundColor: "#fff",
     border: "1px solid #e5e7eb",
@@ -1000,95 +1041,175 @@ logoutBtn: {
 )}
 </div>
       {/* DESKTOP NAV */}
-      {!isMobile && (
-        <nav style={styles.navBar}>
-    
-          <div style={styles.navLinks}>
-            {menuItems.map((item, idx) => {
-              const key = makeKey(item, idx);
-              const hasProducts = Array.isArray(item.products) && item.products.length > 0;
+ 
+{!isMobile && (
+  <nav style={styles.navBar}>
+    <div style={styles.navLinks}>
+      {menuItems.map((item, idx) => {
+        const key = makeKey(item, idx);
+        const hasProducts = Array.isArray(item.products) && item.products.length > 0;
+        
+        // Check if this is a static menu item (Help & Faq, The Blog)
+        const isStaticItem = item._id === "__help_faq__" || item._id === "__the_blog__" || item.path === "/help-faq" || item.path === "/blog";
 
-              // hover handlers use hoverTimeoutRef so moving between link and dropdown keeps it open
-              const onNavMouseEnter = () => {
-                clearTimeout(hoverTimeoutRef.current);
-                setHoveredMenuKey(key);
-              };
-              const onNavMouseLeave = () => {
-                clearTimeout(hoverTimeoutRef.current);
-                hoverTimeoutRef.current = setTimeout(() => setHoveredMenuKey((cur) => (cur === key ? null : cur)), 80);
-              };
-              const onDropdownMouseEnter = () => {
-                clearTimeout(hoverTimeoutRef.current);
-                setHoveredMenuKey(key);
-              };
-              const onDropdownMouseLeave = () => {
-                clearTimeout(hoverTimeoutRef.current);
-                hoverTimeoutRef.current = setTimeout(() => setHoveredMenuKey((cur) => (cur === key ? null : cur)), 80);
-              };
+        // hover handlers
+        const onNavMouseEnter = () => {
+          clearTimeout(hoverTimeoutRef.current);
+          setHoveredMenuKey(key);
+        };
+        const onNavMouseLeave = () => {
+          clearTimeout(hoverTimeoutRef.current);
+          hoverTimeoutRef.current = setTimeout(() => setHoveredMenuKey((cur) => (cur === key ? null : cur)), 80);
+        };
+        const onDropdownMouseEnter = () => {
+          clearTimeout(hoverTimeoutRef.current);
+          setHoveredMenuKey(key);
+        };
+        const onDropdownMouseLeave = () => {
+          clearTimeout(hoverTimeoutRef.current);
+          hoverTimeoutRef.current = setTimeout(() => setHoveredMenuKey((cur) => (cur === key ? null : cur)), 80);
+        };
 
-              return (
-                <div
-                  key={key}
-                  style={styles.navItem}
-                  onMouseEnter={onNavMouseEnter}
-                  onMouseLeave={onNavMouseLeave}
-                >
-                <Link
-  to={item.path || `/allProducts/${item._id || item.id || key}`}
-  style={{
-    ...styles.navLink,
-    paddingLeft: idx === 0 ? "0" : undefined,
-  }}
->
-  {item.name}
-</Link>
-
-          {hasProducts && (
-  <div
-    style={{
-      ...styles.dropdown,
-      display: hoveredMenuKey === key ? "block" : "none",
-    
-    }}
-    onMouseEnter={onDropdownMouseEnter}
-    onMouseLeave={onDropdownMouseLeave}
-  >
-    <Link
-      to={`/allProducts/${item._id || item.id || key}`}
-      style={styles.dropdownItemFirst}
-    >
-      All {item.name}
-    </Link>
-    {item.products.map((product, pidx) => (
-      <Link
-        key={product._id || product.id || `${key}-p-${pidx}`}
-        to={`/product/${product._id || product.id}`}
-        style={{
-          ...styles.dropdownItem,
-          borderBottom: pidx === item.products.length - 1 ? "none" : "1px solid #f1f3f4",
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.backgroundColor = "#f7fafc";
-          e.currentTarget.style.color = "#2b6cb0";
-          e.currentTarget.style.paddingLeft = "1.5rem";
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.backgroundColor = "transparent";
-          e.currentTarget.style.color = "#4a5568";
-          e.currentTarget.style.paddingLeft = "1.25rem";
-        }}
-      >
-        {product.name}
-      </Link>
-    ))}
-  </div>
-)}
+        // Handle click for categories without products (excluding static items)
+        const handleCategoryClick = (e) => {
+          if (!hasProducts && !isStaticItem) {
+            e.preventDefault();
+            Swal.fire({
+              title: '<strong style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 1.75rem;">Coming Soon! </strong>',
+              html: `
+                <div style="padding: 1rem;">
+                  <p style="font-size: 1.125rem; color: #4a5568; margin-bottom: 1rem;">
+                    <strong>${item.name}</strong> products are on the way!
+                  </p>
+                  <p style="font-size: 0.938rem; color: #718096;">
+                    We're working hard to bring you amazing products. Stay tuned for updates!
+                  </p>
                 </div>
-              );
-            })}
+              `,
+              icon: "info",
+              iconColor: "#667eea",
+              confirmButtonText: "Got it!",
+              confirmButtonColor: "#667eea",
+              background: "#fff",
+              backdrop: `rgba(102, 126, 234, 0.2)`,
+              customClass: {
+                popup: 'modern-swal-popup',
+                confirmButton: 'modern-swal-button'
+              }
+            });
+          }
+        };
+
+        return (
+          <div
+            key={key}
+            style={styles.navItem}
+            onMouseEnter={onNavMouseEnter}
+            onMouseLeave={onNavMouseLeave}
+          >
+            <Link
+              to={hasProducts ? (item.path || `/allProducts/${item._id || item.id || key}`) : (isStaticItem ? (item.path || "#") : "#")}
+              style={{
+                ...styles.navLink,
+                paddingLeft: idx === 0 ? "0" : undefined,
+                cursor: "pointer",
+              }}
+              onClick={handleCategoryClick}
+            >
+              {item.name}
+            </Link>
+
+            {hasProducts && (
+              <div
+                style={{
+                  ...styles.dropdown,
+                  display: hoveredMenuKey === key ? "block" : "none",
+                }}
+                onMouseEnter={onDropdownMouseEnter}
+                onMouseLeave={onDropdownMouseLeave}
+              >
+                <Link
+                  to={`/allProducts/${item._id || item.id || key}`}
+                  style={styles.dropdownItemFirst}
+                >
+                  All {item.name}
+                </Link>
+                {item.products.slice(0, 5).map((product, pidx) => (
+                  <Link
+                    key={product._id || product.id || `${key}-p-${pidx}`}
+to={product.isCustom && product.path ? product.path : `/product/${product._id || product.id}`}                    style={{
+                      ...styles.dropdownItem,
+                      borderBottom: pidx === Math.min(item.products.length, 5) - 1 ? "none" : "1px solid #f1f3f4",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = "#f7fafc";
+                      e.currentTarget.style.color = "#2b6cb0";
+                      e.currentTarget.style.paddingLeft = "1.5rem";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = "transparent";
+                      e.currentTarget.style.color = "#4a5568";
+                      e.currentTarget.style.paddingLeft = "1.25rem";
+                    }}
+                  >
+                    {product.name}
+                  </Link>
+                ))}
+              </div>
+            )}
+            
+            {/* Show "Coming Soon" dropdown for categories without products (excluding static items) */}
+            {!hasProducts && !isStaticItem && hoveredMenuKey === key && (
+              <div
+                style={{
+                  ...styles.dropdown,
+                  display: "block",
+                  background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                  border: "none",
+                  padding: "2rem 1.5rem",
+                  minWidth: "240px",
+                }}
+                onMouseEnter={onDropdownMouseEnter}
+                onMouseLeave={onDropdownMouseLeave}
+              >
+                <div
+                  style={{
+                    textAlign: "center",
+                    color: "#fff",
+                  }}
+                >
+                  <div style={{
+                    fontSize: "2rem",
+                    marginBottom: "0.75rem",
+                    animation: "pulse 2s ease-in-out infinite",
+                  }}>
+                    
+                  </div>
+                  <div style={{
+                    fontSize: "1.125rem",
+                    fontWeight: "700",
+                    marginBottom: "0.5rem",
+                    letterSpacing: "0.5px",
+                  }}>
+                    Coming Soon
+                  </div>
+                  <div style={{
+                    fontSize: "0.813rem",
+                    opacity: "0.9",
+                    fontWeight: "400",
+                  }}>
+                    Exciting products on the way!
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
-        </nav>
-      )}
+        );
+      })}
+    </div>
+  </nav>
+)}
+
 
       {/* MOBILE MENU OVERLAY */}
       {isMobile && menuOpen && (
@@ -1132,62 +1253,105 @@ logoutBtn: {
             </button>
           </div>
 
-          <div style={styles.mobileContent}>
-            {menuItems.map((item, idx) => {
-              const key = makeKey(item, idx);
-              const hasProducts = Array.isArray(item.products) && item.products.length > 0;
-              return (
-                <div key={key} style={styles.mobileMenuItem}>
-                  <div
-                    style={styles.mobileMenuHeader}
-                    onClick={() => (hasProducts ? toggleSubMenu(key) : setMenuOpen(false))}
-                  >
-                    <Link
-to={item.path || `/allProducts/${item._id || item.id || key}`}
-style={styles.mobileMenuLink}
-onClick={(e) => {
-  if (hasProducts) {
-    e.preventDefault();
-  } else {
-    setMenuOpen(false);
-  }
-}}
->
-{item.name}
-</Link>
+       <div style={styles.mobileContent}>
+  {menuItems.map((item, idx) => {
+    const key = makeKey(item, idx);
+    const hasProducts = Array.isArray(item.products) && item.products.length > 0;
+    
+    // Check if this is a static menu item (Help & Faq, The Blog)
+    const isStaticItem = item._id === "__help_faq__" || item._id === "__the_blog__" || item.path === "/help-faq" || item.path === "/blog";
+    
+    // Handle mobile click for categories without products (excluding static items)
+    const handleMobileCategoryClick = (e) => {
+      if (!hasProducts && !isStaticItem) {
+        e.preventDefault();
+        Swal.fire({
+          title: '<strong style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 1.75rem;">Coming Soon! 🚀</strong>',
+          html: `
+            <div style="padding: 1rem;">
+              <p style="font-size: 1.125rem; color: #4a5568; margin-bottom: 1rem;">
+                <strong>${item.name}</strong> products are on the way!
+              </p>
+              <p style="font-size: 0.938rem; color: #718096;">
+                We're working hard to bring you amazing products. Stay tuned for updates!
+              </p>
+            </div>
+          `,
+          icon: "info",
+          iconColor: "#667eea",
+          confirmButtonText: "Got it!",
+          confirmButtonColor: "#667eea",
+          background: "#fff",
+          backdrop: `rgba(102, 126, 234, 0.2)`,
+          customClass: {
+            popup: 'modern-swal-popup',
+            confirmButton: 'modern-swal-button'
+          }
+        });
+      } else {
+        setMenuOpen(false);
+      }
+    };
 
-                    {hasProducts && (
-                      <div style={styles.arrowContainer}>
-                        {expandedMenus[key] ? <ChevronUp size={18} color="#666" /> : <ChevronDown size={18} color="#666" />}
-                      </div>
-                    )}
-                  </div>
+    return (
+      <div key={key} style={styles.mobileMenuItem}>
+        <div
+          style={styles.mobileMenuHeader}
+          onClick={() => (hasProducts ? toggleSubMenu(key) : null)}
+        >
+          <Link
+            to={hasProducts ? (item.path || `/allProducts/${item._id || item.id || key}`) : (isStaticItem ? (item.path || "#") : "#")}
+            style={styles.mobileMenuLink}
+            onClick={handleMobileCategoryClick}
+          >
+            {item.name}
+            {!hasProducts && !isStaticItem && (
+              <span style={{ 
+                marginLeft: "0.5rem", 
+                fontSize: "0.75rem", 
+                background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                color: "#fff",
+                padding: "0.125rem 0.5rem",
+                borderRadius: "0.75rem",
+                fontWeight: "600",
+                fontStyle: "normal"
+              }}>
+                🚀 Coming Soon
+              </span>
+            )}
+          </Link>
 
-                  {hasProducts && expandedMenus[key] && (
-                    <div style={styles.mobileDropdownContent}>
-                      <Link
-                        to={`/allProducts/${item._id || item.id || key}`}
-                        style={styles.mobileDropdownLink}
-                        onClick={() => setMenuOpen(false)}
-                      >
-                        All {item.name}
-                      </Link>
-                      {item.products.map((product) => (
-                        <Link
-                          key={product._id || product.id || `${key}-prod-${product.name}`}
-                          to={`/product/${product._id || product.id}`}
-                          style={styles.mobileDropdownLink}
-                          onClick={() => setMenuOpen(false)}
-                        >
-                          {product.name}
-                        </Link>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
+          {hasProducts && (
+            <div style={styles.arrowContainer}>
+              {expandedMenus[key] ? <ChevronUp size={18} color="#666" /> : <ChevronDown size={18} color="#666" />}
+            </div>
+          )}
+        </div>
+
+        {hasProducts && expandedMenus[key] && (
+          <div style={styles.mobileDropdownContent}>
+            <Link
+              to={`/allProducts/${item._id || item.id || key}`}
+              style={styles.mobileDropdownLink}
+              onClick={() => setMenuOpen(false)}
+            >
+              All {item.name}
+            </Link>
+            {item.products.slice(0, 5).map((product) => (
+              <Link
+                key={product._id || product.id || `${key}-prod-${product.name}`}
+to={product.isCustom && product.path ? product.path : `/product/${product._id || product.id}`}                style={styles.mobileDropdownLink}
+                onClick={() => setMenuOpen(false)}
+              >
+                {product.name}
+              </Link>
+            ))}
           </div>
+        )}
+      </div>
+    );
+  })}
+</div>
 
           <div style={styles.mobileFooter}>
             {isLoggedIn ? (

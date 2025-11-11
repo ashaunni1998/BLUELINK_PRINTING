@@ -166,6 +166,8 @@ if (response.ok) {
       justifyContent: 'center',
       alignItems: 'center',
       fontFamily: 'Arial, sans-serif',
+      padding: '40px 20px', // Add padding top and bottom
+  minHeight: 'calc(100vh - 200px)',
     },
     card: {
       backgroundColor: '#fff',
@@ -242,10 +244,13 @@ if (response.ok) {
 
   return (
     // <div style={{ maxWidth: '100%', overflowX: 'hidden' }}>
-    <div style={{ width: '90%', margin: '0 auto' }}>
-        <Header />
-        <div style={styles.page}>
-          <div style={styles.card}>
+
+         <div style={{ backgroundColor: "#e6f2ff", width: "100%", minHeight: "100vh" }}>
+
+    <div className="responsive-container">
+          <Header />
+<div style={{ ...styles.page, flex: 1, padding: '40px 0' }}>        
+    <div style={styles.card}>
             <h2 style={styles.title}>Email Verification</h2>
             <p style={styles.description}>
               We’ve sent a 6-digit code to <strong>{email}</strong>. <br />
@@ -285,7 +290,10 @@ if (response.ok) {
           </div>
         </div>
         <Footer />
-      </div>
+     
+        </div>
+        
+     </div>
     
   );
 };

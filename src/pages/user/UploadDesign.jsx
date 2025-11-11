@@ -1,17 +1,9 @@
-// UploadDesign.jsx
+// UploadDesign.jsx - Updated handleSubmit with loading state
 import React, { useState, useCallback, useRef, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import Cropper from "react-easy-crop";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
-
-/**
- * UploadDesign.jsx
- * - Mobile-first, responsive upload + crop UI
- * - Supports: PNG, JPEG, GIF, PDF, AI, PSD, INDD
- * - Crop modal available for image files only
- * - Non-image files display file icon preview
- */
 
 let API_BASE_URL = "https://api.bluelinkprinting.com/api";
 try {
@@ -22,11 +14,13 @@ try {
 }
 
 export default function UploadDesign() {
-
   const [isMobile, setIsMobile] = useState(window.innerWidth < 1050);
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
 
-  // Consolidated resize handler matching Header.jsx
+  // ✅ ADD THESE LOADING STATES
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+
   useEffect(() => {
     const handleResize = () => {
       const width = window.innerWidth;
@@ -37,7 +31,6 @@ export default function UploadDesign() {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // Responsive padding function (match HomeSlider.jsx pattern)
   const getPadding = () => {
     if (isMobile) return "1rem";
     if (windowWidth < 1200) return "1.5rem";
@@ -46,15 +39,12 @@ export default function UploadDesign() {
 
   const padding = getPadding();
 
-
   const routeParams = useParams();
   const navigate = useNavigate();
   const location = useLocation();
   const param = new URLSearchParams(location.search);
   const productId = param.get("productId");
 
-
-  // previews & files
   const [frontPreview, setFrontPreview] = useState(null);
   const [backPreview, setBackPreview] = useState(null);
   const [fullPreview, setFullPreview] = useState(null);
@@ -63,24 +53,20 @@ export default function UploadDesign() {
   const [backFile, setBackFile] = useState(null);
   const [fullFile, setFullFile] = useState(null);
   
-  // file meta
   const [fileMeta, setFileMeta] = useState({ front: null, back: null, full: null });
 
-  // cropping states
   const [croppingImage, setCroppingImage] = useState(null);
   const [croppingSide, setCroppingSide] = useState(null);
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
 
-  // refs for hidden inputs
   const frontInputRef = useRef(null);
   const backInputRef = useRef(null);
   const fullInputRef = useRef(null);
 
-  const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB for design files
+  const MAX_FILE_SIZE = 50 * 1024 * 1024;
 
-  // Supported file types
   const SUPPORTED_TYPES = {
     'image/png': '.png',
     'image/jpeg': '.jpg',
@@ -90,10 +76,8 @@ export default function UploadDesign() {
     'application/postscript': '.ai',
     'image/vnd.adobe.photoshop': '.psd',
     'application/x-indesign': '.indd',
-    'application/octet-stream': '' // fallback for .ai, .psd, .indd
+    'application/octet-stream': ''
   };
-
- 
 
   const params = new URLSearchParams(location.search);
   const designTypeFromQuery = params.get("designType") || "single";
@@ -105,24 +89,20 @@ export default function UploadDesign() {
   const [finish, setFinish] = useState(params.get("finish") || "");
   const [corner, setCorner] = useState(params.get("corner") || "");
 
-  // Check if file is an image
   const isImageFile = (file) => {
     return file.type.startsWith('image/');
   };
 
-  // Get file extension
   const getFileExtension = (filename) => {
     return filename.slice(((filename.lastIndexOf(".") - 1) >>> 0) + 2).toLowerCase();
   };
 
-  // Validate file type
   const isValidFileType = (file) => {
     const ext = getFileExtension(file.name);
     const validExts = ['png', 'jpg', 'jpeg', 'gif', 'pdf', 'ai', 'psd', 'indd'];
     return validExts.includes(ext) || Object.keys(SUPPORTED_TYPES).includes(file.type);
   };
 
-  // Helper: file -> dataURL (for images only)
   const fileToDataUrl = (file) =>
     new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -131,14 +111,12 @@ export default function UploadDesign() {
       reader.readAsDataURL(file);
     });
 
-  // helper: convert dataURL -> File
   const dataURLtoFile = async (dataURL, filename = "image.jpg") => {
     const res = await fetch(dataURL);
     const blob = await res.blob();
     return new File([blob], filename, { type: blob.type || "image/jpeg" });
   };
 
-  // Get file type icon and color
   const getFileTypeInfo = (filename) => {
     const ext = getFileExtension(filename);
     const typeMap = {
@@ -167,22 +145,18 @@ export default function UploadDesign() {
       return;
     }
 
-    // Store raw File in state
     if (side === "front") setFrontFile(file);
     if (side === "back") setBackFile(file);
     if (side === "full") setFullFile(file);
 
-    // For images, create preview and allow cropping
     if (isImageFile(file)) {
       const dataUrl = await fileToDataUrl(file);
       
-      // For GIF, set preview directly without cropping option
       if (file.type === 'image/gif') {
         if (side === "front") setFrontPreview(dataUrl);
         if (side === "back") setBackPreview(dataUrl);
         if (side === "full") setFullPreview(dataUrl);
       } else {
-        // For PNG/JPEG, open crop modal
         setCroppingImage(dataUrl);
         setCroppingSide(side);
         setCrop({ x: 0, y: 0 });
@@ -190,7 +164,6 @@ export default function UploadDesign() {
         setCroppedAreaPixels(null);
       }
     } else {
-      // For non-image files, create a file type preview
       const typeInfo = getFileTypeInfo(file.name);
       const filePreview = `file:${file.name}`;
       
@@ -202,7 +175,6 @@ export default function UploadDesign() {
     setFileMeta((m) => ({ ...m, [side]: { name: file.name, size: file.size, type: file.type } }));
   };
 
-  // Input change handler
   const handleFileChange = (e, side) => {
     const file = e.target.files && e.target.files[0];
     if (!file) return;
@@ -210,7 +182,6 @@ export default function UploadDesign() {
     e.target.value = "";
   };
 
-  // Drag & drop
   const handleDrop = (e, side) => {
     e.preventDefault();
     e.stopPropagation();
@@ -224,12 +195,10 @@ export default function UploadDesign() {
     e.stopPropagation();
   };
 
-  // crop callbacks
   const handleCropComplete = useCallback((_, croppedAreaPixels_) => {
     setCroppedAreaPixels(croppedAreaPixels_);
   }, []);
 
-  // create cropped image using canvas
   const getCroppedImg = (imageSrc, cropPixels) =>
     new Promise((resolve, reject) => {
       const image = new Image();
@@ -289,7 +258,6 @@ export default function UploadDesign() {
     }
   };
 
-  // Clear preview
   const handleClear = (side) => {
     if (side === "front") {
       setFrontPreview(null);
@@ -307,7 +275,6 @@ export default function UploadDesign() {
     setPrevPreview((p) => ({ ...p, [side]: null }));
   };
 
-  // Revert to last preview
   const handleRevert = (side) => {
     setPrevPreview((p) => {
       const prev = p[side];
@@ -330,8 +297,10 @@ export default function UploadDesign() {
     return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
   };
 
+  // ✅ UPDATED handleSubmit WITH LOADING STATES
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
     try {
       const qs = new URLSearchParams(window.location.search || "");
 
@@ -362,6 +331,11 @@ export default function UploadDesign() {
         return;
       }
 
+      console.log("Resolved files to upload:", resolvedFiles.map(f => f?.name || "(file)"));
+
+      // ✅ START LOADING
+      setIsUploading(true);
+      setUploadProgress(0);
 
       const formData = new FormData();
       resolvedFiles.forEach(f => formData.append("images", f, f.name || "upload.jpg"));
@@ -376,27 +350,47 @@ export default function UploadDesign() {
         paper: paperRaw || null,
       }));
 
+      // ✅ SIMULATE PROGRESS (since fetch doesn't provide real upload progress without XMLHttpRequest)
+      const progressInterval = setInterval(() => {
+        setUploadProgress(prev => {
+          if (prev >= 90) return prev;
+          return prev + 10;
+        });
+      }, 300);
+
       const res = await fetch(`${API_BASE_URL}/addToCartWithDesign`, {
         method: "POST",
         credentials: "include",
         body: formData,
       });
 
+      clearInterval(progressInterval);
+      setUploadProgress(100);
+
       const json = await res.json().catch(() => ({}));
+      
       if (!res.ok) {
         console.error("addToCartWithDesign failed:", json);
+        setIsUploading(false);
         alert(json.message || "Failed to add to cart");
         return;
       }
 
-      navigate("/cart");
+      console.log("addToCartWithDesign success:", json);
+      
+      // ✅ BRIEF DELAY TO SHOW 100% COMPLETE
+      setTimeout(() => {
+        setIsUploading(false);
+        navigate("/cart");
+      }, 500);
+
     } catch (err) {
       console.error("handleSubmit error:", err);
+      setIsUploading(false);
       alert("Unexpected error uploading design. See console for details.");
     }
   };
 
-  // Render preview based on file type
   const renderPreview = (preview, side) => {
     if (!preview) {
       return (
@@ -408,7 +402,6 @@ export default function UploadDesign() {
       );
     }
 
-    // Check if it's a file type preview (non-image)
     if (typeof preview === 'string' && preview.startsWith('file:')) {
       const filename = preview.substring(5);
       const typeInfo = getFileTypeInfo(filename);
@@ -423,11 +416,9 @@ export default function UploadDesign() {
       );
     }
 
-    // Image preview
     return <img src={preview} alt={`${side} preview`} className="preview-img" />;
   };
 
-  // Check if re-crop should be available
   const canRecrop = (side) => {
     const file = side === "front" ? frontFile : side === "back" ? backFile : fullFile;
     const preview = side === "front" ? frontPreview : side === "back" ? backPreview : fullPreview;
@@ -454,7 +445,7 @@ export default function UploadDesign() {
           <header className="ud-card-header">
             <div>
               <h1 className="ud-title">Upload Your Design</h1>
-              <p className="ud-sub">Front / Back / Full — drag & drop or choose file. Supports PNG, JPEG, GIF, PDF, AI, PSD, INDD.</p>
+              <p className="ud-sub">Front / Back / Full – drag & drop or choose file. Supports PNG, JPEG, GIF, PDF, AI, PSD, INDD.</p>
             </div>
 
             <div className="ud-product">
@@ -567,8 +558,12 @@ export default function UploadDesign() {
             <button className="ud-back" onClick={() => navigate(`/product/${productId}`)}>
               ← Back to Product
             </button>
-            <button className="ud-submit" onClick={handleSubmit}>
-              Submit Design
+            <button 
+              className="ud-submit" 
+              onClick={handleSubmit}
+              disabled={isUploading}
+            >
+              {isUploading ? "Uploading..." : "Submit Design"}
             </button>
           </div>
         </div>
@@ -576,7 +571,29 @@ export default function UploadDesign() {
 
       <Footer />
 
-      {/* Crop modal (only for PNG/JPEG) */}
+      {/* ✅ LOADING OVERLAY */}
+      {isUploading && (
+        <div className="upload-loading-overlay">
+          <div className="upload-loading-card">
+            <div className="loading-spinner"></div>
+            <h2 className="loading-title">Uploading Your Design</h2>
+            <p className="loading-text">Please wait while we process your files...</p>
+            
+            <div className="progress-bar-container">
+              <div className="progress-bar" style={{ width: `${uploadProgress}%` }}></div>
+            </div>
+            
+            <p className="loading-percentage">{uploadProgress}%</p>
+            
+            <div className="loading-tips">
+              <p>💡 <strong>Tip:</strong> Don't close this window</p>
+              <p>📦 Your design will be added to cart shortly</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Crop modal */}
       {croppingImage && (
         <div className="crop-overlay" role="dialog" aria-modal="true">
           <div className="crop-panel">
@@ -719,7 +736,14 @@ export default function UploadDesign() {
           font-weight:700;
           cursor:pointer;
           box-shadow:0 8px 20px rgba(37,99,235,0.1);
+          transition: all 0.3s ease;
         }
+        
+        .ud-choose-btn:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+        }
+        
         .ud-ghost-btn {
           background:white;
           border:1px solid rgba(2,6,23,0.06);
@@ -799,7 +823,153 @@ export default function UploadDesign() {
 
         .ud-actions { display:flex; gap:12px; margin-top:14px; justify-content:flex-end; flex-wrap:wrap; }
         .ud-back { background:white; border:1px solid rgba(2,6,23,0.06); padding:10px 14px; border-radius:10px; cursor:pointer; font-weight:700; }
-        .ud-submit { background: linear-gradient(90deg,#06b6d4,var(--blue-600)); color:white; border:none; padding:10px 14px; border-radius:10px; cursor:pointer; font-weight:800; }
+        .ud-submit { 
+          background: linear-gradient(90deg,#06b6d4,var(--blue-600)); 
+          color:white; 
+          border:none; 
+          padding:10px 14px; 
+          border-radius:10px; 
+          cursor:pointer; 
+          font-weight:800;
+          transition: all 0.3s ease;
+        }
+        
+        .ud-submit:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+        }
+
+        /* ✅ LOADING OVERLAY STYLES */
+        .upload-loading-overlay {
+          position: fixed;
+          inset: 0;
+          background: rgba(15, 23, 42, 0.8);
+          backdrop-filter: blur(8px);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 9999;
+          padding: 1.5rem;
+          animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+
+        .upload-loading-card {
+          background: white;
+          border-radius: 16px;
+          padding: 2.5rem 2rem;
+          max-width: 480px;
+          width: 100%;
+          text-align: center;
+          box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+          animation: slideUp 0.4s ease;
+        }
+
+        @keyframes slideUp {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        .loading-spinner {
+          width: 64px;
+          height: 64px;
+          border: 5px solid #e5e7eb;
+          border-top-color: var(--blue-600);
+          border-radius: 50%;
+          margin: 0 auto 1.5rem;
+          animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+
+        .loading-title {
+          font-size: 1.5rem;
+          font-weight: 700;
+          color: #0f172a;
+          margin: 0 0 0.5rem;
+        }
+
+        .loading-text {
+          font-size: 0.938rem;
+          color: var(--muted);
+          margin: 0 0 1.5rem;
+        }
+
+        .progress-bar-container {
+          width: 100%;
+          height: 8px;
+          background: #e5e7eb;
+          border-radius: 999px;
+          overflow: hidden;
+          margin-bottom: 0.75rem;
+        }
+
+        .progress-bar {
+          height: 100%;
+          background: linear-gradient(90deg, var(--blue-600), #06b6d4);
+          border-radius: 999px;
+          transition: width 0.3s ease;
+          box-shadow: 0 0 10px rgba(37, 99, 235, 0.4);
+        }
+
+        .loading-percentage {
+          font-size: 1.125rem;
+          font-weight: 700;
+          color: var(--blue-600);
+          margin: 0 0 1.5rem;
+        }
+
+        .loading-tips {
+          background: linear-gradient(180deg, #f8fafc, #f1f5f9);
+          border-radius: 10px;
+          padding: 1rem;
+          font-size: 0.875rem;
+          color: #475569;
+          text-align: left;
+          border: 1px solid rgba(15, 23, 42, 0.05);
+        }
+
+        .loading-tips p {
+          margin: 0.5rem 0;
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+        }
+
+        .loading-tips p:first-child {
+          margin-top: 0;
+        }
+
+        .loading-tips p:last-child {
+          margin-bottom: 0;
+        }
+
+        @media (max-width: 480px) {
+          .upload-loading-card {
+            padding: 2rem 1.5rem;
+          }
+          
+          .loading-title {
+            font-size: 1.25rem;
+          }
+          
+          .loading-spinner {
+            width: 48px;
+            height: 48px;
+          }
+        }
 
         .crop-overlay {
           position:fixed;

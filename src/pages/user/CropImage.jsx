@@ -223,6 +223,7 @@ export default function ProductImageUpload() {
 
   const handleSubmit = () => {
     if (croppedImage) {
+      console.log('Submitting cropped image:', croppedImage);
       // Handle the submission logic here
       alert('Image submitted successfully!');
     }

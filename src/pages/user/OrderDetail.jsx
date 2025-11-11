@@ -5,18 +5,13 @@ import Footer from "./components/Footer";
 import { API_BASE_URL } from "../../config";
 
 /* Money parsing helpers */
-/* Money parsing helpers */
 function parseMoneyToDollars(value) {
   if (value == null) return 0;
   const n = Number(value);
   if (!isFinite(n)) return 0;
-  
-  // ✅ Convert only if looks like cents (>= 1000)
-  return n >= 1000 ? n / 100 : n;
+  if (Number.isInteger(n) && Math.abs(n) >= 1000) return n / 100;
+  return n;
 }
-
-
-
 function fmtCurrencyNZD(amount) {
   return new Intl.NumberFormat("en-NZ", { style: "currency", currency: "NZD" }).format(amount);
 }
@@ -86,30 +81,28 @@ useEffect(() => {
     if (orderId) fetchOrder();
   }, [orderId]);
 
-const items = (order?.orderItems || []).map(i => {
+ const items = (order?.orderItems || []).map(i => {
   const quantity = Number(i.quantity ?? i.qty ?? 1) || 1;
-  
-  // Get raw values WITHOUT parsing yet
   const rawLineTotal = i.lineTotal ?? i.line_total ?? i.total ?? i.unitTotal ?? i.priceForQty ?? i.subtotal ?? i.amount ?? null;
   const rawUnitPrice = i.unitPrice ?? i.pricePerUnit ?? i.price_unit ?? i.price ?? i.basePrice ?? i.product?.price ?? null;
-  
-  // Calculate final values - keep as RAW cents values
-  let lineTotal = 0;
-  let unitPrice = 0;
-  
-  if (rawLineTotal != null && rawLineTotal > 0) {
-    lineTotal = rawLineTotal;
-    unitPrice = quantity > 0 ? rawLineTotal / quantity : 0;
-  } else if (rawUnitPrice != null && rawUnitPrice > 0) {
-    unitPrice = rawUnitPrice;
-    lineTotal = rawUnitPrice * quantity;
-  }
+
+  const parsedLine = parseMoneyToDollars(rawLineTotal);
+  const parsedUnit = parseMoneyToDollars(rawUnitPrice);
+
+  // NEW: If server provided a line total, use it.
+  // Otherwise, use the unit price AS THE DISPLAYED LINE PRICE (do NOT multiply by quantity).
+  const lineTotal = (parsedLine && parsedLine > 0)
+    ? parsedLine
+    : (parsedUnit && parsedUnit > 0 ? parsedUnit : 0);
+
+  // Keep unitPrice for showing "x / unit" if you want to display it.
+  const unitPrice = parsedUnit && parsedUnit > 0 ? parsedUnit : (quantity > 0 && lineTotal > 0 ? (lineTotal) : 0);
 
   return {
     name: i.name || i.title || i.productName || i.product?.name || "Product",
     quantity,
-    lineTotal: lineTotal,  // Keep as cents
-    unitPrice: unitPrice,  // Keep as cents
+    lineTotal: Number(lineTotal.toFixed(2)),
+    unitPrice: Number(unitPrice.toFixed(2)),
     image: resolveImage(i),
     size: readOption(i, "size"),
     paper: readOption(i, "paper"),
@@ -118,22 +111,60 @@ const items = (order?.orderItems || []).map(i => {
   };
 });
 
+// --- REPLACE totalDollars BLOCK WITH THIS: parse shipping/tax/discount safely and apply cents heuristic ---
 const totalDollars = (() => {
-  // First try to get the server total
-  const rawServerTotal = order?.totalPrice ?? order?.total ?? order?.amount;
-  if (rawServerTotal != null) {
-    return parseMoneyToDollars(rawServerTotal);
+  // 1) sum of displayed line prices (you're already showing unit price as the line price)
+  const itemsSubtotal = Number(items.reduce((s, it) => s + Number(it.lineTotal || 0), 0).toFixed(2));
+
+  // helper to get raw value from many possible fields
+  const getRaw = (keys, fallback = 0) => {
+    for (const k of keys) {
+      if (k == null) continue;
+      return k;
+    }
+    return fallback;
+  };
+
+  // 2) shipping: parse using parseMoneyToDollars, but correct cents-like values
+  const rawShipping = getRaw([order?.shippingPrice, order?.shipping, order?.shipping_amount, order?.shipping_price], 0);
+  let shipping = parseMoneyToDollars(rawShipping);
+  // If it looks like cents (integer >= 100) and subtotal is small, convert to dollars
+  if (Number(rawShipping) >= 100 && !String(rawShipping).includes(".") && itemsSubtotal < 1000) {
+    shipping = Number((Number(rawShipping) / 100).toFixed(2));
   }
-  
-  // If no server total, sum up the items (they're already in cents)
-  let sumInCents = 0;
-  for (const it of items) {
-    sumInCents += (it.lineTotal || 0);
+
+  // 3) tax & discount (same parsing + cents heuristic)
+  const rawTax = getRaw([order?.taxPrice, order?.tax, order?.tax_amount, order?.tax_price], 0);
+  let tax = parseMoneyToDollars(rawTax);
+  if (Number(rawTax) >= 100 && !String(rawTax).includes(".") && itemsSubtotal < 1000) {
+    tax = Number((Number(rawTax) / 100).toFixed(2));
   }
-  
-  // Convert the sum from cents to dollars
-  return parseMoneyToDollars(sumInCents);
+
+  const rawDiscount = getRaw([order?.discountAmount, order?.discount, order?.discount_amount, order?.couponDiscount], 0);
+  let discount = parseMoneyToDollars(rawDiscount);
+  if (Number(rawDiscount) >= 100 && !String(rawDiscount).includes(".") && itemsSubtotal < 1000) {
+    discount = Number((Number(rawDiscount) / 100).toFixed(2));
+  }
+
+  // 4) final total = sum of displayed line prices + shipping + tax - discount
+  const computedTotal = Number((itemsSubtotal + shipping + tax - discount).toFixed(2));
+
+  // debug: copy this from console if the numbers still look wrong
+  console.debug("[OrderDetail::totals]", {
+    itemsSubtotal,
+    rawShipping,
+    shipping,
+    rawTax,
+    tax,
+    rawDiscount,
+    discount,
+    computedTotal,
+    backend_total_raw: order?.totalPrice ?? order?.total ?? order?.amount
+  });
+
+  return computedTotal;
 })();
+// --- end replacement ---
 
   if (loading) return <div style={{ padding: 40, textAlign: "center" }}>Loading order…</div>;
 
@@ -414,11 +445,12 @@ const totalDollars = (() => {
     }
   }
 `}</style>
+    <div style={{ backgroundColor: "#e6f2ff", width: "100%", minHeight: "100vh" }}>
 
-     
+      <div className="responsive-container">
       <Header />
-        <div className="order-detail-container">
       <div className="order-detail-wrapper">
+        <div className="order-detail-container">
           <h1 className="order-title">Order Details</h1>
 
           {/* Order Info */}
@@ -469,11 +501,17 @@ const totalDollars = (() => {
   {it.corner && it.corner !== "N/A" && <div>Corner: {it.corner}</div>}
 </div>
                     </div>
- <div className="product-pricing">
-  <div className="product-line-total">
-    {fmtCurrencyNZD(parseMoneyToDollars(it.lineTotal))}
-  </div>
+                    
+                    <div className="product-pricing">
+                      <div className="product-line-total">
+  {fmtCurrencyNZD(it.lineTotal ?? it.unitPrice)}
 </div>
+{it.unitPrice ? (
+  <div className="product-unit-price">
+    {fmtCurrencyNZD(it.unitPrice)} / unit
+  </div>
+) : null}
+                    </div>
                   </div>
                 ))
               )}
@@ -496,7 +534,8 @@ const totalDollars = (() => {
       </div>
       
       <Footer />
-      
+      </div>
+      </div>
     </div>
   );
 }

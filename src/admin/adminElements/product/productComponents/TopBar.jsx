@@ -42,7 +42,7 @@ function TopBar({ itemsPerPage, setItemsPerPage, setCurrentPage, setPurpose,setC
             setProducts(res.productData);
            
         } catch (error) {
-            // console.log(error);
+            console.log(error);
 
         }
     }

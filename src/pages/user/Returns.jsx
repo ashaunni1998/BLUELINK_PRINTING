@@ -21,6 +21,7 @@ const Returns = () => {
     }
 
     // Simulate submit
+    console.log('Return Submitted:', { selectedOrder, reason });
     setSubmitted(true);
 
     // Reset

@@ -52,7 +52,7 @@ function CategoryTable({ categories, loading, change, setChange, setSort, sort, 
                 toast.success(`Category "${selectedCate.name}" deleted successfully!`)
                 setChange(!change)
             } catch (error) {
-                // console.log(4444, error);
+                console.log(4444, error);
 
             } finally {
                 setIsIsLoading(false)
@@ -68,7 +68,7 @@ function CategoryTable({ categories, loading, change, setChange, setSort, sort, 
                 selectedCate.isListed = !selectedCate.isListed
 
             } catch (error) {
-                // console.log(4444, error);
+                console.log(4444, error);
 
             } finally {
                 setIsIsLoading(false)

@@ -4,16 +4,16 @@ import { TranslateContext } from "../../context/TranslateProvider";
 const languages = [
   { code: "en", label: "New Zealand", flag: "https://flagcdn.com/w40/nz.png" },
   { code: "en", label: "Australia", flag: "https://flagcdn.com/w40/au.png" },
-  { code: "en", label: "United Kingdom", flag: "https://flagcdn.com/w40/gb.png" },
-  { code: "en", label: "United States (English)", flag: "https://flagcdn.com/w40/us.png" },
-  { code: "fr", label: "Canada", flag: "https://flagcdn.com/w40/ca.png" },
-  { code: "fr", label: "France", flag: "https://flagcdn.com/w40/fr.png" },
-  { code: "de", label: "Germany", flag: "https://flagcdn.com/w40/de.png" },
-  { code: "it", label: "Italy", flag: "https://flagcdn.com/w40/it.png" },
-  { code: "nl", label: "Netherlands", flag: "https://flagcdn.com/w40/nl.png" },
-  { code: "es", label: "Spain", flag: "https://flagcdn.com/w40/es.png" },
-  { code: "es", label: "United States (Español)", flag: "https://flagcdn.com/w40/us.png" },
-  { code: "fr", label: "United States (Français)", flag: "https://flagcdn.com/w40/us.png" },
+  // { code: "en", label: "United Kingdom", flag: "https://flagcdn.com/w40/gb.png" },
+  // { code: "en", label: "United States (English)", flag: "https://flagcdn.com/w40/us.png" },
+  // { code: "fr", label: "Canada", flag: "https://flagcdn.com/w40/ca.png" },
+  // { code: "fr", label: "France", flag: "https://flagcdn.com/w40/fr.png" },
+  // { code: "de", label: "Germany", flag: "https://flagcdn.com/w40/de.png" },
+  // { code: "it", label: "Italy", flag: "https://flagcdn.com/w40/it.png" },
+  // { code: "nl", label: "Netherlands", flag: "https://flagcdn.com/w40/nl.png" },
+  // { code: "es", label: "Spain", flag: "https://flagcdn.com/w40/es.png" },
+  // { code: "es", label: "United States (Español)", flag: "https://flagcdn.com/w40/us.png" },
+  // { code: "fr", label: "United States (Français)", flag: "https://flagcdn.com/w40/us.png" },
 ];
 
 const GoogleTranslateDropdown = () => {

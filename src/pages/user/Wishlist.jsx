@@ -27,7 +27,7 @@ const Wishlist = () => {
   };
 
   const handleMoveToCart = (item) => {
-  
+    console.log('Moving to cart:', item);
     // You can implement add-to-cart API logic here
     handleRemove(item.id);
   };

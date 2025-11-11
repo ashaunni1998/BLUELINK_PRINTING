@@ -10,16 +10,17 @@ import Swal from "sweetalert2";
 
 /* country options */
 const countryOptions = [
-  { name: "India", code: "+91" },
-  { name: "United States", code: "+1" },
-  { name: "United Kingdom", code: "+44" },
-  { name: "Canada", code: "+1" },
-  { name: "France", code: "+33" },
-  { name: "Germany", code: "+49" },
-  { name: "Italy", code: "+39" },
-  { name: "Netherlands", code: "+31" },
-  { name: "Spain", code: "+34" },
+  // { name: "India", code: "+91" },
+  // { name: "United States", code: "+1" },
+  // { name: "United Kingdom", code: "+44" },
+  // { name: "Canada", code: "+1" },
+  // { name: "France", code: "+33" },
+  // { name: "Germany", code: "+49" },
+  // { name: "Italy", code: "+39" },
+  // { name: "Netherlands", code: "+31" },
+  // { name: "Spain", code: "+34" },
   { name: "New Zealand", code: "+64" },
+  { name: "Australia", code: "+61" },
 ];
 
 const tokenEndpoint = `${API_BASE_URL.replace(/\/$/, "")}/auth/google/token`;

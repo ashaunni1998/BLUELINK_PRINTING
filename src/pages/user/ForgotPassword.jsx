@@ -35,7 +35,9 @@ const ForgotPassword = () => {
 
 
   return (
-    <div style={{ width: "90%" }} className="mx-auto">
+   <div style={{ backgroundColor: "#e6f2ff", width: "100%", minHeight: "100vh" }}>
+
+    <div className="responsive-container">
       <Header />
       <div style={styles.container}>
         <div style={styles.card}>
@@ -66,6 +68,7 @@ const ForgotPassword = () => {
       </div>
       <Footer />
     </div>
+    </div>
   );
 };
 
@@ -73,7 +76,8 @@ const styles = {
   container: {
     display: "flex",
     justifyContent: "center",
-    padding: "50px 20px",
+   padding: '40px 20px', // Add padding top and bottom
+  // minHeight: 'calc(100vh - 200px)',
   },
   card: {
     maxWidth: "400px",

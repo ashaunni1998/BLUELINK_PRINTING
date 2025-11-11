@@ -1,6 +1,64 @@
 import React, { useEffect, useState } from 'react'
 import { GET_ORDER_DETAILS_API } from '../../../apiServices/orderApi'
 
+// safe money parse (already in your code in most files)
+const parseMoneySafe = (raw, itemsSubtotal = 0) => {
+  if (raw == null || raw === "") return 0;
+  const n = Number(raw);
+  if (!isFinite(n)) return 0;
+  if (Number(raw) >= 100 && !String(raw).includes(".") && itemsSubtotal < 1000) {
+    return Number((n / 100).toFixed(2));
+  }
+  if (n > 0 && n < 1 && itemsSubtotal >= 50) {
+    const maybeCents = Number((n * 100).toFixed(2));
+    if (maybeCents >= 1) return maybeCents;
+  }
+  return Number(n.toFixed(2));
+};
+
+// compute total (same rules used everywhere)
+const computeOrderTotal = (order) => {
+  if (!order) return 0;
+  const rawItems = order.orderItems || order.items || [];
+  const itemsSubtotal = rawItems.reduce((sum, it) => {
+    const rawLine = it.lineTotal ?? it.line_total ?? it.total ?? it.subtotal ?? it.amount ?? null;
+    const rawUnit = it.unitPrice ?? it.price ?? it.pricePerUnit ?? null;
+    const parsedLine = Number(rawLine) || 0;
+    const parsedUnit = Number(rawUnit) || 0;
+    const line = (parsedLine && parsedLine > 0) ? parsedLine : (parsedUnit && parsedUnit > 0 ? parsedUnit : 0);
+    return sum + Number(line);
+  }, 0);
+
+  const getRaw = (keys, fallback = 0) => {
+    for (const k of keys) if (k !== undefined && k !== null) return k;
+    return fallback;
+  };
+
+  const rawShipping = getRaw([order.shippingPrice, order.shipping, order.shipping_amount, order.shipping_price], 0);
+  const shipping = parseMoneySafe(rawShipping, itemsSubtotal);
+
+  const rawTax = getRaw([order.taxPrice, order.tax, order.tax_amount, order.tax_price], 0);
+  const tax = parseMoneySafe(rawTax, itemsSubtotal);
+
+  const rawDiscount = getRaw([order.discountAmount, order.discount, order.discount_amount, order.couponDiscount], 0);
+  const discount = parseMoneySafe(rawDiscount, itemsSubtotal);
+
+  return {
+    itemsSubtotal: Number(itemsSubtotal.toFixed(2)),
+    shipping: Number(shipping.toFixed(2)),
+    tax: Number(tax.toFixed(2)),
+    discount: Number(discount.toFixed(2)),
+    total: Number((itemsSubtotal + shipping + tax - discount).toFixed(2))
+  };
+};
+
+// currency formatter fallback
+const formatCurrency = (n) => {
+  if (typeof fmtCurrencyNZD === "function") return fmtCurrencyNZD(n);
+  const num = Number(n || 0);
+  return `$${num.toFixed(2)}`;
+};
+
 function OrderViewModal({ viewModal, setViewModal, selectedOrderId }) {
     const [orderData, setOrderData] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -18,7 +76,7 @@ function OrderViewModal({ viewModal, setViewModal, selectedOrderId }) {
             // console.log('Order details:', res.data);
             setOrderData(res.data);
         } catch (error) {
-            // console.log('Error fetching order details:', error);
+            console.log('Error fetching order details:', error);
         } finally {
             setLoading(false);
         }
@@ -109,11 +167,16 @@ function OrderViewModal({ viewModal, setViewModal, selectedOrderId }) {
                                         </span>
                                     </div>
                                     <div className="text-left lg:text-right">
-                                        <p className="text-sm text-slate-600 mb-1 font-medium">Total Amount</p>
-                                        <p className="text-2xl sm:text-3xl font-black bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                                            ${orderData.totalPrice}
-                                        </p>
-                                    </div>
+  <p className="text-sm text-slate-600 mb-1 font-medium">Total Amount</p>
+  {orderData && (() => {
+  const totals = computeOrderTotal(orderData);
+  return (
+    <p className="text-2xl sm:text-3xl font-black bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+      {formatCurrency(totals.total)}
+    </p>
+  );
+})()}
+</div>
                                 </div>
                             </div>
 
@@ -181,8 +244,10 @@ function OrderViewModal({ viewModal, setViewModal, selectedOrderId }) {
                                                             )}
                                                         </div>
                                                         <div className="text-right">
-                                                            <p className="text-lg sm:text-xl font-black text-indigo-600">${item.price}</p>
-                                                            <p className="text-xs text-slate-500">Qty: {item.quantity}</p>
+                                                            <p className="text-lg sm:text-xl font-black text-indigo-600">
+  ${ (Number(item.lineTotal ?? item.line_total ?? item.price ?? item.unitPrice ?? 0)).toFixed(2) }
+</p>
+<p className="text-xs text-slate-500">Qty: {item.quantity}</p>
                                                         </div>
                                                     </div>
 
@@ -236,22 +301,47 @@ function OrderViewModal({ viewModal, setViewModal, selectedOrderId }) {
                                                 </div>
                                             </div>
 
-                                            {/* User Images */}
-                                            {item.userImage && item.userImage.length > 0 && (
-                                                <div className="px-4 sm:px-5 pb-4 sm:pb-5">
-                                                    <p className="text-xs font-semibold text-slate-600 mb-2">Custom Images:</p>
-                                                    <div className="flex gap-2 overflow-x-auto pb-2">
-                                                        {item.userImage.map((imgUrl, imgIndex) => (
-                                                            <img
-                                                                key={imgIndex}
-                                                                src={imgUrl}
-                                                                alt={`Custom image ${imgIndex + 1}`}
-                                                                className="w-24 h-24 sm:w-30 sm:h-30 object-cover rounded-lg border-2 border-slate-200 hover:border-indigo-300 transition-all duration-200 flex-shrink-0"
-                                                            />
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                            )}
+{item.userImage && item.userImage.length > 0 && (
+    <div className="px-4 sm:px-5 pb-4 sm:pb-5">
+        <p className="text-xs font-semibold text-slate-600 mb-2">Custom Images:</p>
+        <div className="flex gap-2 overflow-x-auto pb-2">
+            {item.userImage.map((imgUrl, imgIndex) => (
+                <div key={imgIndex} className="relative group flex-shrink-0">
+                    <img
+                        src={imgUrl}
+                        alt={`Custom image ${imgIndex + 1}`}
+                        className="w-24 h-24 sm:w-30 sm:h-30 object-cover rounded-lg border-2 border-slate-200 hover:border-indigo-300 transition-all duration-200"
+                    />
+                    {/* Download Button Overlay */}
+                    <button
+                        onClick={async () => {
+                            try {
+                                const response = await fetch(imgUrl);
+                                const blob = await response.blob();
+                                const url = window.URL.createObjectURL(blob);
+                                const link = document.createElement('a');
+                                link.href = url;
+                                link.download = `order-${orderData._id}-image-${imgIndex + 1}.jpg`;
+                                document.body.appendChild(link);
+                                link.click();
+                                document.body.removeChild(link);
+                                window.URL.revokeObjectURL(url);
+                            } catch (error) {
+                                console.error('Download failed:', error);
+                            }
+                        }}
+                        className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 rounded-lg flex items-center justify-center"
+                        title="Download image"
+                    >
+                        <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                        </svg>
+                    </button>
+                </div>
+            ))}
+        </div>
+    </div>
+)}
 
                                             {/* Product ID for reference */}
                                             <div className="px-4 sm:px-5 pb-3">
@@ -328,11 +418,22 @@ function OrderViewModal({ viewModal, setViewModal, selectedOrderId }) {
                                     ) : (
                                         <div className="text-center py-8">
                                             <div className="w-12 h-12 bg-slate-200 rounded-full flex items-center justify-center mx-auto mb-3">
-                                                <svg className="w-6 h-6 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.268 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                                                </svg>
+                                                <svg
+  className="w-6 h-6 text-slate-500"
+  fill="none"
+  stroke="currentColor"
+  viewBox="0 0 24 24"
+  xmlns="http://www.w3.org/2000/svg"
+>
+  <path
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    strokeWidth="2"
+    d="M3 13V7a1 1 0 011-1h9v4h4l3 4v3a1 1 0 01-1 1h-1m-14-5v4a1 1 0 001 1h1m-2-5l-1 1m15-1v4a1 1 0 01-1 1h-1m2-5l1 1m-12 4a2 2 0 100-4 2 2 0 000 4zm10 0a2 2 0 100-4 2 2 0 000 4z"
+  />
+</svg>
                                             </div>
-                                            <p className="text-slate-600 font-medium">Shipping address is not provided</p>
+                                            <p className="text-slate-600 font-medium">Store Pickup</p>
                                         </div>
                                     )}
                                 </div>
@@ -368,48 +469,52 @@ function OrderViewModal({ viewModal, setViewModal, selectedOrderId }) {
                                     </div>
                                 </div>
                             </div>
+{(() => {
+  // orderData or order variable in your file — adjust name if different
+  const o = orderData ?? order ?? {}; 
+  const { itemsSubtotal, shipping, tax, discount, total } = computeOrderTotal(o);
 
-                            {/* Order Summary */}
-                            <div className="space-y-4 sm:space-y-6 border-t border-slate-200 pt-6 sm:pt-8">
-                                <h3 className="text-lg sm:text-xl font-bold text-slate-900 flex items-center gap-2">
-                                    <div className="w-1.5 h-1.5 bg-indigo-600 rounded-full"></div>
-                                    Order Summary
-                                </h3>
-                                <div className="bg-gradient-to-br from-slate-50 to-slate-100/30 rounded-2xl p-4 sm:p-6 border border-slate-200/50 space-y-3">
-                                    <div className="flex justify-between items-center py-2 border-b border-slate-200/50">
-                                        <span className="text-sm font-medium text-slate-700">Subtotal:</span>
-                                        <span className="text-sm font-bold text-slate-900">
-                                            ${(orderData.totalPrice - orderData.shippingPrice - orderData.taxPrice).toFixed(2)}
-                                        </span>
-                                    </div>
-                                    <div className="flex justify-between items-center py-2 border-b border-slate-200/50">
-                                        <span className="text-sm font-medium text-slate-700">Shipping:</span>
-                                        <span className="text-sm font-bold text-slate-900">
-                                            {orderData.shippingPrice === 0 ? (
-                                                <span className="text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg border border-emerald-200">Free</span>
-                                            ) : (
-                                                `$${orderData.shippingPrice}`
-                                            )}
-                                        </span>
-                                    </div>
-                                    <div className="flex justify-between items-center py-2 border-b border-slate-200/50">
-                                        <span className="text-sm font-medium text-slate-700">Tax:</span>
-                                        <span className="text-sm font-bold text-slate-900">
-                                            {orderData.taxPrice === 0 ? (
-                                                <span className="text-slate-500">N/A</span>
-                                            ) : (
-                                                `$${orderData.taxPrice}`
-                                            )}
-                                        </span>
-                                    </div>
-                                    <div className="flex justify-between items-center pt-4 border-t-2 border-indigo-200">
-                                        <span className="text-base font-black text-slate-900">Total:</span>
-                                        <span className="text-xl font-black bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                                            ${orderData.totalPrice}
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
+  // debug - remove later if you want
+  console.debug("[Order Summary]", {
+    orderId: o?._id ?? o?.id,
+    itemsSubtotal, shipping, tax, discount, total,
+    backend_total_raw: o?.totalPrice ?? o?.total ?? o?.amount
+  });
+
+  return (
+    <>
+      <div className="flex justify-between items-center py-2 border-b border-slate-200/50">
+        <span className="text-sm font-medium text-slate-700">Items</span>
+        <span className="text-sm font-bold text-slate-900">{formatCurrency(itemsSubtotal)}</span>
+      </div>
+
+      <div className="flex justify-between items-center py-2 border-b border-slate-200/50">
+        <span className="text-sm font-medium text-slate-700">Shipping</span>
+        <span className="text-sm font-bold text-slate-900">{formatCurrency(shipping)}</span>
+      </div>
+
+      <div className="flex justify-between items-center py-2 border-b border-slate-200/50">
+        <span className="text-sm font-medium text-slate-700">Discount</span>
+        <span className="text-sm font-bold text-slate-900" style={{color: discount ? '#c00' : undefined}}>
+          {discount ? `-${formatCurrency(Math.abs(discount))}` : formatCurrency(0)}
+        </span>
+      </div>
+
+      {/* If you show Tax, uncomment this block */}
+      {/* <div className="flex justify-between items-center py-2 border-b border-slate-200/50">
+        <span className="text-sm font-medium text-slate-700">Tax</span>
+        <span className="text-sm font-bold text-slate-900">{formatCurrency(tax)}</span>
+      </div> */}
+
+      <div className="flex justify-between items-center pt-4 border-t-2 border-indigo-200">
+        <span className="text-base font-black text-slate-900">Total</span>
+        <span className="text-xl font-black bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+          {formatCurrency(total)}
+        </span>
+      </div>
+    </>
+  );
+})()}
                         </>
                     ) : (
                         <div className="text-center py-16 sm:py-20">

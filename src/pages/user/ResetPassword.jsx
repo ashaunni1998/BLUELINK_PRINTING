@@ -93,6 +93,8 @@ const ResetPassword = () => {
   };
 
   return (
+       <div style={{ backgroundColor: "#e6f2ff", width: "100%", minHeight: "100vh" }}>
+
     <div className="responsive-container">
       <Header />
       <div style={styles.container}>
@@ -135,8 +137,10 @@ const ResetPassword = () => {
           )}
         </div>
       </div>
+    
       <Footer />
-    </div>
+      </div>
+      </div>
   );
 };
 

@@ -73,7 +73,7 @@ const CheckoutForm = () => {
 
   const handleCardReady = () => {
     setCardReady(true);
-    // console.log("CardElement is ready");
+    console.log("CardElement is ready");
   };
 
   // Heuristic helpers
@@ -289,20 +289,20 @@ const CheckoutForm = () => {
   const getPaymentMethodName = (method) => {
     const methods = {
       card: "Credit/Debit Card",
-      paypal: "PayPal",
-      klarna: "Klarna",
-      afterpay: "Afterpay",
-      cashapp: "Cash App Pay",
+      // paypal: "PayPal",
+      // klarna: "Klarna",
+      // afterpay: "Afterpay",
+      // cashapp: "Cash App Pay",
     };
     return methods[method] || method;
   };
 
   const paymentMethods = [
     { id: "card", name: "Credit/Debit Card", icon: "💳", available: true, description: "Visa, Mastercard, American Express" },
-    { id: "paypal", name: "PayPal", icon: "🅿️", available: true, description: "Pay with your PayPal account" },
-    { id: "klarna", name: "Klarna", icon: "🛒", available: true, description: "Buy now, pay later" },
-    { id: "afterpay", name: "Afterpay", icon: "💰", available: true, description: "4 interest-free payments" },
-    { id: "cashapp", name: "Cash App Pay", icon: "💚", available: true, description: "Pay with Cash App" },
+    // { id: "paypal", name: "PayPal", icon: "🅿️", available: true, description: "Pay with your PayPal account" },
+    // { id: "klarna", name: "Klarna", icon: "🛒", available: true, description: "Buy now, pay later" },
+    // { id: "afterpay", name: "Afterpay", icon: "💰", available: true, description: "4 interest-free payments" },
+    // { id: "cashapp", name: "Cash App Pay", icon: "💚", available: true, description: "Pay with Cash App" },
   ];
 
   if (!stripeLoaded) {

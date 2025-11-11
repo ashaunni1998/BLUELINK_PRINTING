@@ -49,7 +49,7 @@ function MainCom({ coupons, setCoupons, loading }) {
             setIsModalOpen(false);
             
         } catch (error) {
-            // console.log(error);
+            console.log(error);
             
         }finally{
             setUpLoading(false)

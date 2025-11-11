@@ -12,12 +12,19 @@ function ProductSpecificationModal({ isEdited, setCardOptions, openOptions, setO
             { name: 'Standard', size: { width: '2.0', height: '3.5' } },
             { name: 'Normal', size: { width: '2.16', height: '3.3' } },
             { name: 'Square', size: { width: '2.56', height: '2.56' } },
+            // Added A sizes as requested (values are in millimeters)
+            { name: 'A4', size: { width: '210', height: '297' } },
+            { name: 'A5', size: { width: '148', height: '210' } },
+            { name: 'A6', size: { width: '105', height: '148' } },
+            { name: 'DL', size: { width: '110', height: '220' } },
         ],
         paper: [
             { name: 'Original', points: [] },
             { name: 'Super', points: [] },
             { name: 'Luxe', points: [] },
-            { name: 'Special Finishes', points: [] }
+            { name: 'Special Finishes', points: [] },
+            { name: '200 GSM', points: [] },
+            { name: '300 GSM', points: [] },
         ],
         finish: [
             { name: 'Matte', description: '' },
@@ -63,7 +70,7 @@ function ProductSpecificationModal({ isEdited, setCardOptions, openOptions, setO
                 setLocalOptions(res.productData);
                  setOpenOptions(false)
             } catch (error) {
-                // console.log(error);
+                console.log(error);
                 
             }finally{
                 setLoading(false)

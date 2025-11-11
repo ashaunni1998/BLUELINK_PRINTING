@@ -212,8 +212,8 @@ const [addressError, setAddressError] = useState("");   // for error messages
   // ✅ Fetch addresses (cookie auth)
  const fetchAddresses = async () => {
   try {
-    // console.log("📤 Sending GET /address/addresses with cookies");
-    // console.log("Fetching addresses from:", `${API_BASE_URL}/address/addresses`);
+    console.log("📤 Sending GET /address/addresses with cookies");
+    console.log("Fetching addresses from:", `${API_BASE_URL}/address/addresses`);
     const res = await axios.get(`${API_BASE_URL}/address/addresses`, {
       withCredentials: true,
     });
@@ -503,12 +503,12 @@ const handleAddAddress = async (e) => {
   };
 
   // 1) Try posting base payload (no userId) — good when backend uses session
-  // console.log("Posting address payload (attempt 1, no user):", basePayload);
+  console.log("Posting address payload (attempt 1, no user):", basePayload);
   let result = await postAddress(basePayload);
 
   // If success, finish
   if (result.ok) {
-    // console.log("Address saved (attempt 1):", result.data);
+    console.log("Address saved (attempt 1):", result.data);
     // reset and fetch addresses
     setNewAddress({
      firstName: "",
@@ -540,11 +540,11 @@ const handleAddAddress = async (e) => {
   const bodyMsg = JSON.stringify(result.body || "");
   if (userId && /userId|user id|userId.*required/i.test(bodyMsg)) {
     const payload2 = { ...basePayload, userId };
-    // console.log("Retrying with userId (attempt 2):", payload2);
+    console.log("Retrying with userId (attempt 2):", payload2);
     result = await postAddress(payload2);
 
     if (result.ok) {
-      // console.log("Address saved (attempt 2):", result.data);
+      console.log("Address saved (attempt 2):", result.data);
       setNewAddress({
         fullName: "",
         phone: "",
@@ -576,10 +576,10 @@ const handleAddAddress = async (e) => {
     ];
 
     for (let i = 0; i < tryShapes.length; i++) {
-      // console.log(`Retrying with alternate user shape (attempt ${3 + i}):`, tryShapes[i]);
+      console.log(`Retrying with alternate user shape (attempt ${3 + i}):`, tryShapes[i]);
       result = await postAddress(tryShapes[i]);
       if (result.ok) {
-        // console.log("Address saved (alternate shape):", result.data);
+        console.log("Address saved (alternate shape):", result.data);
         setNewAddress({
           fullName: "",
           phone: "",

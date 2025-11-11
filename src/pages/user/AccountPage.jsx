@@ -139,6 +139,7 @@ const fetchAddresses = async () => {
   try {
     setLoadingAddresses(true);
     const res = await axios.get(`${API_BASE_URL}/address/addresses`, { withCredentials: true });
+    console.log("GET /address/addresses response:", res.data);
 
     const extractAddresses = (data) => {
       if (Array.isArray(data)) return data;
@@ -191,21 +192,86 @@ useEffect(() => {
     }
   };
 
-const formatCurrency = (amount) => {
-    if (amount == null) return '$0.00';
-    
-    const num = Number(amount);
-    if (!isFinite(num)) return '$0.00';
-    
-    // If the number is a whole number >= 1000, assume it's in cents
-    // Example: 600 cents = $6.00, 60000 cents = $600.00
-    if (Number.isInteger(num) && Math.abs(num) >= 100) {
-      return `$${(num / 100).toFixed(2)}`;
+  const normalizePrice = (value) => {
+    if (value == null || value === "") return 0;
+    const n = Number(value);
+    if (Number.isNaN(n)) return 0;
+    // If integer and large, assume cents
+    if (Number.isInteger(n) && Math.abs(n) >= 1000) {
+      return n / 100;
     }
-    
-    // Otherwise treat as dollars
-    return `$${num.toFixed(2)}`;
+    return n;
   };
+
+  const formatCurrency = (amount) => {
+    const normalized = normalizePrice(amount);
+    return `$${normalized.toFixed(2)}`;
+  };
+
+  // optional helper to compute a line total safely (price may be cents)
+  const computeLineTotal = (price, qty) => {
+    const p = normalizePrice(price);
+    const q = Number(qty || 0);
+    if (Number.isNaN(q)) return 0;
+    return p * q;
+  };
+const parseMoneyToDollars = (v) => {
+  if (v == null || v === "") return 0;
+  const n = Number(v);
+  if (!isFinite(n)) return 0;
+  return n;
+};
+
+const computeOrderTotal = (order) => {
+  if (!order) return 0;
+  // items may be in different fields
+  const rawItems = order.orderItems || order.items || order.products || [];
+  // 1) items subtotal: prefer lineTotal, otherwise use unitPrice (do NOT multiply by qty)
+  const itemsSubtotal = rawItems.reduce((sum, it) => {
+    const rawLine = it.lineTotal ?? it.line_total ?? it.total ?? it.subtotal ?? it.amount ?? null;
+    const rawUnit = it.unitPrice ?? it.price ?? it.pricePerUnit ?? it.price_unit ?? null;
+    const parsedLine = parseMoneyToDollars(rawLine);
+    const parsedUnit = parseMoneyToDollars(rawUnit);
+    const line = (parsedLine && parsedLine > 0) ? parsedLine : (parsedUnit && parsedUnit > 0 ? parsedUnit : 0);
+    return sum + Number(line);
+  }, 0);
+
+  // helper to read raw possible fields
+  const getRaw = (keys, fallback = 0) => {
+    for (const k of keys) {
+      if (k !== undefined && k !== null) return k;
+    }
+    return fallback;
+  };
+
+  // 2) shipping / tax / discount with cents heuristic
+  const rawShipping = getRaw([order.shippingPrice, order.shipping, order.shipping_amount, order.shipping_price], 0);
+  let shipping = parseMoneyToDollars(rawShipping);
+  if (Number(rawShipping) >= 100 && !String(rawShipping).includes(".") && itemsSubtotal < 1000) {
+    shipping = Number((Number(rawShipping) / 100).toFixed(2));
+  }
+
+  const rawTax = getRaw([order.taxPrice, order.tax, order.tax_amount, order.tax_price], 0);
+  let tax = parseMoneyToDollars(rawTax);
+  if (Number(rawTax) >= 100 && !String(rawTax).includes(".") && itemsSubtotal < 1000) {
+    tax = Number((Number(rawTax) / 100).toFixed(2));
+  }
+
+  const rawDiscount = getRaw([order.discountAmount, order.discount, order.discount_amount, order.couponDiscount], 0);
+  let discount = parseMoneyToDollars(rawDiscount);
+  if (Number(rawDiscount) >= 100 && !String(rawDiscount).includes(".") && itemsSubtotal < 1000) {
+    discount = Number((Number(rawDiscount) / 100).toFixed(2));
+  }
+
+  const total = Number((itemsSubtotal + shipping + tax - discount).toFixed(2));
+  return total;
+};
+
+// small formatter for computed number totals (use same style as the rest)
+const formatCurrencyFromNumber = (num) => {
+  const n = Number(num || 0);
+  return `$${n.toFixed(2)}`;
+};
 
   const getStatusColor = (status) => {
     const statusColors = {
@@ -786,13 +852,13 @@ const LockedCard = ({ title }) => (
     Items: {order.orderItems?.length || order.items?.length || order.products?.length || 0}
   </p>
   <p style={{
-    margin: '0',
-    fontSize: isMobile ? '17px' : '18px',
-    fontWeight: '700',
-    color: '#212529'
-  }}>
-    {formatCurrency(order.totalPrice || order.totalAmount || order.total || order.grandTotal || 0)}
-  </p>
+  margin: '0',
+  fontSize: isMobile ? '17px' : '18px',
+  fontWeight: '700',
+  color: '#212529'
+}}>
+  {formatCurrencyFromNumber(computeOrderTotal(order))}
+</p>
 </div>
                           
                           <Link 
@@ -930,7 +996,7 @@ const LockedCard = ({ title }) => (
   color: '#212529',
   textAlign: 'right'
 }}>
-  {formatCurrency(order.totalPrice || order.totalAmount || order.total || order.grandTotal || 0)}
+  {formatCurrencyFromNumber(computeOrderTotal(order))}
 </td>
                                 <td style={{ padding: '16px', textAlign: 'center' }}>
                                   <Link 

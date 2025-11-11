@@ -10,16 +10,33 @@ const Review = ({ productId }) => {
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(false);
 
+
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+const [isTablet, setIsTablet] = useState(window.innerWidth > 768 && window.innerWidth <= 1024);
+
+useEffect(() => {
+  const handleResize = () => {
+    const width = window.innerWidth;
+    setIsMobile(width <= 768);
+    setIsTablet(width > 768 && width <= 1024);
+  };
+  window.addEventListener("resize", handleResize);
+  return () => window.removeEventListener("resize", handleResize);
+}, []);
+
   const fetchReviews = async () => {
     try {
       setLoading(true);
+      console.log("🔎 Fetching reviews for productId:", productId);
       
       const res = await fetch(
         `${API_BASE_URL}/review/productReview?productId=${productId}&limit=10&page=1`,
         { credentials: "include" }
       );
       
+      console.log("🔎 Response status:", res.status);
       const data = await res.json();
+      console.log("🔎 Response JSON:", data);
       
       if (res.ok) {
         let fetchedReviews = [];
@@ -38,6 +55,7 @@ const Review = ({ productId }) => {
           fetchedReviews = data.data;
         }
 
+        console.log("✅ Normalized reviews:", fetchedReviews);
         setReviews(fetchedReviews);
       } else {
         console.error("API Error:", data?.message || "Unknown error");
@@ -52,6 +70,8 @@ const Review = ({ productId }) => {
   };
 
   useEffect(() => {
+    console.log("🎯 Review Component Mounted");
+    console.log("📦 Received productId:", productId);
   }, [productId]);
 
   const handleReviewSubmit = async () => {
@@ -60,7 +80,12 @@ const Review = ({ productId }) => {
       return;
     }
 
-   
+    console.log("=".repeat(50));
+    console.log("📤 SUBMITTING REVIEW");
+    console.log("=".repeat(50));
+    console.log("📦 ProductId:", productId);
+    console.log("⭐ Rating:", rating);
+    console.log("💬 Comment:", reviewText);
 
     try {
       const res = await fetch(`${API_BASE_URL}/review`, {
@@ -70,6 +95,7 @@ const Review = ({ productId }) => {
         body: JSON.stringify({ productId, rating, comment: reviewText }),
       });
 
+      console.log("📥 Response status:", res.status);
       
       const text = await res.text();
       let data;
@@ -131,34 +157,35 @@ const Review = ({ productId }) => {
   return (
     <div style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
       {/* Write Review Section */}
-      <div
-        style={{
-          marginTop: 50,
-          maxWidth: 600,
-          marginLeft: "0%",
-          marginRight: "25%",
-          padding: "0 16px",
-        }}
-      >
+   <div
+  style={{
+    marginTop: isMobile ? 30 : 50,
+    maxWidth: isMobile ? "95%" : isTablet ? "80%" : 600,
+    marginLeft: "auto",
+    marginRight: "auto",
+    padding: isMobile ? "0 12px" : "0 16px",
+  }}
+>
+
         <div style={{
-          background: 'linear-gradient(135deg, #c6c8ceff 0%, #57618aff 100%)',
+          background: 'linear-gradient(135deg, #b0bcc9ff 0%, #b0c0d1ff 100%)',
           borderRadius: 16,
           padding: 32,
           boxShadow: '0 10px 40px rgba(102, 126, 234, 0.2)',
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
-            <div style={{
+            {/* <div style={{
               background: 'rgba(255, 255, 255, 0.2)',
               borderRadius: 12,
               padding: 10,
               backdropFilter: 'blur(10px)',
             }}>
               <MessageSquare size={24} color="#fff" />
-            </div>
+            </div> */}
             <h3 style={{ 
               fontSize: 24, 
               margin: 0,
-              color: '#fff',
+              color: '#007BFF',
               fontWeight: 600,
             }}>
               Share Your Experience
@@ -247,79 +274,84 @@ const Review = ({ productId }) => {
             />
           </div>
 
-          {/* Action Buttons */}
-          <div style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 12,
-            flexWrap: "nowrap",
-          }}>
-            <button
-              onClick={handleReviewSubmit}
-              style={{
-                background: "linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)",
-                color: "#1f2937",
-                padding: "12px 24px",
-                border: "none",
-                borderRadius: 10,
-                cursor: "pointer",
-                fontSize: 15,
-                fontWeight: 600,
-                whiteSpace: "nowrap",
-                boxShadow: '0 4px 15px rgba(251, 191, 36, 0.4)',
-                transition: 'all 0.3s ease',
-              }}
-              onMouseEnter={(e) => {
-                e.target.style.transform = 'translateY(-2px)';
-                e.target.style.boxShadow = '0 6px 20px rgba(251, 191, 36, 0.5)';
-              }}
-              onMouseLeave={(e) => {
-                e.target.style.transform = 'translateY(0)';
-                e.target.style.boxShadow = '0 4px 15px rgba(251, 191, 36, 0.4)';
-              }}
-            >
-              Submit Review
-            </button>
+      {/* Action Buttons */}
+<div style={{
+  display: "flex",
+  alignItems: "center",
+  gap: 12,
+  flexWrap: "nowrap", // Keep buttons in single line
+  justifyContent: "space-between", // Space buttons evenly
+}}>
+  <button
+    onClick={handleReviewSubmit}
+    style={{
+      background: "linear-gradient(135deg, #007BFF 0%, #007BFF 100%)",
+      color: "#fff",
+      padding: isMobile ? "12px 16px" : "12px 24px",
+      border: "none",
+      borderRadius: 10,
+      cursor: "pointer",
+      fontSize: isMobile ? 14 : 15,
+      fontWeight: 600,
+      whiteSpace: "nowrap",
+      boxShadow: '0 4px 15px rgba(27, 48, 185, 0.4)',
+      transition: 'all 0.3s ease',
+      flex: "1 1 0", // Equal flex basis
+      maxWidth: isMobile ? "48%" : "auto", // Limit to 48% width on mobile
+    }}
+    onMouseEnter={(e) => {
+      e.target.style.transform = 'translateY(-2px)';
+      e.target.style.boxShadow = '0 6px 20px rgba(16, 33, 184, 0.5)';
+    }}
+    onMouseLeave={(e) => {
+      e.target.style.transform = 'translateY(0)';
+      e.target.style.boxShadow = '0 4px 15px rgba(17, 34, 184, 0.4)';
+    }}
+  >
+    Submit Review
+  </button>
 
-            <button
-              onClick={() => setShowReviews(!showReviews)}
-              style={{
-                background: "rgba(255, 255, 255, 0.2)",
-                color: "#fff",
-                padding: "12px 24px",
-                border: "1px solid rgba(255, 255, 255, 0.3)",
-                borderRadius: 10,
-                cursor: "pointer",
-                fontSize: 15,
-                fontWeight: 600,
-                whiteSpace: "nowrap",
-                backdropFilter: 'blur(10px)',
-                transition: 'all 0.3s ease',
-              }}
-              onMouseEnter={(e) => {
-                e.target.style.background = 'rgba(255, 255, 255, 0.3)';
-              }}
-              onMouseLeave={(e) => {
-                e.target.style.background = 'rgba(255, 255, 255, 0.2)';
-              }}
-            >
-              {showReviews ? "Hide Reviews" : "View Reviews"}
-            </button>
-          </div>
-        </div>
-      </div>
-
+  <button
+    onClick={() => setShowReviews(!showReviews)}
+    style={{
+      background: "rgba(255, 255, 255, 0.2)",
+      color: "#fff",
+      padding: isMobile ? "12px 16px" : "12px 24px",
+      border: "1px solid rgba(255, 255, 255, 0.3)",
+      borderRadius: 10,
+      cursor: "pointer",
+      fontSize: isMobile ? 14 : 15,
+      fontWeight: 600,
+      whiteSpace: "nowrap",
+      backdropFilter: 'blur(10px)',
+      transition: 'all 0.3s ease',
+      flex: "1 1 0", // Equal flex basis
+      maxWidth: isMobile ? "48%" : "auto", // Limit to 48% width on mobile
+    }}
+    onMouseEnter={(e) => {
+      e.target.style.background = 'rgba(255, 255, 255, 0.3)';
+    }}
+    onMouseLeave={(e) => {
+      e.target.style.background = 'rgba(255, 255, 255, 0.2)';
+    }}
+  >
+    {showReviews ? "Hide Reviews" : "View Reviews"}
+  </button>
+</div>
+</div>
+</div>
       {/* Customer Reviews Section */}
       {showReviews && (
-        <div
-          style={{
-            marginTop: 40,
-            maxWidth: 600,
-            marginLeft: "auto",
-            marginRight: "auto",
-            padding: "0 16px",
-          }}
-        >
+      <div
+  style={{
+    marginTop: isMobile ? 24 : 40,
+    maxWidth: isMobile ? "95%" : isTablet ? "80%" : 600,
+    marginLeft: "auto",
+    marginRight: "auto",
+    padding: isMobile ? "0 12px" : "0 16px",
+  }}
+>
+
           {/* Reviews Header with Stats */}
           <div style={{
             background: 'linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%)',

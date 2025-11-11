@@ -68,7 +68,7 @@ function HeaderDropDownMenu({ setIsProfileOpen, isProfileOpen }) {
         setLoading(true)
         LOGOUT_API()
             .then(() => {
-                // console.log('User logged out successfully');
+                console.log('User logged out successfully');
                 dispatch(logOut());
                 navigate('/admin/login');
                 setIsProfileOpen(false);

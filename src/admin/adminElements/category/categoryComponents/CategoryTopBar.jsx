@@ -41,7 +41,7 @@ function CategoryTopBar({ setItemsPerPage, itemsPerPage, setCurrentPage, setCate
             const res = await SEARCH_CATEGORY(searchData)
             setCategories(res.categoryData);
         } catch (error) {
-            // console.log(error);
+            console.log(error);
 
         }
     }

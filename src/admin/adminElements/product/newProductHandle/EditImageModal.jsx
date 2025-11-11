@@ -77,7 +77,7 @@ function EditImage({ product, setProduct, isOpen, onClose }) {
     };
     async function fetchProduct() {
         // console.log(1111, product.images, 2222, images);
-        // console.log('newImages', newImageFile);
+        console.log('newImages', newImageFile);
         const formData = new FormData();
 
         newImageFile.forEach((file) => {

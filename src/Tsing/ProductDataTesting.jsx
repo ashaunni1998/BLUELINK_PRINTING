@@ -14,7 +14,7 @@ const ProductForm = () => {
 
         // Assuming response.data.data is an array of products
         const firstProduct = response.data.productData[0]; 
-      
+        console.log(response);
         
         setProduct(firstProduct);
       } catch (error) {

@@ -29,7 +29,7 @@ function OrdersPage() {
             setPagination(res.orderData.pagination);
             setOrders(res.orderData?.data);
         } catch (error) {
-            // console.log('Error fetching orders:', error);
+            console.log('Error fetching orders:', error);
             
         }finally{
             setLoading(false);

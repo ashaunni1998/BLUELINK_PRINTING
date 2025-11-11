@@ -89,6 +89,7 @@ useEffect(() => {
 
       const data = await res.json();
       const categories = data.data;
+      console.log("Available Categories:", categories);
       const matchedCategory = categories.find((cat) => cat._id === categoryId);
 
       if (matchedCategory && matchedCategory.products) {
@@ -137,12 +138,73 @@ useEffect(() => {
   if (categoryId) fetchProducts();
 }, [categoryId]);
 
-  if (loading)
-    return <p style={{ textAlign: "center", padding: "40px" }}>Loading products...</p>;
+     if (loading)
+    return (
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          height: "70vh",
+          background: "linear-gradient(180deg, #f9fbff 0%, #eef4ff 100%)",
+        }}
+      >
+        {/* <div className="loading-spinner"></div> */}
+        <p
+          style={{
+            marginTop: "18px",
+            fontSize: "18px",
+            color: "#007bff",
+            fontWeight: "500",
+            letterSpacing: "0.3px",
+            // animation: "fadeIn 1.2s ease-in-out infinite alternate",
+          }}
+        >
+          Loading products...
+        </p>
+
+        <style>
+          {`
+          .loading-spinner {
+            width: 52px;
+            height: 52px;
+            border: 5px solid rgba(0, 123, 255, 0.2);
+            border-top-color: #007bff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+          }
+
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+
+          @keyframes fadeIn {
+            from { opacity: 0.4; }
+            to { opacity: 1; }
+          }
+          `}
+        </style>
+      </div>
+    );
+
   if (error)
     return (
-      <p style={{ textAlign: "center", color: "red", padding: "40px" }}>{error}</p>
+      <div
+        style={{
+          textAlign: "center",
+          color: "red",
+          padding: "60px",
+          fontSize: "18px",
+          background: "#fff5f5",
+        }}
+      >
+        ⚠️ {error}
+      </div>
     );
+
+
 
  
 
@@ -191,7 +253,7 @@ useEffect(() => {
 const arrowButtonStyle = (position) => ({
   position: "absolute",
   top: "50%",
-  [position]: "20px",
+  [position]: "90px",
   transform: "translateY(-50%)",
   fontSize: "30px",
   color: "#fff",
@@ -205,6 +267,7 @@ const arrowButtonStyle = (position) => ({
   return (
      <div >
            <div style={{ backgroundColor: "#e6f2ff", width: "100%", minHeight: "100vh" }}>
+
 
       <div className="responsive-container">
       <Header />
@@ -413,94 +476,95 @@ const arrowButtonStyle = (position) => ({
 
 <div className="all-products-container">
   <style>{`
-    /* Aligned container - matches Header's maxWidth and padding */
     .all-products-container {
-      maxWidth: 1440px;
+      max-width: 1440px;
       margin: 0 auto;
       width: 100%;
-      padding-left: 2.5rem;
-      padding-right: 2.5rem;
+      padding: 2.5rem;
       box-sizing: border-box;
     }
 
     @media (max-width: 1199px) {
       .all-products-container {
-        padding-left: 1.5rem;
-        padding-right: 1.5rem;
+        padding: 1.5rem;
       }
     }
 
     @media (max-width: 767px) {
       .all-products-container {
-        padding-left: 1rem;
-        padding-right: 1rem;
-      }
-      
-      .page-title {
-        font-size: 1.5rem !important;
+        padding: 1rem;
       }
     }
 
     .page-title {
       font-size: 28px;
       font-weight: 700;
-      margin-bottom: 24px;
-      margin-top: 0;
+      margin: 24px 0;
       text-align: center;
       color: #222;
     }
 
-    /* Desktop - 5 columns centered */
+    @media (max-width: 767px) {
+      .page-title {
+        font-size: 22px;
+        margin: 16px 0;
+      }
+    }
+
     .all-products-responsive-grid {
       display: grid;
       grid-template-columns: repeat(5, 1fr);
       gap: 1.25rem;
       width: 100%;
+      max-width: 75%;
+      margin: 0 auto;
     }
 
-    /* Tablet and below - 4 columns */
     @media (max-width: 1279px) and (min-width: 1024px) {
       .all-products-responsive-grid {
-        grid-template-columns: repeat(4, 1fr) !important;
+        grid-template-columns: repeat(4, 1fr);
+        max-width: 85%;
       }
     }
 
-    /* Small tablet - 3 columns */
     @media (max-width: 1023px) and (min-width: 768px) {
       .all-products-responsive-grid {
-        grid-template-columns: repeat(3, 1fr) !important;
-        gap: 1rem !important;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        max-width: 95%;
       }
     }
 
-    /* Mobile landscape - 2 columns */
-    @media (max-width: 767px) and (min-width: 480px) {
+    @media (max-width: 767px) {
       .all-products-responsive-grid {
-        grid-template-columns: repeat(2, 1fr) !important;
-        gap: 0.875rem !important;
-      }
-    }
-
-    /* Mobile portrait - 2 columns */
-    @media (max-width: 479px) {
-      .all-products-responsive-grid {
-        grid-template-columns: repeat(2, 1fr) !important;
-        gap: 0.75rem !important;
+        grid-template-columns: 1fr;
+        gap: 1rem;
+        max-width: 100%;
+        padding: 0;
       }
     }
 
     .product-card-all-responsive {
       background-color: #fff;
-      border-radius: 0.375rem;
+      border-radius: 0.5rem;
       overflow: hidden;
-      box-shadow: 0 0.0625rem 0.375rem rgba(0,0,0,0.07);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
       transition: transform 0.2s ease, box-shadow 0.2s ease;
       width: 100%;
     }
 
     .product-card-all-responsive:hover {
       transform: translateY(-4px);
-      box-shadow: 0 0.25rem 0.75rem rgba(0,0,0,0.12);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+    }
+
+    @media (max-width: 767px) {
+      .product-card-all-responsive {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        border-radius: 0.75rem;
+      }
     }
 
     .product-image-wrapper-all {
@@ -512,6 +576,16 @@ const arrowButtonStyle = (position) => ({
       background: #f9f9f9;
     }
 
+    @media (max-width: 767px) {
+      .product-image-wrapper-all {
+        width: 140px;
+        min-width: 140px;
+        height: 140px;
+        aspect-ratio: 1;
+        flex-shrink: 0;
+      }
+    }
+
     .product-image-all {
       width: 100%;
       height: 100%;
@@ -520,51 +594,62 @@ const arrowButtonStyle = (position) => ({
     }
 
     .product-info-all-responsive {
-      padding: 0.875rem;
+      padding: 1rem;
       border-top: 1px solid #eee;
       text-align: center;
+    }
+
+    @media (max-width: 767px) {
+      .product-info-all-responsive {
+        flex: 1;
+        padding: 1rem;
+        border-top: none;
+        border-left: 1px solid #eee;
+        text-align: left;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+      }
     }
 
     .product-name-all-responsive {
       color: #007abf;
       text-decoration: none;
-      font-weight: 500;
-      font-size: 0.9375rem;
-      margin: 0 0 0.375rem 0;
-      cursor: pointer;
-    }
-
-    .product-price-all-responsive {
-      font-size: 0.875rem;
-      color: #444;
-      margin: 0;
       font-weight: 600;
+      font-size: 1rem;
+      margin: 0 0 0.5rem 0;
+      cursor: pointer;
+      display: block;
+      line-height: 1.4;
     }
 
     @media (max-width: 767px) {
-      .product-info-all-responsive {
-        padding: 0.75rem 0.5rem !important;
-      }
-      
       .product-name-all-responsive {
-        font-size: 0.875rem !important;
+        font-size: 1.0625rem;
+        margin: 0 0 0.625rem 0;
+        line-height: 1.3;
       }
-      
+    }
+
+    .product-price-all-responsive {
+      font-size: 0.9375rem;
+      color: #444;
+      margin: 0;
+      font-weight: 700;
+    }
+
+    @media (max-width: 767px) {
       .product-price-all-responsive {
-        font-size: 0.8125rem !important;
+        font-size: 1.125rem;
+        color: #007abf;
       }
     }
 
     .no-products-message {
       text-align: center;
       color: #666;
-      padding: 2rem 1rem;
-    }
-
-    @media (max-width: 767px) {
-      .no-products-message {
-        padding: 2rem 1rem !important;
-      }
+      padding: 3rem 1rem;
+      font-size: 1.125rem;
     }
   `}</style>
 
@@ -577,131 +662,65 @@ const arrowButtonStyle = (position) => ({
       No products found for this category.
     </p>
   ) : (
-    <div 
-    className="all-products-responsive-grid"
-    data-count={products.length <= 3 ? products.length : "more"}
-    style={{
-      display: "grid",
-      gridTemplateColumns: "repeat(5, 1fr)",
-      gap: "1.25rem",
-      maxWidth: "75%",
-      margin: "0 auto",
-      padding: "0 1rem",
-    }}
-  >
-{products.map((product, index) => {
-  // Calculate grid-column for centering on desktop only
-  let gridColumn = "auto";
-  if (!isMobile && products.length <= 4) {
-    if (products.length === 1) {
-      gridColumn = "2 / 5"; // Center single product
-    } else if (products.length === 2) {
-      gridColumn = index === 0 ? "2 / 3" : "4 / 5"; // Two products with gap
-    } else if (products.length === 3) {
-      // Three products centered
-      gridColumn = index === 0 ? "2 / 3" : index === 1 ? "3 / 4" : "4 / 5";
-    } else if (products.length === 4) {
-      // Four products centered - columns 1,2,3,4 (skipping column 5)
-      gridColumn = index === 0 ? "1 / 2" : index === 1 ? "2 / 3" : index === 2 ? "3 / 4" : "4 / 5";
-    }
-  }
+    <div className="all-products-responsive-grid">
+      {products.map((product, index) => {
+        let gridColumn = "auto";
+        if (!isMobile && products.length <= 4) {
+          if (products.length === 1) {
+            gridColumn = "2 / 5";
+          } else if (products.length === 2) {
+            gridColumn = index === 0 ? "2 / 3" : "4 / 5";
+          } else if (products.length === 3) {
+            gridColumn = index === 0 ? "2 / 3" : index === 1 ? "3 / 4" : "4 / 5";
+          } else if (products.length === 4) {
+            gridColumn = index === 0 ? "1 / 2" : index === 1 ? "2 / 3" : index === 2 ? "3 / 4" : "4 / 5";
+          }
+        }
 
-// ✅ Get starting quantity price (now with priceTiers available)
-  const getStartingPrice = () => {
-    // Check if product has priceTiers array
-    if (product.priceTiers && Array.isArray(product.priceTiers) && product.priceTiers.length > 0) {
-      // Sort by quantity to get the lowest tier
-      const sortedTiers = [...product.priceTiers].sort((a, b) => (a.qty || 0) - (b.qty || 0));
-      const startingTier = sortedTiers[0];
-      
-      // Return priceSingle (default for single-sided design)
-      return startingTier.priceSingle || startingTier.priceDouble || startingTier.price || product.price;
-    }
-    
-    // Fallback to product.price if no priceTiers
-    return product.price || 0;
-  };
+        const getStartingPrice = () => {
+          if (product.priceTiers && Array.isArray(product.priceTiers) && product.priceTiers.length > 0) {
+            const sortedTiers = [...product.priceTiers].sort((a, b) => (a.qty || 0) - (b.qty || 0));
+            const startingTier = sortedTiers[0];
+            return startingTier.priceSingle || startingTier.priceDouble || startingTier.price || product.price;
+          }
+          return product.price || 0;
+        };
 
-  const displayPrice = getStartingPrice();
+        const displayPrice = getStartingPrice();
 
-  return (
-    <div 
-      className="product-card-all-responsive" 
-      key={product._id}
-      style={{
-        backgroundColor: "#fff",
-        borderRadius: "0.375rem",
-        overflow: "hidden",
-        boxShadow: "0 0.0625rem 0.375rem rgba(0,0,0,0.07)",
-        transition: "transform 0.2s ease, box-shadow 0.2s ease",
-        width: "100%",
-        gridColumn: gridColumn,
-      }}
-    >
-      <div
-        className="product-image-wrapper-all"
-        style={{
-          width: "100%",
-          aspectRatio: "4/3",
-          overflow: "hidden",
-          display: "block",
-          cursor: "pointer",
-        }}
-        onClick={() => navigate(`/product/${product._id}`)}
-      >
-        <img
-          src={product.images?.[0] || "https://via.placeholder.com/300"}
-          alt={product.name}
-          className="product-image-all"
-          style={{
-            width: "100%",
-            height: "100%",
-            objectFit: "contain",
-            display: "block",
-            backgroundColor: "#f9f9f9",
-          }}
-        />
-      </div>
+        return (
+          <div 
+            className="product-card-all-responsive" 
+            key={product._id}
+            style={{ gridColumn: gridColumn }}
+          >
+            <div
+              className="product-image-wrapper-all"
+              onClick={() => navigate(`/product/${product._id}`)}
+            >
+              <img
+                src={product.images?.[0] || "https://via.placeholder.com/300"}
+                alt={product.name}
+                className="product-image-all"
+              />
+            </div>
 
-      <div 
-        className="product-info-all-responsive"
-        style={{
-          padding: "0.875rem",
-          borderTop: "1px solid #eee",
-          textAlign: "center",
-        }}
-      >
-        <h3 
-          className="product-name-all-responsive"
-          onClick={() => navigate(`/product/${product._id}`)}
-          style={{
-            color: "#007abf",
-            textDecoration: "none",
-            fontWeight: "500",
-            fontSize: "0.9375rem",
-            marginBottom: "0.375rem",
-            cursor: "pointer",
-            margin: "0 0 0.375rem 0",
-          }}
-        >
-          {product.name}
-        </h3>
-        <p 
-          className="product-price-all-responsive"
-          style={{
-            fontSize: "0.875rem",
-            color: "#444",
-            margin: 0,
-          }}
-        >
-        ${displayPrice}
-        </p>
-      </div>
+            <div className="product-info-all-responsive">
+              <h3 
+                className="product-name-all-responsive"
+                onClick={() => navigate(`/product/${product._id}`)}
+              >
+                {product.name}
+              </h3>
+              <p className="product-price-all-responsive">
+                ${displayPrice}
+              </p>
+            </div>
+          </div>
+        );
+      })}
     </div>
-  );
-})}
-  </div>
-)}
+  )}
 </div>
 
       <Footer />

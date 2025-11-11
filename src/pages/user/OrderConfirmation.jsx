@@ -80,6 +80,7 @@ useEffect(() => {
         if (!cancelled) {
           setOrder(orderObj || null);
           console.group("[OrderConfirmation] fetched order");
+          console.log(orderObj);
           console.groupEnd();
         }
       } catch (err) {

@@ -5,6 +5,9 @@ import {
   FaTwitter,
   FaYoutube,
   FaWhatsapp,
+  FaPinterestP,
+  FaTiktok,
+  FaMapMarkerAlt,
 } from "react-icons/fa";
 import GoogleTranslateDropdown from "../GoogleTranslateDropdown";
 import { Link } from "react-router-dom";
@@ -52,25 +55,21 @@ const Footer = () => {
     setExpanded(expanded === index ? null : index);
   };
 
-
   const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1440);
 
-useEffect(() => {
-  const handleResize = () => {
-    setWindowWidth(window.innerWidth);
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowWidth(window.innerWidth);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const getPadding = () => {
+    if (windowWidth < 1050) return '1rem';
+    if (windowWidth < 1200) return '1.5rem';
+    return '2.5rem';
   };
-  window.addEventListener('resize', handleResize);
-  return () => window.removeEventListener('resize', handleResize);
-}, []);
-
-// ADD this helper function:
-const getPadding = () => {
-  if (windowWidth < 1050) return '1rem';
-  if (windowWidth < 1200) return '1.5rem';
-  return '2.5rem';
-};
-
-
 
   const sections = [
     {
@@ -91,7 +90,7 @@ const getPadding = () => {
       title: "Help",
       links: [
         { label: "Contact us", path: "/contact" },
-        { label: "FAQs", path: "/help-faq" },
+        { label: "FAQs", path: "/help" },
       ],
     },
   ];
@@ -107,9 +106,11 @@ const getPadding = () => {
     twitter: "#1DA1F2",
     youtube: "#FF0000",
     whatsapp: "#25D366",
+    pinterest: "#E60023",
+    tiktok: "#000000",
+    maps: "#4285F4",
   };
 
-  // Keep original alignment - only adjust for mobile
   const getContainerStyles = () => {
     if (isMobile) {
       return {
@@ -131,28 +132,27 @@ const getPadding = () => {
         color: "#333",
       }}
     >
-      {/* Top Bar - Maintains original alignment */}
+      {/* Top Bar */}
       <div
         style={{
           backgroundColor: "#2c3e50",
           color: "#fff",
           padding: isMobile ? "10px 0" : "12px 0",
-         
         }}
       >
-         <div
-    style={{
-      maxWidth: "1440px",
-      margin: "0 auto",
-      padding: `0 ${getPadding()}`,
-      width: "100%",
-      display: "flex",
-      flexWrap: "wrap",
-      justifyContent: "space-between",
-      alignItems: "center",
-      gap: isMobile ? "12px" : "10px",
-    }}
-  >
+        <div
+          style={{
+            maxWidth: "1440px",
+            margin: "0 auto",
+            padding: `0 ${getPadding()}`,
+            width: "100%",
+            display: "flex",
+            flexWrap: "wrap",
+            justifyContent: "space-between",
+            alignItems: "center",
+            gap: isMobile ? "12px" : "10px",
+          }}
+        >
           {/* Trustpilot Rating */}
           <div
             style={{
@@ -176,7 +176,7 @@ const getPadding = () => {
           <div
             style={{
               display: "flex",
-              gap: isMobile ? "14px" : "16px",
+              gap: isMobile ? "12px" : "14px",
               fontSize: isMobile ? "18px" : "20px",
               flexWrap: "wrap",
               justifyContent: "center",
@@ -184,7 +184,9 @@ const getPadding = () => {
             }}
           >
             <a
-              href="#"
+              href="https://www.facebook.com/profile.php?id=61572598362480"
+              target="_blank"
+              rel="noopener noreferrer"
               style={{ color: socialColors.facebook, transition: "opacity 0.2s" }}
               onMouseEnter={(e) => (e.target.style.opacity = "0.7")}
               onMouseLeave={(e) => (e.target.style.opacity = "1")}
@@ -192,7 +194,9 @@ const getPadding = () => {
               <FaFacebookF />
             </a>
             <a
-              href="#"
+              href="https://www.instagram.com/bluelinkprinting/?hl=en"
+              target="_blank"
+              rel="noopener noreferrer"
               style={{ color: socialColors.instagram, transition: "opacity 0.2s" }}
               onMouseEnter={(e) => (e.target.style.opacity = "0.7")}
               onMouseLeave={(e) => (e.target.style.opacity = "1")}
@@ -200,7 +204,9 @@ const getPadding = () => {
               <FaInstagram />
             </a>
             <a
-              href="#"
+              href="https://x.com/BLUELINKPRINTIN"
+              target="_blank"
+              rel="noopener noreferrer"
               style={{ color: socialColors.twitter, transition: "opacity 0.2s" }}
               onMouseEnter={(e) => (e.target.style.opacity = "0.7")}
               onMouseLeave={(e) => (e.target.style.opacity = "1")}
@@ -208,7 +214,29 @@ const getPadding = () => {
               <FaTwitter />
             </a>
             <a
-              href="#"
+              href="https://nz.pinterest.com/bluelinkprinting/"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ color: socialColors.pinterest, transition: "opacity 0.2s" }}
+              onMouseEnter={(e) => (e.target.style.opacity = "0.7")}
+              onMouseLeave={(e) => (e.target.style.opacity = "1")}
+            >
+              <FaPinterestP />
+            </a>
+            <a
+              href="https://www.tiktok.com/@bluelinkprintinglimited"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ color: socialColors.tiktok, transition: "opacity 0.2s" }}
+              onMouseEnter={(e) => (e.target.style.opacity = "0.7")}
+              onMouseLeave={(e) => (e.target.style.opacity = "1")}
+            >
+              <FaTiktok />
+            </a>
+            <a
+              href="https://www.youtube.com"
+              target="_blank"
+              rel="noopener noreferrer"
               style={{ color: socialColors.youtube, transition: "opacity 0.2s" }}
               onMouseEnter={(e) => (e.target.style.opacity = "0.7")}
               onMouseLeave={(e) => (e.target.style.opacity = "1")}
@@ -216,53 +244,63 @@ const getPadding = () => {
               <FaYoutube />
             </a>
             <a
-              href="#"
+              href="https://whatsapp.com/channel/0029Vb6TmkT5K3zSazmnwp28"
+              target="_blank"
+              rel="noopener noreferrer"
               style={{ color: socialColors.whatsapp, transition: "opacity 0.2s" }}
               onMouseEnter={(e) => (e.target.style.opacity = "0.7")}
               onMouseLeave={(e) => (e.target.style.opacity = "1")}
             >
               <FaWhatsapp />
             </a>
+            <a
+              href="https://maps.app.goo.gl/vPn55wY8KwuXEXZw9?g_st=ipc"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ color: socialColors.maps, transition: "opacity 0.2s" }}
+              onMouseEnter={(e) => (e.target.style.opacity = "0.7")}
+              onMouseLeave={(e) => (e.target.style.opacity = "1")}
+            >
+              <FaMapMarkerAlt />
+            </a>
           </div>
         </div>
       </div>
 
-      {/* Translate Section - Maintains original alignment */}
+      {/* Translate Section */}
       <div
         style={{
           borderBottom: "1px solid #ddd",
         }}
       >
- <div
-    style={{
-      maxWidth: "1440px",
-      margin: "0 auto",
-      padding: `${isMobile ? "12px" : "16px"} ${getPadding()}`,
-      width: "100%",
-    }}
-  >
-
+        <div
+          style={{
+            maxWidth: "1440px",
+            margin: "0 auto",
+            padding: `${isMobile ? "12px" : "16px"} ${getPadding()}`,
+            width: "100%",
+          }}
+        >
           {/* <GoogleTranslateDropdown /> */}
         </div>
       </div>
 
-      {/* Main Section - Maintains original alignment */}
+      {/* Main Section */}
       <div
         style={{
           backgroundColor: "#f9f9f9",
-          
         }}
       >
-         <div
-    style={{
-      maxWidth: "1440px",
-      margin: "0 auto",
-      padding: `${isMobile ? "20px" : "40px"} ${getPadding()}`,
-      width: "100%",
-    }}
-  >
+        <div
+          style={{
+            maxWidth: "1440px",
+            margin: "0 auto",
+            padding: `${isMobile ? "20px" : "40px"} ${getPadding()}`,
+            width: "100%",
+          }}
+        >
           {!isMobile ? (
-            // Desktop View - Maintains original layout
+            // Desktop View
             <div
               style={{
                 display: "flex",
@@ -366,7 +404,7 @@ const getPadding = () => {
         </div>
       </div>
 
-      {/* Legal Section - Maintains original alignment */}
+      {/* Legal Section */}
       <div
         style={{
           borderTop: "1px solid #eee",
@@ -375,14 +413,14 @@ const getPadding = () => {
           textAlign: "center",
         }}
       >
-       <div
-    style={{
-      maxWidth: "1440px",
-      margin: "0 auto",
-      padding: `${isMobile ? "16px" : "20px"} ${getPadding()}`,
-      width: "100%",
-    }}
-  >
+        <div
+          style={{
+            maxWidth: "1440px",
+            margin: "0 auto",
+            padding: `${isMobile ? "16px" : "20px"} ${getPadding()}`,
+            width: "100%",
+          }}
+        >
           <div
             style={{
               display: "flex",
@@ -410,7 +448,6 @@ const getPadding = () => {
           </div>
           <div
             style={{
-             
               padding: isMobile ? "12px" : "15px",
               border: "1px solid #ccc",
               borderRadius: "8px",

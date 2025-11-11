@@ -8,6 +8,7 @@ import Footer from "./components/Footer";
 export default function CustomerRequirement() {
   const location = useLocation();
   const { orderDetails } = location.state || {};
+  console.log(orderDetails, "new");
   const [products, setProducts] = useState([]);
   const [selectedProduct, setSelectedProduct] = useState();
    const navigate = useNavigate();
@@ -30,6 +31,7 @@ useEffect(() => {
   if (orderDetails?.orderData?.orderItems?.length) {
     const fetchProducts = async () => {
       try {
+        console.log("Fetching product details for:", orderDetails.orderData.orderItems);
         const productPromises = orderDetails.orderData.orderItems.map((item) =>
           
           fetch(`${API_BASE_URL}/product/productDetails/${item.product}`, {
@@ -38,7 +40,9 @@ useEffect(() => {
         );
        
         const productData = await Promise.all(productPromises);
+        console.log("Fetched product data:", productData);
         setProducts(productData);
+        console.log(products,"asd");
       } catch (err) {
         console.error("Error fetching product details:", err);
       }
@@ -57,7 +61,9 @@ useEffect(() => {
   };
 
   const handleCustomize = (product) => {
+    console.log(product.data);
    setSelectedProduct(product.data);
+    console.log(selectedProduct,"asha");
   };
 
   const handleProcessWithoutCustomization = () => {
@@ -117,6 +123,7 @@ useEffect(() => {
           });
         
         
+        console.log("Saved Custom Data:", data);
       } else {
         Swal.fire("Error", data.message || "Something went wrong", "error");
       }

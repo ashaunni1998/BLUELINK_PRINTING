@@ -218,7 +218,8 @@ const CheckoutForm = ({ orderDetails, onPaymentSuccess, onPaymentError }) => {
   };
 
   const handleCardReady = () => {
-    setCardReady(true);   
+    setCardReady(true);
+    console.log("CardElement is ready");
   };
 
   // Enhanced payment submission
@@ -247,7 +248,11 @@ const CheckoutForm = ({ orderDetails, onPaymentSuccess, onPaymentError }) => {
       }
 
       // Create payment intent
-   
+      console.log("Creating payment intent for:", {
+        amount: orderDetails.amount,
+        paymentMethod: selectedPaymentMethod,
+        orderId: orderDetails.orderId
+      });
 
       const paymentData = {
         order: { ...orderDetails },
@@ -270,6 +275,7 @@ const CheckoutForm = ({ orderDetails, onPaymentSuccess, onPaymentError }) => {
       }
 
       const data = await response.json();
+      console.log("Payment Intent created:", data.paymentIntent);
 
       if (selectedPaymentMethod === "card") {
 
@@ -279,7 +285,7 @@ const CheckoutForm = ({ orderDetails, onPaymentSuccess, onPaymentError }) => {
       }
 
     } catch (error) {
-    
+      console.log(1234,error);
       
       handlePaymentError(error, 'payment_submission');
     } finally {
